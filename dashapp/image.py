@@ -18,7 +18,7 @@ print(img_path_list)
 
 app.layout = html.Div([
     html.Div(
-        [html.A(html.Img(src=img_path, style={'max-width': '25%', 'max-height': '200px', 'float': 'left'}), href=img_path, target='_blank')
+        [html.A(html.Img(src=img_path, style={'max-width': '25%', 'max-height': '600px', 'float': 'left'}), href=img_path, target='_blank')
          for img_path in img_path_list]
     )
 ])
