@@ -32,7 +32,7 @@ button:hover {
 #get_pics {
     position: absolute;
     right: 2%;
-    margin-top: 20px;
+    margin-top: 40px;
 }
 
 #remain_count {
@@ -42,5 +42,10 @@ button:hover {
 
 #slider1 {
     width: 300px;
-    float: right;
+    margin-top: 3px;
+}
+
+#slider2 {
+    width: 300px;
+    margin-top: -20px;
 }

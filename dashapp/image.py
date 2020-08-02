@@ -8,6 +8,8 @@ import random
 
 app = dash.Dash(__name__)
 
+pic_max_height = 380
+
 img_path_list = []
 for root, dirs_, files_ in os.walk('./static/img'):
     for file_ in files_:
@@ -16,9 +18,12 @@ img_path_list.sort()
 
 pic_resolutions_sum = []
 for pic in random.sample(img_path_list, int(len(img_path_list)/10)):
-    pic_resolutions_sum.append(sum(Image.open(pic).size))
+    try:
+        pic_resolutions_sum.append(sum(Image.open(pic).size))
+    except:
+        pass
 avg_pic_resolution_sum = sum(pic_resolutions_sum) / len(pic_resolutions_sum)
-page_capacity=int(50000 / avg_pic_resolution_sum)
+page_capacity = int(100_000 / avg_pic_resolution_sum)
 print('平均分辨率和为{}，计算得出每页{}张图...'.format(avg_pic_resolution_sum, page_capacity))
 
 # img_path_list = [os.path.join('/static/img', i) for i in os.listdir('./static/img')]
@@ -30,13 +35,17 @@ print('平均分辨率和为{}，计算得出每页{}张图...'.format(avg_pic_r
 #     )
 # ])
 
-app.layout=html.Div([
+app.layout = html.Div([
     html.Div(style={'display': 'flex', 'flex-wrap': 'wrap', 'justify-content': 'left'}, id='container'),
     html.Div([
         html.Div(html.A(html.Button([html.Div(id='button_text'), html.Div(id='remain_count')], id='get_pics'), href='#container')),
-        html.Div(dcc.Slider(min=10, max=500, step=10, value=page_capacity, updatemode='drag', id='slider1'))
-    ], id='button_container'
-    )
+        html.Div(
+            html.Div([
+                dcc.Slider(min=10, max=500, step=10, value=page_capacity, updatemode='drag', id='slider1'),
+                dcc.Slider(min=100, max=800, step=1, value=pic_max_height, updatemode='drag', id='slider2')
+            ], style={'display': 'flex', 'flex-direction': 'column'})
+        )
+    ], id='button_container', style={'float': 'right'})
 ])
 
 
@@ -50,14 +59,18 @@ app.layout=html.Div([
     ]
 )
 def popup_100_pics(n_clicks):
-    return_list=[]
-    for _ in range(page_capacity):
+    return_list = []
+    for idx in range(page_capacity):
         try:
-            img_path=img_path_list.pop(0)
+            img_path = img_path_list.pop(0)
         except IndexError:
             break
         return_list.append(
-            html.A(html.Img(src=img_path, style={'max-height': '380px', 'vertical-align': 'middle'}), href=img_path, target='_blank')
+            html.A(html.Img(
+                src=img_path,
+                style={'max-height': '380px', 'vertical-align': 'middle'},
+                id={'type': 'pics', 'index': idx}
+            ), href=img_path, target='_blank')
         )
     remain_count = '还剩{}张'.format(len(img_path_list))
     return return_list, remain_count
@@ -76,5 +89,15 @@ def set_page_capacity(s_value):
     return button_text
 
 
+@app.callback(
+    dash.dependencies.Output({'type': 'pics', 'index': dash.dependencies.ALL}, 'style'),
+    [dash.dependencies.Input('slider2', 'value')]
+)
+def det_pic_height(s_value):
+    global pic_max_height
+    pic_max_height = s_value
+    return [{'max-height': f'{pic_max_height}px', 'vertical-align': 'middle'} for i in range(page_capacity)]
+
+
 if __name__ == "__main__":
-    app.run_server()
+    app.run_server(debug=False)
