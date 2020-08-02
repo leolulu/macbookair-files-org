@@ -41,8 +41,8 @@ app.layout = html.Div([
         html.Div(html.A(html.Button([html.Div(id='button_text'), html.Div(id='remain_count')], id='get_pics'), href='#container')),
         html.Div(
             html.Div([
-                dcc.Slider(min=10, max=500, step=10, value=page_capacity, updatemode='drag', id='slider1'),
-                dcc.Slider(min=100, max=800, step=1, value=pic_max_height, updatemode='drag', id='slider2')
+                dcc.Slider(min=10, max=300, step=10, value=page_capacity, updatemode='drag', id='slider1'),
+                dcc.Slider(min=100, max=1500, step=1, value=pic_max_height, updatemode='drag', id='slider2')
             ], style={'display': 'flex', 'flex-direction': 'column'})
         )
     ], id='button_container', style={'float': 'right'})
@@ -91,12 +91,13 @@ def set_page_capacity(s_value):
 
 @app.callback(
     dash.dependencies.Output({'type': 'pics', 'index': dash.dependencies.ALL}, 'style'),
-    [dash.dependencies.Input('slider2', 'value')]
+    [dash.dependencies.Input('slider2', 'value')],
+    [dash.dependencies.State('container', 'children')]
 )
-def det_pic_height(s_value):
+def det_pic_height(s_value, pics):
     global pic_max_height
     pic_max_height = s_value
-    return [{'max-height': f'{pic_max_height}px', 'vertical-align': 'middle'} for i in range(page_capacity)]
+    return [{'max-height': f'{pic_max_height}px', 'vertical-align': 'middle'} for i in range(len(pics))]
 
 
 if __name__ == "__main__":
