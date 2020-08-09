@@ -36,13 +36,17 @@ print('平均分辨率和为{}，计算得出每页{}张图...'.format(avg_pic_r
 # ])
 
 app.layout = html.Div([
-    html.Div(style={'display': 'flex', 'flex-wrap': 'wrap', 'justify-content': 'left'}, id='container'),
+    html.Div(style={'display': 'flex', 'flex-wrap': 'wrap',
+                    'justify-content': 'left'}, id='container'),
     html.Div([
-        html.Div(html.A(html.Button([html.Div(id='button_text'), html.Div(id='remain_count')], id='get_pics'), href='#container')),
+        html.Div(html.A(html.Button([html.Div(id='button_text'), html.Div(
+            id='remain_count')], id='get_pics'), href='#container')),
         html.Div(
             html.Div([
-                dcc.Slider(min=10, max=300, step=10, value=page_capacity, updatemode='drag', id='slider1'),
-                dcc.Slider(min=100, max=1500, step=1, value=pic_max_height, updatemode='drag', id='slider2')
+                dcc.Slider(min=10, max=300, step=10, value=page_capacity,
+                           updatemode='drag', id='slider1'),
+                dcc.Slider(min=100, max=1500, step=1,
+                           value=pic_max_height, updatemode='drag', id='slider2')
             ], style={'display': 'flex', 'flex-direction': 'column'})
         )
     ], id='button_container', style={'float': 'right'})
@@ -66,6 +70,13 @@ def popup_100_pics(n_clicks):
         except IndexError:
             break
         return_list.append(
+            html.Video(
+                src=img_path,
+                muted=True, autoPlay=True, controls=True,
+                style={'max-height': '380px', 'vertical-align': 'middle'},
+                id={'type': 'pics', 'index': idx}
+            )
+            if os.path.splitext(img_path)[-1].lower() in ['.mp4', '.mov', '.avi', '.flv', '.mkv', '.ts'] else
             html.A(html.Img(
                 src=img_path,
                 style={'max-height': '380px', 'vertical-align': 'middle'},
@@ -90,7 +101,8 @@ def set_page_capacity(s_value):
 
 
 @app.callback(
-    dash.dependencies.Output({'type': 'pics', 'index': dash.dependencies.ALL}, 'style'),
+    dash.dependencies.Output(
+        {'type': 'pics', 'index': dash.dependencies.ALL}, 'style'),
     [dash.dependencies.Input('slider2', 'value')],
     [dash.dependencies.State('container', 'children')]
 )
