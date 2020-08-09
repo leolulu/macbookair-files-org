@@ -101,8 +101,7 @@ def set_page_capacity(s_value):
 
 
 @app.callback(
-    dash.dependencies.Output(
-        {'type': 'pics', 'index': dash.dependencies.ALL}, 'style'),
+    dash.dependencies.Output({'type': 'pics', 'index': dash.dependencies.ALL}, 'style'),
     [dash.dependencies.Input('slider2', 'value')],
     [dash.dependencies.State('container', 'children')]
 )
