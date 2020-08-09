@@ -5,7 +5,7 @@ __pycache__/
 .DS_Store
 # C extensions
 *.so
-
+dashapp/static/img
 # Distribution / packaging
 .Python
 build/
