@@ -9,7 +9,8 @@ pic_height = 100
 
 with open('rarbg_chrome_console_crawl.js', 'r', encoding='utf-8') as f:
     img_url_page_url_list = f.read().split('\n')
-img_url_page_url_list = [i.split(' ')[1:3] for i in list(filter(lambda x:re.match(r'VM\d{4}', x), img_url_page_url_list))]
+img_url_page_url_list = [i.split(' ')[1:3] for i in list(filter(lambda x:re.match(r'VM\d{3,4}', x), img_url_page_url_list))]
+print(img_url_page_url_list)
 
 
 container_content = []
