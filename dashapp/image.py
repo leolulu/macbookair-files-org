@@ -8,7 +8,7 @@ import random
 
 app = dash.Dash(__name__)
 
-pic_max_height = 380
+pic_max_height = 475
 
 img_path_list = []
 for root, dirs_, files_ in os.walk('./static/img'):
@@ -43,10 +43,8 @@ app.layout = html.Div([
             id='remain_count')], id='get_pics'), href='#container')),
         html.Div(
             html.Div([
-                dcc.Slider(min=10, max=300, step=10, value=page_capacity,
-                           updatemode='drag', id='slider1'),
-                dcc.Slider(min=100, max=1500, step=1,
-                           value=pic_max_height, updatemode='drag', id='slider2')
+                dcc.Slider(min=10, max=300, step=10, value=page_capacity, updatemode='drag', id='slider1'),
+                dcc.Slider(min=100, max=1500, step=1, value=pic_max_height, updatemode='drag', id='slider2')
             ], style={'display': 'flex', 'flex-direction': 'column'})
         )
     ], id='button_container', style={'float': 'right'})
