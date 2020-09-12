@@ -5,7 +5,7 @@ import re
 
 app = dash.Dash(__name__)
 
-pic_height = 100
+pic_height = 150
 
 with open('rarbg_chrome_console_crawl.js', 'r', encoding='utf-8') as f:
     img_url_page_url_list = f.read().split('\n')

@@ -11,8 +11,7 @@ video_url_list = []
 
 
 app.layout = html.Div([
-    dcc.Input(placeholder='请输入url...', type='input',
-              id='url_input', style={'width': '50%'}),
+    dcc.Input(placeholder='请输入url...', type='input', id='url_input', style={'width': '50%'}),
     html.Button('提取url结果', 'b2'),
     dcc.Textarea(style={'width': '100%', 'height': '200px'}, id='textarea1'),
     html.Div(id='wapy1'),
