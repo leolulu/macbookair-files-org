@@ -5,16 +5,29 @@ import dash
 import os
 from PIL import Image
 import random
+from typing import List
 
 app = dash.Dash(__name__)
 
 pic_max_height = 475
 
 img_path_list = []
-for root, dirs_, files_ in os.walk('./static/img'):
-    for file_ in files_:
-        img_path_list.append(os.path.join(root, file_))
-img_path_list.sort()
+browserd_img_list = []
+
+
+def get_img_path_list(img_path_list: List):
+    temp_img_list = []
+    for root, dirs_, files_ in os.walk('./static/img'):
+        for file_ in files_:
+            temp_img_list.append(os.path.join(root, file_))
+    temp_img_list.sort()
+    for temp_img in temp_img_list:
+        if temp_img not in img_path_list and temp_img not in browserd_img_list:
+            img_path_list.append(temp_img)
+    return img_path_list
+
+
+img_path_list = get_img_path_list(img_path_list)
 
 pic_resolutions_sum = []
 for pic in random.sample(img_path_list, int(len(img_path_list)/10)):
@@ -39,13 +52,19 @@ app.layout = html.Div([
     html.Div(style={'display': 'flex', 'flex-wrap': 'wrap',
                     'justify-content': 'left'}, id='container'),
     html.Div([
-        html.Div(html.A(html.Button([html.Div(id='button_text'), html.Div(
-            id='remain_count')], id='get_pics'), href='#container')),
+        html.Div(html.A(html.Button([
+            html.Div(id='button_text'),
+            html.Div(id='remain_count')
+        ], id='get_pics'), href='#container')),
         html.Div(
             html.Div([
                 dcc.Slider(min=10, max=300, step=10, value=page_capacity, updatemode='drag', id='slider1'),
                 dcc.Slider(min=100, max=1500, step=1, value=pic_max_height, updatemode='drag', id='slider2')
             ], style={'display': 'flex', 'flex-direction': 'column'})
+        ),
+        html.Img(
+            src='https://img.lanrentuku.com/img/allimg/1609/5-160914192R6-52.gif',
+            id='rescan_files', style={'position': 'absolute', 'right': '3%', 'margin-top': '120px', 'max-height': '50px', 'max-width': '50px'}
         )
     ], id='button_container', style={'float': 'right'})
 ])
@@ -81,6 +100,7 @@ def popup_100_pics(n_clicks):
                 id={'type': 'pics', 'index': idx}
             ), href=img_path, target='_blank')
         )
+        browserd_img_list.append(img_path)
     remain_count = '还剩{}张'.format(len(img_path_list))
     return return_list, remain_count
 
@@ -107,6 +127,17 @@ def det_pic_height(s_value, pics):
     global pic_max_height
     pic_max_height = s_value
     return [{'max-height': f'{pic_max_height}px', 'vertical-align': 'middle'} for i in range(len(pics))]
+
+
+@app.callback(
+    dash.dependencies.Output('rescan_files', 'title'),
+    [dash.dependencies.Input('rescan_files', 'n_clicks')]
+)
+def rescan_files(n_clicks):
+    global img_path_list
+    img_path_list = get_img_path_list(img_path_list)
+    remain_count = '还剩{}张'.format(len(img_path_list))
+    return remain_count
 
 
 if __name__ == "__main__":
