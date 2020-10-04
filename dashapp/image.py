@@ -61,10 +61,6 @@ app.layout = html.Div([
                 dcc.Slider(min=10, max=300, step=10, value=page_capacity, updatemode='drag', id='slider1'),
                 dcc.Slider(min=100, max=1500, step=1, value=pic_max_height, updatemode='drag', id='slider2')
             ], style={'display': 'flex', 'flex-direction': 'column'})
-        ),
-        html.Img(
-            src='https://img.lanrentuku.com/img/allimg/1609/5-160914192R6-52.gif',
-            id='rescan_files', style={'position': 'absolute', 'right': '3%', 'margin-top': '120px', 'max-height': '50px', 'max-width': '50px'}
         )
     ], id='button_container', style={'float': 'right'})
 ])
@@ -80,6 +76,7 @@ app.layout = html.Div([
     ]
 )
 def popup_100_pics(n_clicks):
+    global img_path_list
     return_list = []
     for idx in range(page_capacity):
         try:
@@ -101,6 +98,8 @@ def popup_100_pics(n_clicks):
             ), href=img_path, target='_blank')
         )
         browserd_img_list.append(img_path)
+    if len(img_path_list) == 0:
+        img_path_list = get_img_path_list(img_path_list)
     remain_count = '还剩{}张'.format(len(img_path_list))
     return return_list, remain_count
 
@@ -129,15 +128,6 @@ def det_pic_height(s_value, pics):
     return [{'max-height': f'{pic_max_height}px', 'vertical-align': 'middle'} for i in range(len(pics))]
 
 
-@app.callback(
-    dash.dependencies.Output('rescan_files', 'title'),
-    [dash.dependencies.Input('rescan_files', 'n_clicks')]
-)
-def rescan_files(n_clicks):
-    global img_path_list
-    img_path_list = get_img_path_list(img_path_list)
-    remain_count = '还剩{}张'.format(len(img_path_list))
-    return remain_count
 
 
 if __name__ == "__main__":
