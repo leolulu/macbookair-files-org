@@ -30,14 +30,20 @@ def get_img_path_list(img_path_list: List):
 img_path_list = get_img_path_list(img_path_list)
 
 pic_resolutions_sum = []
-for pic in random.sample(img_path_list, int(len(img_path_list)/10)):
+sample_num = int(len(img_path_list)/10)
+for pic in random.sample(img_path_list, sample_num):
     try:
         pic_resolutions_sum.append(sum(Image.open(pic).size))
     except:
         pass
-avg_pic_resolution_sum = sum(pic_resolutions_sum) / len(pic_resolutions_sum)
-page_capacity = int(100_000 / avg_pic_resolution_sum)
-print('平均分辨率和为{}，计算得出每页{}张图...'.format(avg_pic_resolution_sum, page_capacity))
+try:
+    if len(pic_resolutions_sum) < sample_num*0.5:
+        raise UserWarning()
+    avg_pic_resolution_sum = sum(pic_resolutions_sum) / len(pic_resolutions_sum)
+    page_capacity = int(100_000 / avg_pic_resolution_sum)
+    print('平均分辨率和为{}，计算得出每页{}张图...'.format(avg_pic_resolution_sum, page_capacity))
+except:
+    page_capacity = 10
 
 # img_path_list = [os.path.join('/static/img', i) for i in os.listdir('./static/img')]
 # print(img_path_list)
@@ -86,7 +92,7 @@ def popup_100_pics(n_clicks):
         return_list.append(
             html.Video(
                 src=img_path,
-                muted=True, autoPlay=True, controls=True,
+                muted=True, autoPlay=True, controls=True, loop=True,
                 style={'max-height': '380px', 'vertical-align': 'middle'},
                 id={'type': 'pics', 'index': idx}
             )
@@ -126,8 +132,6 @@ def det_pic_height(s_value, pics):
     global pic_max_height
     pic_max_height = s_value
     return [{'max-height': f'{pic_max_height}px', 'vertical-align': 'middle'} for i in range(len(pics))]
-
-
 
 
 if __name__ == "__main__":
