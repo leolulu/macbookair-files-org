@@ -5,8 +5,5 @@ for (i of document.getElementsByClassName("lista2")) {
     )
 }
 var a_list = document.getElementById("pager_links").getElementsByTagName("a")
-setTimeout("a_list[a_list.length-1].click()",3000)
-
-
-
+setTimeout("a_list[a_list.length-1].click()",5000)
 
