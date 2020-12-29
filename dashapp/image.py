@@ -96,7 +96,7 @@ def popup_100_pics(n_clicks):
                 style={'max-height': '380px', 'vertical-align': 'middle'},
                 id={'type': 'pics', 'index': idx}
             )
-            if os.path.splitext(img_path)[-1].lower() in ['.mp4', '.mov', '.avi', '.flv', '.mkv', '.ts'] else
+            if os.path.splitext(img_path)[-1].lower() in ['.mp4', '.mov', '.avi', '.flv', '.mkv', '.ts', '.webm'] else
             html.A(html.Img(
                 src=img_path,
                 style={'max-height': '380px', 'vertical-align': 'middle'},
