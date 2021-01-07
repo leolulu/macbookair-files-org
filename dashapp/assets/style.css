@@ -23,14 +23,14 @@ button:hover {
     border: 4px dashed #4CAF50;
 }
 
-@media (max-width:1000px) {
-    #button_container {
-        height: 1700px;
-    }
-}
-
 #button_container {
     height: 700px;
+}
+
+@media (max-width:1000px) {
+    #button_container {
+        height: 1300px;
+    }
 }
 
 #get_pics {
@@ -52,4 +52,8 @@ button:hover {
 #slider2 {
     width: 300px;
     margin-top: -20px;
+}
+
+#img_catalog {
+    padding-left: 30px;
 }

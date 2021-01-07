@@ -19,7 +19,7 @@ def get_img_path_list(img_path_list: List):
     temp_img_list = []
     for root, dirs_, files_ in os.walk('./static/img'):
         for file_ in files_:
-            temp_img_list.append(os.path.join(root, file_))
+            temp_img_list.append(os.path.join(root, file_).replace('\\', '/'))
     temp_img_list.sort()
     for temp_img in temp_img_list:
         if temp_img not in img_path_list and temp_img not in browserd_img_list:
@@ -45,14 +45,6 @@ try:
 except:
     page_capacity = 10
 
-# img_path_list = [os.path.join('/static/img', i) for i in os.listdir('./static/img')]
-# print(img_path_list)
-
-# app.layout = html.Div([
-#     html.Div(
-#         [html.A(html.Img(src=img_path, style={'max-width': '25%', 'max-height': '600px', 'float': 'left'}), href=img_path, target='_blank') for img_path in img_path_list]
-#     )
-# ])
 
 app.layout = html.Div([
     html.Div(style={'display': 'flex', 'flex-wrap': 'wrap',
@@ -73,22 +65,25 @@ app.layout = html.Div([
 
 
 @app.callback(
-    [
-        dash.dependencies.Output('container', 'children'),
-        dash.dependencies.Output('remain_count', 'children')
-    ],
-    [
-        dash.dependencies.Input('get_pics', 'n_clicks')
-    ]
+    dash.dependencies.Output('container', 'children'),
+    dash.dependencies.Output('remain_count', 'children'),
+    dash.dependencies.Input('get_pics', 'n_clicks')
 )
 def popup_100_pics(n_clicks):
     global img_path_list
     return_list = []
+    previous_img_catalog = '〄 ' + 'default'.capitalize()
     for idx in range(page_capacity):
         try:
             img_path = img_path_list.pop(0)
+            current_img_catalog = '〄 ' + img_path.split('/')[-2].capitalize()
         except IndexError:
             break
+        if current_img_catalog != previous_img_catalog:
+            return_list.append(
+                html.H1(current_img_catalog, id='img_catalog_'+current_img_catalog, style={"width": "100%"})
+            )
+            previous_img_catalog = current_img_catalog
         return_list.append(
             html.Video(
                 src=img_path,
@@ -107,14 +102,13 @@ def popup_100_pics(n_clicks):
     if len(img_path_list) == 0:
         img_path_list = get_img_path_list(img_path_list)
     remain_count = '还剩{}张'.format(len(img_path_list))
+    print(return_list)
     return return_list, remain_count
 
 
 @app.callback(
     dash.dependencies.Output('button_text', 'children'),
-    [
-        dash.dependencies.Input('slider1', 'value')
-    ]
+    dash.dependencies.Input('slider1', 'value')
 )
 def set_page_capacity(s_value):
     global page_capacity
@@ -125,8 +119,8 @@ def set_page_capacity(s_value):
 
 @app.callback(
     dash.dependencies.Output({'type': 'pics', 'index': dash.dependencies.ALL}, 'style'),
-    [dash.dependencies.Input('slider2', 'value')],
-    [dash.dependencies.State('container', 'children')]
+    dash.dependencies.Input('slider2', 'value'),
+    dash.dependencies.State({'type': 'pics', 'index': dash.dependencies.ALL}, 'children')
 )
 def det_pic_height(s_value, pics):
     global pic_max_height
