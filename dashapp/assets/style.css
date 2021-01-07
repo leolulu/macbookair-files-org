@@ -57,3 +57,24 @@ button:hover {
 #img_catalog {
     padding-left: 30px;
 }
+
+#promotion {
+    animation: blingbling 3s cubic-bezier(0.68, -0.55, 0, 1.96) alternate infinite;
+}
+
+
+@keyframes blingbling {
+    from {
+        color: red;
+        transform: rotateX(-30deg);
+    }
+
+    50% {
+        color: green;
+    }
+
+    to {
+        color: blue;
+        transform: rotateY(90deg) translateX(-1300px) translateY(150px);
+    }
+}
