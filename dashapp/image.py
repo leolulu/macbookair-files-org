@@ -15,6 +15,9 @@ PRELOAD_IMG_URL = "https://ae01.alicdn.com/kf/H7b7fd1cb528b4c528506700808269792y
 img_path_list = []
 browserd_img_list = []
 
+show_folder_title = False
+show_moving_promote = False
+
 
 def get_img_path_list(img_path_list: List):
     temp_img_list = []
@@ -80,7 +83,7 @@ def popup_100_pics(n_clicks):
             current_img_catalog = '〄 ' + img_path.split('/')[-2].capitalize()
         except IndexError:
             break
-        if current_img_catalog != previous_img_catalog:
+        if current_img_catalog != previous_img_catalog and show_folder_title:
             return_list.append(
                 html.H1(current_img_catalog, id='img_catalog_'+current_img_catalog, style={"width": "100%"})
             )
@@ -104,7 +107,7 @@ def popup_100_pics(n_clicks):
     if len(img_path_list) == 0:
         img_path_list = get_img_path_list(img_path_list)
     remain_count = '还剩{}张'.format(len(img_path_list))
-    if len([i for i in return_list if isinstance(i, html.H1)]) == 1:
+    if len([i for i in return_list if isinstance(i, html.H1)]) == 1 and show_moving_promote:
         return_list.insert(0, html.H1('Only one category in the page!', id='promotion'))
     return return_list, remain_count
 
