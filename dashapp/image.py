@@ -48,7 +48,8 @@ try:
     print('平均分辨率和为{}，计算得出每页{}张图...'.format(avg_pic_resolution_sum, page_capacity))
 except:
     page_capacity = 10
-
+# Caution:
+page_capacity = 10
 
 app.layout = html.Div([
     html.Div(style={'display': 'flex', 'flex-wrap': 'wrap',
