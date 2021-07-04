@@ -10,6 +10,7 @@ from typing import List
 app = dash.Dash(__name__)
 
 pic_max_height = 475
+PRELOAD_IMG_URL = "https://ae01.alicdn.com/kf/H7b7fd1cb528b4c528506700808269792y/FFFPIN-5-8cm-Large-Brooch-Russian-Custom-Cartoon-Breastpin-Badge-Cute-Sexy-Girl-Pin-Coin-Icon.jpg"
 
 img_path_list = []
 browserd_img_list = []
@@ -93,7 +94,8 @@ def popup_100_pics(n_clicks):
             )
             if os.path.splitext(img_path)[-1].lower() in ['.mp4', '.mov', '.avi', '.flv', '.mkv', '.ts', '.webm'] else
             html.A(html.Img(
-                src=img_path,
+                className=img_path,
+                src=PRELOAD_IMG_URL,
                 style={'max-height': '380px', 'vertical-align': 'middle'},
                 id={'type': 'pics', 'index': idx}
             ), href=img_path, target='_blank')
@@ -130,4 +132,4 @@ def det_pic_height(s_value, pics):
 
 
 if __name__ == "__main__":
-    app.run_server(debug=False,host='0.0.0.0')
+    app.run_server(debug=False, host='0.0.0.0')
