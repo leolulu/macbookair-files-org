@@ -10,9 +10,13 @@ from typing import List
 app = dash.Dash(__name__)
 
 pic_max_height = 475
+PRELOAD_IMG_URL = "https://ae01.alicdn.com/kf/H7b7fd1cb528b4c528506700808269792y/FFFPIN-5-8cm-Large-Brooch-Russian-Custom-Cartoon-Breastpin-Badge-Cute-Sexy-Girl-Pin-Coin-Icon.jpg"
 
 img_path_list = []
 browserd_img_list = []
+
+show_folder_title = False
+show_moving_promote = False
 
 
 def get_img_path_list(img_path_list: List):
@@ -44,7 +48,8 @@ try:
     print('平均分辨率和为{}，计算得出每页{}张图...'.format(avg_pic_resolution_sum, page_capacity))
 except:
     page_capacity = 10
-
+# Caution:
+page_capacity = 10
 
 app.layout = html.Div([
     html.Div(style={'display': 'flex', 'flex-wrap': 'wrap',
@@ -79,7 +84,7 @@ def popup_100_pics(n_clicks):
             current_img_catalog = '〄 ' + img_path.split('/')[-2].capitalize()
         except IndexError:
             break
-        if current_img_catalog != previous_img_catalog:
+        if current_img_catalog != previous_img_catalog and show_folder_title:
             return_list.append(
                 html.H1(current_img_catalog, id='img_catalog_'+current_img_catalog, style={"width": "100%"})
             )
@@ -93,7 +98,8 @@ def popup_100_pics(n_clicks):
             )
             if os.path.splitext(img_path)[-1].lower() in ['.mp4', '.mov', '.avi', '.flv', '.mkv', '.ts', '.webm'] else
             html.A(html.Img(
-                src=img_path,
+                className=img_path,
+                src=PRELOAD_IMG_URL,
                 style={'max-height': '380px', 'vertical-align': 'middle'},
                 id={'type': 'pics', 'index': idx}
             ), href=img_path, target='_blank')
@@ -102,7 +108,7 @@ def popup_100_pics(n_clicks):
     if len(img_path_list) == 0:
         img_path_list = get_img_path_list(img_path_list)
     remain_count = '还剩{}张'.format(len(img_path_list))
-    if len([i for i in return_list if isinstance(i, html.H1)]) == 1:
+    if len([i for i in return_list if isinstance(i, html.H1)]) == 1 and show_moving_promote:
         return_list.insert(0, html.H1('Only one category in the page!', id='promotion'))
     return return_list, remain_count
 
@@ -130,4 +136,4 @@ def det_pic_height(s_value, pics):
 
 
 if __name__ == "__main__":
-    app.run_server(debug=False)
+    app.run_server(debug=False, host='0.0.0.0')
