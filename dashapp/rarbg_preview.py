@@ -5,7 +5,7 @@ import re
 
 app = dash.Dash(__name__)
 
-pic_height = 150
+pic_height = 200
 
 with open('rarbg_data.data', 'r', encoding='utf-8') as f:
     img_url_page_url_list = f.read().split('\n')

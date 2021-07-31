@@ -17,6 +17,15 @@ var a_list = document.getElementById("pager_links").getElementsByTagName("a")
 a_list[a_list.length - 1].click()
 
 
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
 var item_count = sessionStorage.getItem('item_count')
 for (var i = 0; i <= item_count; i++) {
     var item = sessionStorage.getItem(i)
