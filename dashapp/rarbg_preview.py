@@ -9,7 +9,7 @@ pic_height = 200
 
 with open('rarbg_data.data', 'r', encoding='utf-8') as f:
     img_url_page_url_list = f.read().split('\n')
-img_url_page_url_list = [re.sub(r"VM\d+:\d+", '', i).replace("\u200b", "").strip().split(",") for i in list(filter(lambda x:re.search(r'http', x), img_url_page_url_list))]
+img_url_page_url_list = [re.sub(r"VM\d+:\d+", '', i).replace("\u200b", "").strip().split(",") for i in list(filter(lambda x:re.search(r'http.*?rarbg', x), img_url_page_url_list))]
 img_url_page_url_list = [(i[0].split('.')[0], i[1], i[2]) for i in img_url_page_url_list]
 img_url_page_url_list.sort(key=lambda x: x[0])
 for i in img_url_page_url_list[::-1]:
