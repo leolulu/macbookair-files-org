@@ -49,7 +49,7 @@ try:
 except:
     page_capacity = 10
 # Caution:
-page_capacity = 10
+page_capacity = 5
 
 app.layout = html.Div([
     html.Div(style={'display': 'flex', 'flex-wrap': 'wrap',
