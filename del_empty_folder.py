@@ -7,10 +7,15 @@ def del_empty_folder(folder_path):
     nonempty_folder_count = 0
     for i in os.listdir(folder_path):
         i = os.path.join(folder_path, i)
-        if re.match(r"^\.", os.path.basename(i).lower()) and os.path.isfile(i):
-            os.remove(i)
-            print('删除隐藏文件：', i)
-            continue
+        if os.path.isfile(i):
+            if re.match(r"^\.", os.path.basename(i).lower()):
+                os.remove(i)
+                print('删除隐藏文件：', i)
+                continue
+            if os.path.basename(i) == '谨防被骗.png':
+                os.remove(i)
+                print('删除谨防被骗：', i)
+                continue
         if os.path.isfile(i):
             file_count += 1
         if os.path.isdir(i):
@@ -24,4 +29,5 @@ def del_empty_folder(folder_path):
 
 
 if __name__ == "__main__":
-    del_empty_folder('/Users/Yo/python/.vscode/')
+    import sys
+    del_empty_folder(sys.argv[1])
