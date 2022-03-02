@@ -98,8 +98,7 @@ def process_baseon_bitrate_only_audio(file_path, bit_rate):
 
 
 if __name__ == "__main__":
-    # file_path = os.path.abspath(sys.argv[1])
-    file_path = r"C:\Users\sisplayer\Downloads\新建文件夹\all.mp4"
+    file_path = os.path.abspath(sys.argv[1])
     duration = get_length(file_path)
     bitrate = get_bitrate(duration)
     # process_baseon_bitrate_only_audio(file_path, bitrate)
