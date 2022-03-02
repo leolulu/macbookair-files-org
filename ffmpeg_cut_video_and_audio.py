@@ -1,5 +1,3 @@
-# https://www.luyinzhushou.com/voice2text/
-
 from posixpath import commonpath
 import subprocess
 import os
@@ -97,6 +95,7 @@ def process_baseon_bitrate_only_audio(file_path, bit_rate):
         os.rename(output_working_path, output_finish_path)
 
 
+# https://www.luyinzhushou.com/voice2text/
 if __name__ == "__main__":
     file_path = os.path.abspath(sys.argv[1])
     duration = get_length(file_path)
