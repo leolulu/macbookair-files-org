@@ -1,4 +1,3 @@
-from posixpath import commonpath
 import subprocess
 import os
 import sys
@@ -76,17 +75,17 @@ def process_baseon_bitrate_only_audio(file_path, bit_rate):
                 break
             print(f"文件大了【{currrent_size_human}】，减少码率，当前码率为：{bit_rate}")
             lasttime_bigger = True
-            bit_rate -= 1
-        elif os.path.getsize(output_working_path) < LIMIT:
+            bit_rate -= 5
+        elif os.path.getsize(output_working_path) < LIMIT and bit_rate < 32:
             if lasttime_bigger == True:
                 print(f"文件小足够了【{currrent_size_human}】，当前码率为：{bit_rate}")
                 break
             print(f"文件小了【{currrent_size_human}】，增大码率，当前码率为：{bit_rate}")
             lasttime_smaller = True
-            bit_rate += 1
+            bit_rate += 5
         else:
+            shutil.copy(output_working_path, output_lasttime_path)
             break
-        shutil.copy(output_working_path, output_lasttime_path)
 
     if os.path.exists(output_lasttime_path):
         os.rename(output_lasttime_path, output_finish_path)
@@ -100,5 +99,7 @@ if __name__ == "__main__":
     file_path = os.path.abspath(sys.argv[1])
     duration = get_length(file_path)
     bitrate = get_bitrate(duration)
-    # process_baseon_bitrate_only_audio(file_path, bitrate)
-    process_fix_length(file_path)
+    if len(sys.argv) > 2 and sys.argv[2] == 'fix':
+        process_fix_length(file_path)
+    else:
+        process_baseon_bitrate_only_audio(file_path, bitrate)
