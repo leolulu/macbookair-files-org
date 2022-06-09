@@ -1,6 +1,9 @@
 import os
 import re
 
+remove_files = ['谨防被骗.png', 'RARBG.txt', 'RARBG_DO_NOT_MIRROR.exe']
+remove_types = ['.nfo']
+
 
 def del_empty_folder(folder_path):
     file_count = 0
@@ -12,9 +15,13 @@ def del_empty_folder(folder_path):
                 os.remove(i)
                 print('删除隐藏文件：', i)
                 continue
-            if os.path.basename(i) == '谨防被骗.png':
+            if os.path.basename(i) in remove_files:
                 os.remove(i)
-                print('删除谨防被骗：', i)
+                print('删除文件：', i)
+                continue
+            if os.path.splitext(i)[-1] in remove_types:
+                os.remove(i)
+                print('删除类型：', i)
                 continue
         if os.path.isfile(i):
             file_count += 1
