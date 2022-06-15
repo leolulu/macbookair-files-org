@@ -62,9 +62,9 @@ def cut_video(video_path, seq_list):
 
 
 if __name__ == "__main__":
-    file_path = os.path.abspath(sys.argv[1])
-    # file_path = r"C:\Users\sisplayer\Downloads\新建文件夹\video_2022-05-20_13-07-44.mp4"
-    size = getFileSizeByMB(file_path)
-    length = getMp3Len(file_path)
-    seq_list = getSegList(size, length)
-    cut_video(file_path, seq_list)
+    for file_path in sys.argv[1:]:
+        file_path = os.path.abspath(file_path)
+        size = getFileSizeByMB(file_path)
+        length = getMp3Len(file_path)
+        seq_list = getSegList(size, length)
+        cut_video(file_path, seq_list)
