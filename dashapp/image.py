@@ -10,7 +10,7 @@ from typing import List
 app = dash.Dash(__name__)
 
 pic_max_height = 475
-PRELOAD_IMG_URL = "https://ae01.alicdn.com/kf/H7b7fd1cb528b4c528506700808269792y/FFFPIN-5-8cm-Large-Brooch-Russian-Custom-Cartoon-Breastpin-Badge-Cute-Sexy-Girl-Pin-Coin-Icon.jpg"
+PRELOAD_IMG_URL = "assets/Russian-Cute-Sexy-Girl.jpg"
 
 img_path_list = []
 browserd_img_list = []
@@ -61,7 +61,7 @@ app.layout = html.Div([
         ], id='get_pics'), href='#container')),
         html.Div(
             html.Div([
-                dcc.Slider(min=10, max=300, step=10, value=page_capacity, updatemode='drag', id='slider1'),
+                dcc.Slider(min=2, max=300, step=2, value=page_capacity, updatemode='drag', id='slider1'),
                 dcc.Slider(min=100, max=1500, step=1, value=pic_max_height, updatemode='drag', id='slider2')
             ], style={'display': 'flex', 'flex-direction': 'column'})
         )

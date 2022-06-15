@@ -1,7 +1,7 @@
 import os
 import re
 
-remove_files = ['谨防被骗.png', 'RARBG.txt', 'RARBG_DO_NOT_MIRROR.exe']
+remove_files = ['谨防被骗.jpg', '谨防被骗.png', 'RARBG.txt', 'RARBG_DO_NOT_MIRROR.exe']
 remove_types = ['.nfo']
 
 

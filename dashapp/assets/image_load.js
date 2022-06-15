@@ -32,7 +32,7 @@ function preload(images, index) {
             console.log('图片已替换，等待重载入...')
             setTimeout(function () {
                 img.src = src;
-            }, 60000);
+            }, 180000);
             console.log('图片已载入...')
         }
         img.src = src;
