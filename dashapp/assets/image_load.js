@@ -21,7 +21,7 @@ function preload(images, index) {
         for (var i = index + 1; i < images.length; i++) {
             console.log('...' + i + '...')
             images[i].onload = null
-            images[i].src = 'https://ae01.alicdn.com/kf/H7b7fd1cb528b4c528506700808269792y/FFFPIN-5-8cm-Large-Brooch-Russian-Custom-Cartoon-Breastpin-Badge-Cute-Sexy-Girl-Pin-Coin-Icon.jpg';
+            images[i].src = 'assets/Russian-Cute-Sexy-Girl.jpg';
         }
         img.onload = function () {
             preload(images, index + 1);
@@ -32,7 +32,7 @@ function preload(images, index) {
             console.log('图片已替换，等待重载入...')
             setTimeout(function () {
                 img.src = src;
-            }, 3000);
+            }, 180000);
             console.log('图片已载入...')
         }
         img.src = src;
