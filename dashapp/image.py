@@ -72,9 +72,13 @@ app.layout = html.Div([
 @app.callback(
     dash.dependencies.Output('container', 'children'),
     dash.dependencies.Output('remain_count', 'children'),
-    dash.dependencies.Input('get_pics', 'n_clicks')
+    dash.dependencies.Input('get_pics', 'n_clicks'),
+    dash.dependencies.State({'type': 'pics', 'index': dash.dependencies.ALL}, 'src'),
+    dash.dependencies.State({'type': 'pic_hrefs', 'index': dash.dependencies.ALL}, 'href')
 )
-def popup_100_pics(n_clicks):
+def popup_100_pics(n_clicks, srcs, hrefs):
+    current_page_img_urls = set(srcs).union(set(hrefs)) - set([PRELOAD_IMG_URL])
+    browserd_img_list.extend(current_page_img_urls)
     global img_path_list
     return_list = []
     previous_img_catalog = '〄 ' + 'default'.capitalize()
@@ -102,9 +106,8 @@ def popup_100_pics(n_clicks):
                 src=PRELOAD_IMG_URL,
                 style={'max-height': '380px', 'vertical-align': 'middle'},
                 id={'type': 'pics', 'index': idx}
-            ), href=img_path, target='_blank')
+            ), href=img_path, target='_blank', id={'type': 'pic_hrefs', 'index': idx})
         )
-        browserd_img_list.append(img_path)
     if len(img_path_list) == 0:
         img_path_list = get_img_path_list(img_path_list)
     remain_count = '还剩{}张'.format(len(img_path_list))
