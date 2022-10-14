@@ -23,7 +23,10 @@ def get_img_path_list(img_path_list: List):
     temp_img_list = []
     for root, dirs_, files_ in os.walk('./static/img'):
         for file_ in files_:
-            temp_img_list.append(os.path.join(root, file_).replace('\\', '/'))
+            file_path = os.path.join(root, file_)
+            file_path_renamed = file_path.replace("#", '_')
+            os.rename(file_path, file_path_renamed)
+            temp_img_list.append(file_path_renamed.replace('\\', '/'))
     temp_img_list.sort()
     for temp_img in temp_img_list:
         if temp_img not in img_path_list and temp_img not in browserd_img_list:
