@@ -23,7 +23,7 @@ def get_img_path_list(img_path_list: List):
     temp_img_list = []
     for root, dirs_, files_ in os.walk('./static/img'):
         for file_ in files_:
-            temp_img_list.append(os.path.join(root, file_).replace('\\', '/'))
+            temp_img_list.append(os.path.join(root, file_).replace('\\', '/').replace("#","%23"))
     temp_img_list.sort()
     for temp_img in temp_img_list:
         if temp_img not in img_path_list and temp_img not in browserd_img_list:
@@ -61,7 +61,7 @@ app.layout = html.Div([
         ], id='get_pics'), href='#container')),
         html.Div(
             html.Div([
-                dcc.Slider(min=2, max=300, step=2, value=page_capacity, updatemode='drag', id='slider1'),
+                dcc.Slider(min=2, max=600, step=2, value=page_capacity, updatemode='drag', id='slider1'),
                 dcc.Slider(min=100, max=1500, step=1, value=pic_max_height, updatemode='drag', id='slider2')
             ], style={'display': 'flex', 'flex-direction': 'column'})
         )
