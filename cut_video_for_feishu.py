@@ -55,7 +55,7 @@ def getSegList(size, length):
 def cut_video(video_path, seq_list):
     for i, time_tuple in enumerate(seq_list, start=1):
         every_file_name = '-{}'.format(i).join(os.path.splitext(video_path))
-        exe_string = 'ffmpeg -ss {} -to {} -accurate_seek -i "{}" -codec copy -avoid_negative_ts 1 "{}"'
+        exe_string = 'ffmpeg -ss {} -to {} -accurate_seek -i "{}" -codec copy -map_chapters -1 -avoid_negative_ts 1 "{}"'
         exe_string = exe_string.format(time_tuple[0], time_tuple[1], video_path, every_file_name)
         print(exe_string)
         subprocess.call(exe_string, shell=True)
