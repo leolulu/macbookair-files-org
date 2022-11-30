@@ -1,0 +1,21 @@
+from pathlib import Path
+import subprocess
+import argparse
+
+
+parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument('--dl_dir', help='视频文件目录的路径，必须使用绝对路径，默认为当前用户的"下载"文件夹', default=str(Path.home() / "Downloads"))
+parser.add_argument('--mp4', help='是否需要后处理转码为mp4', action='store_true')
+parser.add_argument('url', help='youtube视频url')
+args = parser.parse_args()
+
+download_command_template = 'yt-dlp --ignore-errors --windows-filenames --proxy socks5://127.0.0.1:10808 --mark-watched --retries 99 --file-access-retries 99 --fragment-retries 99 -o "{temp_folder}/%(title)s.%(ext)s" #ecode-video-placeholder# --cookies-from-browser chrome "{url}"'
+download_command_template = download_command_template.format(url=args.url, temp_folder=args.dl_dir.replace('\\', '/').replace('\\\\', '/'))
+
+if args.mp4:
+    download_command = download_command_template.replace('#ecode-video-placeholder#', '--recode-video mp4 --add-metadata --postprocessor-args "-movflags faststart"')
+else:
+    download_command = download_command_template.replace('#ecode-video-placeholder#', '')
+
+print(f"下载指令：{download_command}")
+subprocess.Popen(download_command, shell=True)
