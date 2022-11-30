@@ -6,7 +6,7 @@ import argparse
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--dl_dir', help='视频文件目录的路径，必须使用绝对路径，默认为当前用户的"下载"文件夹', default=str(Path.home() / "Downloads"))
 parser.add_argument('--mp4', help='是否需要【启用】后处理【转码】为mp4，默认不启用，如果开启，会禁用封装', action='store_true')
-parser.add_argument('--unremux', help='是否需要【禁用】后处理【封装】为mp4，默认开启封装', action='store_false')
+parser.add_argument('--unremux', help='是否需要【禁用】后处理【封装】为mp4，默认开启封装', action='store_true')
 parser.add_argument('url', help='youtube视频url')
 args = parser.parse_args()
 
