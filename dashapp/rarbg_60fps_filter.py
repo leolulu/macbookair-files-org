@@ -1,6 +1,7 @@
+import json
 import os
 import re
-import json
+from pathlib import Path
 
 
 def package_json_data(dir_path):
@@ -31,7 +32,9 @@ def parse_json(json_data):
                 fps = float(fps_re_find_result[0])
                 if fps >= 50:
                     temp_fps_result.append((fps, name))
-                    print(magnet)
+                    # print(magnet)
+                    with open(os.path.join(str(Path.home() / "Downloads"), '60fps.txt'), 'a', encoding='utf-8') as f:
+                        f.write(f"{magnet}\n")
             elif desc_row.find('frame') != -1:
                 print("有frame，但是没有取到fps：", name, desc_row)
 
@@ -54,5 +57,5 @@ def parse_json(json_data):
 # print(img_url_page_url_list)
 
 if __name__ == '__main__':
-    json_data = package_json_data(r"C:\Users\sisplayer\Downloads")
+    json_data = package_json_data(str(Path.home() / "Downloads"))
     parse_json(json_data)
