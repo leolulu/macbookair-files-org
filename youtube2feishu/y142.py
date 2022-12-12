@@ -6,4 +6,4 @@ command = 'python yt_dlp_tool.py --dl_dir "{dl_dir}" --postprefix "__l0" {url}'.
     url=sys.argv[1]
 )
 print(command)
-subprocess.Popen(command)
+subprocess.Popen(command, shell=True)
