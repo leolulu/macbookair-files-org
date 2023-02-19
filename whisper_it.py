@@ -104,6 +104,7 @@ class WhisperTaskHandler:
     def close(self):
         self.whisper_process.terminate()
         self.whisper_process.close()
+        print("模型已关闭！")
 
 
 if __name__ == '__main__':
@@ -130,3 +131,4 @@ if __name__ == '__main__':
     for i in os.listdir(_dir):
         i = os.path.join(_dir, i)
         wth.add_task(WhisperTask(i, True, ['en'], post_func))
+    wth.close()
