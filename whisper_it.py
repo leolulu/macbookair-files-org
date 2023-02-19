@@ -42,7 +42,7 @@ class WhisperTask:
     verbose: Optional[bool] = False
     target_languages: Optional[List[str]] = None
     post_func: Optional[Callable] = None
-    post_func_bytes:Optional[bytes] = field(init=False)
+    post_func_bytes: Optional[bytes] = field(init=False)
 
     def __post_init__(self):
         if self.post_func:
@@ -131,4 +131,3 @@ if __name__ == '__main__':
     for i in os.listdir(_dir):
         i = os.path.join(_dir, i)
         wth.add_task(WhisperTask(i, True, ['en'], post_func))
-    wth.close()
