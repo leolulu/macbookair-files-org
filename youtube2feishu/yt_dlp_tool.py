@@ -41,6 +41,8 @@ def yt_dlp():
         subprocess.call(download_command, shell=True)
 
         for f_name in os.listdir(temp_folder):
+            if os.path.splitext(f_name)[-1].lower() == '.log':
+                continue
             f_path = os.path.join(temp_folder, f_name)
             if args.postprefix:
                 f_path_with_postprefix = args.postprefix.join(os.path.splitext(f_path))
