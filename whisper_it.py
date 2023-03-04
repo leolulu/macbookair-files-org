@@ -22,8 +22,9 @@ class WhisperIt:
         output_dir = os.path.dirname(media_path)
         writer = WriteSRT(output_dir)
         writer(result, media_path_without_ext)
-        with open(media_path_without_ext+'.txt', 'w', encoding='utf-8') as f:
-            f.write(str(result['text']))
+        with open(media_path_without_ext+'.txt', 'a', encoding='utf-8') as f:
+            for segment in result["segments"]:
+                f.write(segment['text'].strip()+'\n')  # type: ignore
         return result
 
     def detect_language(self, media_path):
@@ -63,7 +64,7 @@ class WhisperTaskHandler:
         print("模型加载完毕，等待接收任务...")
         while True:
             task = self.queue.get()
-            print(f"开始处理任务：{task}")
+            print(f"开始处理任务：{task.media_path}")
             try:
                 if task.target_languages:
                     language = w.detect_language(task.media_path)
@@ -119,7 +120,7 @@ if __name__ == '__main__':
         import shutil
         srt_path = os.path.splitext(media_path)[0] + '.srt'
         txt_path = os.path.splitext(media_path)[0] + '.txt'
-        if os.path.getsize(txt_path) < 128:
+        if os.path.getsize(txt_path) < 256:
             bad_result_folder = os.path.join(os.path.dirname(media_path), 'bad_results')
             if not os.path.exists(bad_result_folder):
                 os.mkdir(bad_result_folder)
@@ -127,7 +128,8 @@ if __name__ == '__main__':
                 shutil.move(i, bad_result_folder)
 
     wth = WhisperTaskHandler()
-    _dir = r"C:\Users\sisplayer\Downloads\BNWO content"
-    for i in os.listdir(_dir):
-        i = os.path.join(_dir, i)
-        wth.add_task(WhisperTask(i, True, ['en'], post_func))
+    _dir = r"\\192.168.123.221\共享文件夹\gif2"
+    for current_dir, folders, files in os.walk(_dir):
+        for i in files:
+            i = os.path.join(current_dir, i)
+            wth.add_task(WhisperTask(i, False, ['en'], post_func))
