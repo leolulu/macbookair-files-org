@@ -14,10 +14,11 @@ def yt_dlp():
     parser.add_argument('--mp4', help='是否需要【启用】后处理【转码】为mp4，默认不启用，如果开启，会禁用封装', action='store_true')
     parser.add_argument('--unremux', help='是否需要【禁用】后处理【封装】为mp4，默认开启封装', action='store_true')
     parser.add_argument('--postprefix', help='是否需要增加文件名后缀')
+    parser.add_argument('--temp_folder_name', help='指定一个临时文件夹的名称，默认会随机生成', default=str(int(time.time())))
     parser.add_argument('url', help='youtube视频url')
     args = parser.parse_args()
 
-    temp_folder = str(int(time.time()))
+    temp_folder = args.temp_folder_name
     if not os.path.exists(temp_folder):
         os.mkdir(temp_folder)
 
@@ -40,6 +41,8 @@ def yt_dlp():
         subprocess.call(download_command, shell=True)
 
         for f_name in os.listdir(temp_folder):
+            if os.path.splitext(f_name)[-1].lower() == '.log':
+                continue
             f_path = os.path.join(temp_folder, f_name)
             if args.postprefix:
                 f_path_with_postprefix = args.postprefix.join(os.path.splitext(f_path))
