@@ -7,9 +7,9 @@ function check_if_img_loaded(params) {
         return img.className.includes("static/img");
     });
     if (filteredImages[0].className != filteredImages[0].name) {
-        console.log("diaoyong");
-        console.log('classname', filteredImages[0].className)
-        console.log('name', filteredImages[0].name)
+        console.log("初始化...");
+        console.log('classname: ', filteredImages[0].className)
+        console.log('name: ', filteredImages[0].name)
         preload(filteredImages, 0)
     }
 }
@@ -40,8 +40,7 @@ function preload(images, index) {
                 img.dataset.loadFailures = 1;
             }
             if (img.dataset.loadFailures > 5) {
-                img.remove()
-                console.log('图片失败次数过多，已经被移除...')
+                console.log('图片失败次数过多，停止重试...')
                 return 
             } else {
                 console.log('已经失败次数...' + img.dataset.loadFailures)
