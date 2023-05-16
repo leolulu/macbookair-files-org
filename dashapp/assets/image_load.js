@@ -16,7 +16,7 @@ function check_if_img_loaded(params) {
 
 
 function preload(images, index) {
-    console.log('preload image' + index)
+    console.log('preload image...' + index)
     index = index || 0;
     if (images && images.length > index) {
         var img = images[index];
