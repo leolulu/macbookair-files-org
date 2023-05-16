@@ -33,13 +33,13 @@ function preload(images, index) {
         };
         img.onerror = function () {
             console.log('图片载入失败了...')
-            img.src = 'https://a.thumbs.redditmedia.com/UlK91vWguosDZwdVMaMRBRM6dWk7a3Eqn0jcYMnfxp4.png';
+            img.src = 'assets/load_fail_cat.png';
             console.log('图片已替换，等待重载入...')
             setTimeout(function () {
+                img.onload = null;
                 img.src = src;
                 console.log('图片已重新载入...')
-            }, 180000);
-            
+            }, 10000);
         }
         img.src = src;
         img.name = src;
