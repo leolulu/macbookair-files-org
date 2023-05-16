@@ -32,13 +32,12 @@ function preload(images, index) {
             preload(images, index + 1);
         };
         img.onerror = function () {
-            console.log('图片载入失败了...')
+            console.log('图片载入失败了...', img)
             img.src = 'assets/load_fail_cat.png';
             console.log('图片已替换，等待重载入...')
             setTimeout(function () {
                 img.onload = null;
                 img.src = src;
-                console.log('图片已重新载入...')
             }, 10000);
         }
         img.src = src;
