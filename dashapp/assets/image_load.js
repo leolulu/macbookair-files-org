@@ -21,10 +21,12 @@ function preload(images, index) {
     if (images && images.length > index) {
         var img = images[index];
         var src = images[index].className;
-        for (var i = index + 1; i < images.length; i++) {
-            console.log('...' + i + '...')
-            images[i].onload = null
-            images[i].src = 'assets/Russian-Cute-Sexy-Girl.jpg';
+        if (index == 0) {
+            for (var i = index + 1; i < images.length; i++) {
+                console.log('...' + i + '...')
+                images[i].onload = null
+                images[i].src = 'assets/Russian-Cute-Sexy-Girl.jpg';
+            }
         }
         img.onload = function () {
             preload(images, index + 1);
