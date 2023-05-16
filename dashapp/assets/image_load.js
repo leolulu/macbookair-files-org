@@ -33,6 +33,18 @@ function preload(images, index) {
         };
         img.onerror = function () {
             console.log('图片载入失败了...', img)
+            // 初始化或增加加载失败的次数
+            if (img.dataset.loadFailures) {
+                img.dataset.loadFailures++;
+            } else {
+                img.dataset.loadFailures = 1;
+            }
+            if (img.dataset.loadFailures > 6) {
+                img.remove()
+                console.log('图片失败次数过多，已经被移除...')
+            } else {
+                console.log('已经失败次数...' + img.dataset.loadFailures)
+            }
             img.src = 'assets/load_fail_cat.png';
             console.log('图片已替换，等待重载入...')
             setTimeout(function () {
