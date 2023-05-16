@@ -39,9 +39,10 @@ function preload(images, index) {
             } else {
                 img.dataset.loadFailures = 1;
             }
-            if (img.dataset.loadFailures > 6) {
+            if (img.dataset.loadFailures > 5) {
                 img.remove()
                 console.log('图片失败次数过多，已经被移除...')
+                return 
             } else {
                 console.log('已经失败次数...' + img.dataset.loadFailures)
             }
