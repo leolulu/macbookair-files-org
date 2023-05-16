@@ -13,7 +13,7 @@ pic_max_height = 475
 PRELOAD_IMG_URL = "assets/Russian-Cute-Sexy-Girl.jpg"
 
 img_path_list = []
-browserd_img_list = []
+browsed_img_list = []
 
 show_folder_title = False
 show_moving_promote = False
@@ -26,7 +26,7 @@ def get_img_path_list(img_path_list: List):
             temp_img_list.append(os.path.join(root, file_).replace('\\', '/').replace("#","%23"))
     temp_img_list.sort()
     for temp_img in temp_img_list:
-        if temp_img not in img_path_list and temp_img not in browserd_img_list:
+        if temp_img not in img_path_list and temp_img not in browsed_img_list:
             img_path_list.append(temp_img)
     return img_path_list
 
@@ -104,7 +104,7 @@ def popup_100_pics(n_clicks):
                 id={'type': 'pics', 'index': idx}
             ), href=img_path, target='_blank')
         )
-        browserd_img_list.append(img_path)
+        browsed_img_list.append(img_path)
     if len(img_path_list) == 0:
         img_path_list = get_img_path_list(img_path_list)
     remain_count = '还剩{}张'.format(len(img_path_list))
