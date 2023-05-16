@@ -16,14 +16,14 @@ function check_if_img_loaded(params) {
 
 
 function preload(images, index) {
-    console.log('preload........................................................................' + index)
+    console.log('preload image' + index)
     index = index || 0;
     if (images && images.length > index) {
         var img = images[index];
         var src = images[index].className;
         if (index == 0) {
             for (var i = index + 1; i < images.length; i++) {
-                console.log('...' + i + '...')
+                console.log('reset image...' + i)
                 images[i].onload = null
                 images[i].src = 'assets/Russian-Cute-Sexy-Girl.jpg';
             }
@@ -37,8 +37,9 @@ function preload(images, index) {
             console.log('图片已替换，等待重载入...')
             setTimeout(function () {
                 img.src = src;
+                console.log('图片已重新载入...')
             }, 180000);
-            console.log('图片已载入...')
+            
         }
         img.src = src;
         img.name = src;
