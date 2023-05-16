@@ -3,11 +3,14 @@ setInterval(check_if_img_loaded, 2000)
 
 function check_if_img_loaded(params) {
     var images = document.images;
-    if (images[0].className != images[0].name) {
+    var filteredImages = Array.prototype.filter.call(images, function (img) {
+        return img.className.includes("static/img");
+    });
+    if (filteredImages[0].className != filteredImages[0].name) {
         console.log("diaoyong");
-        console.log('classname', images[0].className)
-        console.log('name', images[0].name)
-        preload(images, 0)
+        console.log('classname', filteredImages[0].className)
+        console.log('name', filteredImages[0].name)
+        preload(filteredImages, 0)
     }
 }
 
