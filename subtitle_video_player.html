@@ -38,8 +38,13 @@
 
         .subtitle {
             cursor: pointer;
-            margin-bottom: 5px;
+            padding-top: 2px;
+            padding-bottom: 3px;
             border-bottom: 1px dashed #d1c4c4;
+        }
+
+        .subtitle:hover {
+            background-color: #F2F4FB;
         }
 
         .highlight {
@@ -189,6 +194,7 @@
                         $('#video')[0].currentTime = subtitles[index].start;
                     });
                 };
+                console.log(file)
                 reader.readAsText(file);
             }
 
