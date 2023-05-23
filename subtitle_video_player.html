@@ -15,7 +15,7 @@
         }
 
         #video-player {
-            width: 50%;
+            width: 66%;
             overflow: auto;
         }
 
@@ -30,7 +30,7 @@
         }
 
         #subtitles {
-            width: 50%;
+            width: 33%;
             overflow: auto;
             height: 95vh;
             border-bottom: 1px solid #e0e0e0;
@@ -41,6 +41,8 @@
             padding-top: 2px;
             padding-bottom: 3px;
             border-bottom: 1px dashed #d1c4c4;
+            font-size: 18px;
+            font-family: PingFang SC, Hiragino Sans GB, Microsoft Yahei, Arial, sans-serif;
         }
 
         .subtitle:hover {
@@ -105,6 +107,7 @@
 
             // Set up event listener for video file input
             $('#videoFile').change(function (e) {
+                $('#subtitles').innerHTML = '';
                 var files = e.target.files;
                 for (var i = 0; i < files.length; i++) {
                     if (files[i].name.endsWith('.mp4')) {
@@ -120,7 +123,7 @@
             function highlightSubtitle() {
                 var currentTime = $('#video')[0].currentTime;
                 for (var i = 0; i < subtitles.length; i++) {
-                    if (currentTime >= subtitles[i].start && currentTime <= subtitles[i].end) {
+                    if (currentTime >= subtitles[i].start && currentTime < subtitles[i].end) {
                         $('.subtitle').removeClass('highlight');
                         var activeSubtitle = $('.subtitle[data-index=' + i + ']');
                         activeSubtitle.addClass('highlight');
@@ -194,7 +197,6 @@
                         $('#video')[0].currentTime = subtitles[index].start;
                     });
                 };
-                console.log(file)
                 reader.readAsText(file);
             }
 
