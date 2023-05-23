@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Video Player with Subtitles</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #container {
+            display: flex;
+            height: 100vh;
+        }
+
+        #video-player {
+            width: 50%;
+            overflow: auto;
+        }
+
+        #video {
+            width: 100%;
+        }
+
+        #divider {
+            cursor: col-resize;
+            background-color: #aaa;
+            width: 1px;
+            margin: 0 5px 0 0;
+        }
+
+        #subtitles {
+            width: 50%;
+            overflow: auto;
+            height: 95vh;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .subtitle {
+            cursor: pointer;
+            margin-bottom: 5px;
+            border-bottom: 1px dashed #d1c4c4;
+        }
+
+        .highlight {
+            background-color: yellow;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <div id="video-player">
+            <video id="video" controls>
+                Your browser does not support HTML5 video.
+            </video>
+            <input type="file" id="videoFile" accept=".mp4, .srt" multiple />
+            <label for="skipBlanks">跳过空白</label>
+            <input type="checkbox" id="skipBlanks" />
+        </div>
+        <div id="divider"></div>
+        <div id="subtitles">
+            <!-- Subtitles will be loaded here -->
+        </div>
+    </div>
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+
+        var isResizing = false;
+
+        $(function () {
+            var videoPlayer = $('#video-player');
+            var subtitles = $('#subtitles');
+            var divider = $('#divider');
+
+            divider.on('mousedown', function (e) {
+                e.preventDefault();
+                isResizing = true;
+            });
+
+            $(document).on('mousemove', function (e) {
+                if (!isResizing) return;
+
+                var x = e.clientX;
+
+                var videoPlayerWidth = (x - videoPlayer.offset().left);
+                var subtitlesWidth = window.innerWidth - videoPlayerWidth - divider.width();
+
+                videoPlayer.css('width', videoPlayerWidth + 'px');
+                subtitles.css('width', subtitlesWidth + 'px');
+            }).on('mouseup', function (e) {
+                isResizing = false;
+            });
+        });
+
+        $(function () {
+            var subtitles = [];
+
+            // Set up event listener for video file input
+            $('#videoFile').change(function (e) {
+                var files = e.target.files;
+                for (var i = 0; i < files.length; i++) {
+                    if (files[i].name.endsWith('.mp4')) {
+                        var url = URL.createObjectURL(files[i]);
+                        $('#video').attr('src', url);
+                    } else if (files[i].name.endsWith('.srt')) {
+                        loadSubtitles(files[i]);
+                    }
+                }
+            });
+
+            // Set up event listener for video time updates
+            function highlightSubtitle() {
+                var currentTime = $('#video')[0].currentTime;
+                for (var i = 0; i < subtitles.length; i++) {
+                    if (currentTime >= subtitles[i].start && currentTime <= subtitles[i].end) {
+                        $('.subtitle').removeClass('highlight');
+                        var activeSubtitle = $('.subtitle[data-index=' + i + ']');
+                        activeSubtitle.addClass('highlight');
+
+                        // Check if active subtitle is in the viewport
+                        var parent = $('#subtitles');
+                        var scrollTop = parent.scrollTop();
+                        var scrollBottom = scrollTop + parent.height();
+                        var elementTop = activeSubtitle.position().top + scrollTop;
+                        var elementBottom = elementTop + activeSubtitle.height();
+
+                        if (elementTop < scrollTop || elementBottom > scrollBottom) {
+                            // Scroll to active subtitle
+                            parent.scrollTop(elementTop - activeSubtitle.height());
+                        }
+                        break;
+                    }
+                }
+
+                var currentVideoTime = $('#video')[0].currentTime;
+                var skipBlanks = $('#skipBlanks').prop('checked');
+                var currentSubtitleIndex = subtitles.findIndex(function (subtitle) {
+                    return subtitle.start <= currentVideoTime && subtitle.end >= currentVideoTime;
+                });
+                if (skipBlanks && currentSubtitleIndex == -1) {
+                    var nextSubtitle = subtitles.find(function (subtitle) {
+                        return subtitle.start > currentVideoTime;
+                    });
+                    if (nextSubtitle) {
+                        $('#video')[0].currentTime = nextSubtitle.start;
+                    }
+                } else if (skipBlanks && currentSubtitleIndex != -1 && subtitles[currentSubtitleIndex].end <= currentVideoTime) {
+                    var nextSubtitle = subtitles.find(function (subtitle) {
+                        return subtitle.start > currentVideoTime;
+                    });
+                    if (nextSubtitle) {
+                        $('#video')[0].currentTime = nextSubtitle.start;
+                    }
+                }
+            }
+
+            // Listen for timeupdate event to highlight the subtitle
+            $('#video').on('timeupdate', highlightSubtitle);
+
+            function loadSubtitles(file) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    // Parse SRT file
+                    var data = e.target.result;
+                    var lines = data.split('\n');
+                    for (var i = 0; i < lines.length; i++) {
+                        if (lines[i].indexOf('-->') !== -1) {
+                            var times = lines[i].split(' --> ');
+                            var start = hmsToSeconds(times[0].trim());
+                            var end = hmsToSeconds(times[1].trim());
+                            var text = "";
+                            for (var j = i + 1; j < lines.length; j++) {
+                                if (lines[j].trim() === "") {
+                                    i = j;
+                                    break;
+                                }
+                                text += lines[j] + "\n";
+                            }
+                            subtitles.push({ start: start, end: end, text: text });
+                            $('#subtitles').append('<div class="subtitle" data-index="' + (subtitles.length - 1) + '">' + text + '</div>');
+                        }
+                    }
+                    // Set up event listener for clicking on subtitles
+                    $('.subtitle').click(function () {
+                        var index = $(this).data('index');
+                        $('#video')[0].currentTime = subtitles[index].start;
+                    });
+                };
+                reader.readAsText(file);
+            }
+
+
+            function hmsToSeconds(time) {
+                var parts = time.split(':');
+                var secondsParts = parts[2].split(",");
+                var hours = parseInt(parts[0], 10);
+                var minutes = parseInt(parts[1], 10);
+                var seconds = parseInt(secondsParts[0], 10);
+                var milliseconds = parseInt(secondsParts[1], 10);
+
+                return hours * 3600 + minutes * 60 + seconds + milliseconds / 1000;
+            }
+        });
+    </script>
+</body>
+
+</html>
