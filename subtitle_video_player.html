@@ -17,6 +17,7 @@
         #video-player {
             width: 66%;
             overflow: auto;
+            align-self: flex-start;
         }
 
         #video {
@@ -32,7 +33,7 @@
         #subtitles {
             width: 33%;
             overflow: auto;
-            height: 95vh;
+            height: 99.9vh;
             border-bottom: 1px solid #e0e0e0;
         }
 
@@ -52,6 +53,13 @@
         .highlight {
             background-color: yellow;
         }
+
+        #videoFileName {
+            text-align: right;
+            font-weight: 800;
+            margin-right: 60px;
+            color: #28569F;
+        }
     </style>
 </head>
 
@@ -64,6 +72,8 @@
             <input type="file" id="videoFile" accept=".mp4, .srt" multiple />
             <label for="skipBlanks">跳过空白</label>
             <input type="checkbox" id="skipBlanks" />
+            <!-- 添加一个元素用来显示视频文件名 -->
+            <div id="videoFileName"></div>
         </div>
         <div id="divider"></div>
         <div id="subtitles">
@@ -73,8 +83,8 @@
 
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script>
-
         var isResizing = false;
 
         $(function () {
@@ -103,10 +113,12 @@
         });
 
         $(function () {
+            $('#video-player').draggable({ axis: 'y' });
             var subtitles = [];
 
             // Set up event listener for video file input
             $('#videoFile').change(function (e) {
+                // 清除原来的字幕
                 var bigDiv = $('#subtitles')[0]
                 while (bigDiv.firstChild) {
                     bigDiv.removeChild(bigDiv.firstChild);
@@ -116,6 +128,8 @@
                     if (files[i].name.endsWith('.mp4')) {
                         var url = URL.createObjectURL(files[i]);
                         $('#video').attr('src', url);
+                        // 更新视频文件名
+                        $('#videoFileName').text(files[i].name);
                     } else if (files[i].name.endsWith('.srt')) {
                         loadSubtitles(files[i]);
                     }
