@@ -20,7 +20,7 @@ if args.unremux:
         download_command_template
         .replace('#remux-video-placeholder#', '')
         .replace('#encode-video-placeholder#', (
-            '--rencode-video mp4 --add-metadata --postprocessor-args "-movflags faststart"' if args.mp4 else ''
+            '--recode-video mp4 --add-metadata --postprocessor-args "-movflags faststart"' if args.mp4 else ''
         ))
     )
 else:
