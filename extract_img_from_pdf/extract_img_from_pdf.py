@@ -1,5 +1,7 @@
-from pdf2image import convert_from_path
 import os
+import sys
+
+from pdf2image import convert_from_path
 from PIL import Image
 from tqdm import tqdm
 
@@ -45,4 +47,7 @@ def extract_folder(pdf_folder, output_folder=None):
 
 
 if __name__ == "__main__":
-    pdf_extract(r"C:\Users\pro3\Downloads\新建文件夹\科幻世界.1992.06.pdf")
+    if len(sys.argv) == 2:
+        extract_folder(sys.argv[1])
+    elif len(sys.argv) == 3:
+        extract_folder(sys.argv[1], sys.argv[2])
