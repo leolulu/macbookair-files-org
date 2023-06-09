@@ -272,7 +272,7 @@
                         var index = $(this).data('index');
                         $('#video')[0].currentTime = subtitles[index].start;
                         $('#video')[0].focus();
-                        $('#video')[0].play();
+                        // $('#video')[0].play();      // 灵活调整，感觉点击字幕后视频不自动播放要认知一致点儿
                     });
                     $('#subtitles').css('width', window.innerWidth - $('#video-player').width() - $('#divider').width() + 'px');
                 };
