@@ -181,6 +181,7 @@
             // Set up event listener for video time updates
             function highlightSubtitle() {
                 var currentTime = $('#video')[0].currentTime;
+                var found = false;
                 for (var i = 0; i < subtitles.length; i++) {
                     if (currentTime >= subtitles[i].start && currentTime < subtitles[i].end) {
                         $('.subtitle').removeClass('highlight');
@@ -198,8 +199,13 @@
                             // Scroll to active subtitle
                             parent.scrollTop(elementTop - activeSubtitle.height());
                         }
+                        found = true;
                         break;
                     }
+                }
+
+                if (!found) {
+                    $('.subtitle').removeClass('highlight');
                 }
 
                 var currentVideoTime = $('#video')[0].currentTime;
@@ -213,6 +219,9 @@
                     });
                     if (nextSubtitle) {
                         $('#video')[0].currentTime = nextSubtitle.start;
+                    } else {
+                        $('#video')[0].currentTime = $('#video')[0].duration;
+                        $('#video')[0].pause();
                     }
                 }
             }
