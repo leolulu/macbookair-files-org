@@ -95,6 +95,7 @@
     <script>
         var isResizing = false;
 
+        // 通过拖动水平分割线调整视频高度
         $(function () {
             var video = $('#video');
             var horizontalDivider = $('#horizontal-divider');
@@ -117,6 +118,7 @@
             });
         });
 
+        // 通过拖动垂直分割线调整视频和字幕区域的水平比例
         $(function () {
             var videoPlayer = $('#video-player');
             var subtitles = $('#subtitles');
@@ -143,6 +145,7 @@
         });
 
         $(function () {
+            // 通过特定区域（视频名称）调整视频播放器的垂直位置
             $('#videoFileName').on('mousedown', function (e) {
                 e.preventDefault();
                 $('#video-player').draggable({ axis: 'y' });
