@@ -80,6 +80,8 @@
             <input type="file" id="videoFile" accept=".mp4, .srt" multiple />
             <label for="skipBlanks">跳过空白</label>
             <input type="checkbox" id="skipBlanks" />
+            <label for="clickToPlay">点击字幕播放</label>
+            <input type="checkbox" id="clickToPlay" />
             <!-- 添加一个元素用来显示视频文件名 -->
             <div id="videoFileName"></div>
         </div>
@@ -277,7 +279,9 @@
                         var index = $(this).data('index');
                         $('#video')[0].currentTime = subtitles[index].start;
                         $('#video')[0].focus();
-                        // $('#video')[0].play();      // 灵活调整，感觉点击字幕后视频不自动播放要认知一致点儿
+                        if ($('#clickToPlay').prop('checked')) {
+                            $('#video')[0].play();
+                        }
                     });
                     $('#subtitles').css('width', window.innerWidth - $('#video-player').width() - $('#divider').width() + 'px');
                 };
