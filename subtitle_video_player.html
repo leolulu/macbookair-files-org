@@ -102,10 +102,12 @@
             var video = $('#video');
 
             video.on('mouseenter', function () {
-                video.attr("controls","controls")  
+                video.attr("controls", "controls")
             });
             video.on('mouseleave', function () {
-                video.removeAttr("controls")  
+                if (video.prop('readyState') == 4) {
+                    video.removeAttr("controls")
+                }
             });
 
             var horizontalDivider = $('#horizontal-divider');
