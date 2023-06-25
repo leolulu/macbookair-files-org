@@ -100,6 +100,14 @@
         // 通过拖动水平分割线调整视频高度
         $(function () {
             var video = $('#video');
+
+            video.on('mouseenter', function () {
+                video.attr("controls","controls")  
+            });
+            video.on('mouseleave', function () {
+                video.removeAttr("controls")  
+            });
+
             var horizontalDivider = $('#horizontal-divider');
 
             horizontalDivider.on('mousedown', function (e) {
