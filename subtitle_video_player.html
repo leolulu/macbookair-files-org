@@ -101,12 +101,22 @@
         $(function () {
             var video = $('#video');
 
+            const hideControlsStyle = document.createElement('style');
+            hideControlsStyle.innerHTML = `
+                video::-webkit-media-controls-panel {
+                    display: none !important;
+                }
+                video::-webkit-media-controls-play-button {
+                    display: none !important;
+                }
+            `;
+
             video.on('mouseenter', function () {
-                video.attr("controls", "controls")
+                document.head.removeChild(hideControlsStyle);
             });
             video.on('mouseleave', function () {
                 if (video.prop('readyState') == 4) {
-                    video.removeAttr("controls")
+                    document.head.appendChild(hideControlsStyle);
                 }
             });
 
@@ -288,10 +298,10 @@
                     $('.subtitle').click(function () {
                         var index = $(this).data('index');
                         $('#video')[0].currentTime = subtitles[index].start;
-                        $('#video')[0].focus();
                         if ($('#clickToPlay').prop('checked')) {
                             $('#video')[0].play();
                         }
+                        $('#video')[0].focus();
                     });
                     $('#subtitles').css('width', window.innerWidth - $('#video-player').width() - $('#divider').width() + 'px');
                 };
