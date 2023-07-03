@@ -299,6 +299,7 @@
             }
 
             function hmsToSeconds(time) {
+                time = time.replace('.', ',');
                 var parts = time.split(':');
                 var secondsParts = parts[2].split(",");
                 var hours = parseInt(parts[0], 10);
