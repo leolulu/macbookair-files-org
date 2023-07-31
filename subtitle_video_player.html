@@ -192,6 +192,7 @@
                     if (files[i].name.endsWith('.mp4')) {
                         var url = URL.createObjectURL(files[i]);
                         $('#video').attr('src', url);
+                        document.title = files[i].name;
                         // 更新视频文件名
                         $('#videoFileName').text(files[i].name);
                     } else if (files[i].name.endsWith('.srt')) {
