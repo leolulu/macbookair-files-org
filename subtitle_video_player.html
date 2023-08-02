@@ -288,7 +288,7 @@
                             text += "，" + tempSubtitles[i].text;
                             end = tempSubtitles[i].end;
                         }
-                        text += "。"
+                        // text += "。"
                         subtitles.push({ start: start, end: end, text: text });
                         $('#subtitles').append('<div class="subtitle" data-index="' + (subtitles.length - 1) + '">' + text + '</div>');
                         i++;
