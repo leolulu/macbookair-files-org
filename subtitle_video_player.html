@@ -36,6 +36,7 @@
             overflow: auto;
             height: 99.9vh;
             border-bottom: 1px solid #e0e0e0;
+            font-weight: 600;
         }
 
         .subtitle {
@@ -47,12 +48,22 @@
             font-family: PingFang SC, Hiragino Sans GB, Microsoft Yahei, Arial, sans-serif;
         }
 
-        .subtitle:hover {
-            color: red;
+        .subtitle:nth-child(even) {
+            color: #C2571A;
         }
 
-        .highlight {
+        .subtitle:nth-child(odd) {
+            color: #107896;
+        }
+
+        .subtitle:hover {
+            background-color: #7b1fa2;
+            color: white;
+        }
+
+        .subtitle.highlight {
             background-color: yellow;
+            color: black;
         }
 
         #videoFileName {
