@@ -11,16 +11,23 @@ class WhisperIt:
     def __init__(self, model_name="large") -> None:
         self.model = whisper.load_model(model_name)
 
-    def transcribe(self, media_path, verbose: Optional[bool] = False):
+    def transcribe(
+        self,
+        media_path,
+        verbose: Optional[bool] = False,
+        language: Optional[str] = None,
+        write_txt: bool = True,
+    ):
         media_path = os.path.abspath(media_path)
         media_path_without_ext = os.path.splitext(media_path)[0]
-        result = self.model.transcribe(media_path, verbose=verbose)
+        result = self.model.transcribe(media_path, verbose=verbose, language=language)
         output_dir = os.path.dirname(media_path)
         writer = WriteSRT(output_dir)
         writer(result, media_path_without_ext)
-        with open(media_path_without_ext + ".txt", "a", encoding="utf-8") as f:
-            for segment in result["segments"]:
-                f.write(segment["text"].strip() + "\n")  # type: ignore
+        if write_txt:
+            with open(media_path_without_ext + ".txt", "a", encoding="utf-8") as f:
+                for segment in result["segments"]:
+                    f.write(segment["text"].strip() + "\n")  # type: ignore
         return result
 
     def detect_language(self, media_path):
