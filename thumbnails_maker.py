@@ -100,8 +100,8 @@ def generate_thumbnail(video_path, rows, cols):
 if __name__ == "__main__":
     if len(sys.argv) == 2:
         video_path = sys.argv[1]
-        rows = 10
-        cols = 10
+        rows = 7
+        cols = 7
     elif len(sys.argv) == 4:
         video_path = sys.argv[1]
         rows = int(sys.argv[2])
