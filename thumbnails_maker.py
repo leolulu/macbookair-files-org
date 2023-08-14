@@ -1,10 +1,18 @@
 import os
 import sys
+from typing import Tuple
 import uuid
 
 import cv2
 import numpy as np
 from tqdm import tqdm
+
+
+def get_font_location(frame, content: str, fontFace: int, font_scale: float, thickness: int) -> Tuple[int, int]:
+    (text_width, text_height), _ = cv2.getTextSize(content, fontFace, font_scale, thickness)
+    start_x = min(0, frame.shape[1] - text_width)
+    start_y = max(0, text_height + 10)
+    return (start_x, start_y)
 
 
 def generate_thumbnail(video_path, rows, cols):
@@ -38,8 +46,29 @@ def generate_thumbnail(video_path, rows, cols):
             timestamp = "{:02d}:{:02d}:{:02d}".format(hours, minutes, seconds)
 
             # 在图像的右上角添加时间戳（包括轮廓）
-            cv2.putText(frame, timestamp, (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 0), 12)
-            cv2.putText(frame, timestamp, (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 3, (255, 255, 255), 6)
+            font_face = cv2.FONT_HERSHEY_SIMPLEX
+            font_scale = frame.shape[0] / 1080 * 7
+            inner_white = (font_scale, 12)
+            outer_black = (font_scale, 6)
+
+            cv2.putText(
+                frame,
+                timestamp,
+                get_font_location(frame, timestamp, font_face, *inner_white),
+                font_face,
+                inner_white[0],
+                (0, 0, 0),
+                inner_white[1],
+            )
+            cv2.putText(
+                frame,
+                timestamp,
+                get_font_location(frame, timestamp, font_face, *outer_black),
+                font_face,
+                outer_black[0],
+                (255, 255, 255),
+                outer_black[1],
+            )
 
             thumbnails.append(frame)
 
@@ -62,6 +91,8 @@ def generate_thumbnail(video_path, rows, cols):
     output_path = os.path.splitext(video_path)[0] + ".jpg"
     temp_output_path = os.path.join(os.path.dirname(video_path), f"{uuid.uuid4().hex}.jpg")
     print(f"缩略图保存路径为：{output_path}")
+    if os.path.exists(output_path):
+        os.remove(output_path)
     cv2.imwrite(temp_output_path, thumbnail)
     os.rename(temp_output_path, output_path)
 
