@@ -1,9 +1,10 @@
 import os
 import sys
+import uuid
 
 import cv2
 import numpy as np
-import uuid
+from tqdm import tqdm
 
 
 def generate_thumbnail(video_path, rows, cols):
@@ -22,7 +23,7 @@ def generate_thumbnail(video_path, rows, cols):
 
     thumbnails = []
 
-    for i in range(rows * cols):
+    for i in tqdm(range(rows * cols)):
         # 定位到指定帧
         cap.set(cv2.CAP_PROP_POS_FRAMES, i * frame_interval)
         ret, frame = cap.read()
