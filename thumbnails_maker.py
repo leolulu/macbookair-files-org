@@ -27,7 +27,7 @@ def generate_thumbnail(video_path, rows, cols):
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = int(cap.get(cv2.CAP_PROP_FPS))
     # 计算每个缩略图之间的帧间隔
-    frame_interval = total_frames // (rows * cols)
+    frame_interval = total_frames // (rows * cols)  # TODO: 时间戳时间不准，都是白谈
 
     thumbnails = []
 
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 2:
         video_path = sys.argv[1]
         rows = 7
-        cols = 7
+        cols = 7  # TODO: 好像行列数不相等就会出错，解决一下
     elif len(sys.argv) == 4:
         video_path = sys.argv[1]
         rows = int(sys.argv[2])
