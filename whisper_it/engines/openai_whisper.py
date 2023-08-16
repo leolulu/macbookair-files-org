@@ -1,12 +1,12 @@
 import os
-from typing import Optional
-import whisper
-from whisper.utils import WriteSRT
-from moviepy.editor import VideoFileClip
 from collections import defaultdict
+from typing import Optional
+
+import whisper
+from moviepy.editor import VideoFileClip
 from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 
-from whisper_it.utils.writer_util import write_srt
+from utils.writer_util import write_srt
 
 
 class OpenAIWhisper:
