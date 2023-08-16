@@ -1,4 +1,4 @@
-from engines.whisper_it import WhisperIt
+from engines.openai_whisper import OpenAIWhisper
 from utils.dict_util import get_target_lang
 import os
 
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     #     for i in files:
     #         i = os.path.join(current_dir, i)
     #         wth.add_task(WhisperTask(i, False, ['en'], post_func))
-    w = WhisperIt()
+    w = OpenAIWhisper()
     media_paths = [r"C:\Users\sisplayer\Downloads\LES MILLS CORE TUTORIAL.mp4"]
     # folder_path = r"\\192.168.123.222\transfer\良叔《偷心聊法Plus》"
     # media_paths = [os.path.join(folder_path, i) for i in os.listdir(folder_path)]

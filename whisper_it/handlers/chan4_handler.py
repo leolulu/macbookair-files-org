@@ -2,13 +2,13 @@ import os
 import shutil
 from handlers.base_handler import BaseHandler
 
-from engines.whisper_it import WhisperIt
+from engines.openai_whisper import OpenAIWhisper
 from models.whisper_task import WhisperTask
 import dill
 
 
 class Chan4Handler(BaseHandler):
-    def process_task(self, task: WhisperTask, w: WhisperIt):
+    def process_task(self, task: WhisperTask, w: OpenAIWhisper):
         if task.target_languages:
             language = w.detect_language(task.media_path)
             if language not in task.target_languages:

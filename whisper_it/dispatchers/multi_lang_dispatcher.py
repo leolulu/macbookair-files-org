@@ -1,13 +1,13 @@
 import os
 
-from engines.whisper_it import WhisperIt
+from engines.openai_whisper import OpenAIWhisper
 from utils.file_util import change_ext
 
 
 class MultiLangDispatcher:
     def __init__(self, folder_path) -> None:
         self.folder_path = os.path.abspath(folder_path)
-        self.w = WhisperIt()
+        self.w = OpenAIWhisper()
 
     def get_files(self):
         self.files = []

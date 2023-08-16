@@ -6,7 +6,7 @@ from multiprocessing import Process, Queue
 
 import dill
 
-from engines.whisper_it import WhisperIt
+from engines.openai_whisper import OpenAIWhisper
 from models.whisper_task import WhisperTask
 
 
@@ -21,7 +21,7 @@ class BaseHandler(ABC):
 
     def _launch_worker_func(self):
         print("开始加载模型...")
-        w = WhisperIt()
+        w = OpenAIWhisper()
         print("模型加载完毕，等待接收任务...")
         while True:
             task = self.queue.get()
@@ -34,7 +34,7 @@ class BaseHandler(ABC):
                 self._handle_error_file(task.media_path)
 
     @abstractclassmethod
-    def process_task(self, task: WhisperTask, w: WhisperIt):
+    def process_task(self, task: WhisperTask, w: OpenAIWhisper):
         pass
 
     def _handle_error_file(self, file_path):

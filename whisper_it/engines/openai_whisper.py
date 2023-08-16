@@ -7,7 +7,7 @@ from collections import defaultdict
 from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 
 
-class WhisperIt:
+class OpenAIWhisper:
     def __init__(self, model_name="large") -> None:
         self.model = whisper.load_model(model_name)
 
