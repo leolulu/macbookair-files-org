@@ -6,6 +6,8 @@ from moviepy.editor import VideoFileClip
 from collections import defaultdict
 from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 
+from whisper_it.utils.writer_util import write_srt
+
 
 class OpenAIWhisper:
     def __init__(self, model_name="large") -> None:
@@ -21,9 +23,7 @@ class OpenAIWhisper:
         media_path = os.path.abspath(media_path)
         media_path_without_ext = os.path.splitext(media_path)[0]
         result = self.model.transcribe(media_path, verbose=verbose, language=language)
-        output_dir = os.path.dirname(media_path)
-        writer = WriteSRT(output_dir)
-        writer(result, media_path_without_ext)
+        write_srt(result, media_path)
         if write_txt:
             with open(media_path_without_ext + ".txt", "a", encoding="utf-8") as f:
                 for segment in result["segments"]:
