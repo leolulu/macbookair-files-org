@@ -29,14 +29,18 @@ if __name__ == "__main__":
     #     for i in files:
     #         i = os.path.join(current_dir, i)
     #         wth.add_task(WhisperTask(i, False, ['en'], post_func))
-    w = OpenAIWhisper()
-    media_paths = [r"C:\Users\sisplayer\Downloads\LES MILLS CORE TUTORIAL.mp4"]
-    # folder_path = r"\\192.168.123.222\transfer\良叔《偷心聊法Plus》"
-    # media_paths = [os.path.join(folder_path, i) for i in os.listdir(folder_path)]
+    # w = OpenAIWhisper()
+    # media_paths = [r"C:\Users\sisplayer\Downloads\LES MILLS CORE TUTORIAL.mp4"]
+    # # folder_path = r"\\192.168.123.222\transfer\良叔《偷心聊法Plus》"
+    # # media_paths = [os.path.join(folder_path, i) for i in os.listdir(folder_path)]
 
-    for media_path in media_paths:
-        print(media_path)
-        result = w.detect_language_by_longer_material(media_path)
-        print(result)
-        w.transcribe(media_path, language=get_target_lang(result), write_txt=False)
+    # for media_path in media_paths:
+    #     print(media_path)
+    #     result = w.detect_language_by_longer_material(media_path)
+    #     print(result)
+    #     w.transcribe(media_path, language=get_target_lang(result), write_txt=False)
         # w.transcribe(media_path, write_txt=False, language="de")
+
+
+    w = OpenAIWhisper()
+    w.transcribe(r"C:\Users\sisplayer\Downloads\LES MILLS CORE TUTORIAL.mp3")
