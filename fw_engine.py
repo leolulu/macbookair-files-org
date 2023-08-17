@@ -1,19 +1,21 @@
+import json
+import os
 from typing import Iterable
+
 from faster_whisper import WhisperModel
 from faster_whisper.transcribe import Segment
-import os
 
 
 class FasterWhisper:
     def __init__(self, model_size="large-v2", local_files_only=True) -> None:
         self.model = WhisperModel(model_size, device="cuda", compute_type="float16", local_files_only=local_files_only)
 
-    def transcribe(self, media_path, word_timestamps=False, language=None):
+    def transcribe(self, media_path, word_timestamps=True, language=None):
         segments, info = self.model.transcribe(media_path, beam_size=5, word_timestamps=word_timestamps, language=language)
         print("Detected language '%s' with probability %f" % (info.language, info.language_probability))
         return list(segments), info
 
-    def transcribe_to_srt(self, media_path, word_timestamps=False, language=None, with_txt=False):
+    def transcribe_to_file(self, media_path, word_timestamps=True, language=None, with_txt=False, with_json=False):
         segments, info = self.transcribe(media_path, word_timestamps=word_timestamps, language=language)
         srt_content = self.generate_srt(self.segments_to_srt_subtitles(segments))
         with open(os.path.splitext(media_path)[0] + ".srt", "w", encoding="utf-8") as f:
@@ -21,6 +23,18 @@ class FasterWhisper:
         if with_txt:
             with open(os.path.splitext(media_path)[0] + ".txt", "w", encoding="utf-8") as f:
                 f.write("\n".join([i.text for i in segments]))
+        if word_timestamps and with_json:
+            json_data = [
+                {
+                    "start": s.start,
+                    "end": s.end,
+                    "text": s.text,
+                    "words": [{"start": w.start, "end": w.end, "word": w.word} for w in s.words],
+                }
+                for s in segments
+            ]
+            with open(os.path.splitext(media_path)[0] + ".json", "w", encoding="utf-8") as f:
+                f.write(json.dumps(json_data, indent=2, ensure_ascii=False))
 
     def generate_srt(self, subtitles):
         def convert_to_srt_time_format(original_seconds):
@@ -46,7 +60,7 @@ class FasterWhisper:
 
 if __name__ == "__main__":
     w = FasterWhisper(local_files_only=True)
-    w.transcribe_to_srt(
+    w.transcribe_to_file(
         r"C:\Users\sisplayer\Downloads\CONFIDENCE BABY ! 💪💪.mp4",
         word_timestamps=False,
         with_txt=True,
