@@ -23,11 +23,11 @@ class FasterWhisper:
                 f.write("\n".join([i.text for i in segments]))
 
     def generate_srt(self, subtitles):
-        def convert_to_srt_time_format(seconds):
-            hours = int(seconds // 3600)
-            minutes = int((seconds % 3600) // 60)
-            seconds = int(seconds % 60)
-            milliseconds = int((seconds % 1) * 1000)
+        def convert_to_srt_time_format(original_seconds):
+            hours = int(original_seconds // 3600)
+            minutes = int((original_seconds % 3600) // 60)
+            seconds = int(original_seconds % 60)
+            milliseconds = int((original_seconds % 1) * 1000)
             return f"{hours:02d}:{minutes:02d}:{seconds:02d},{milliseconds:03d}"
 
         srt_content = ""
