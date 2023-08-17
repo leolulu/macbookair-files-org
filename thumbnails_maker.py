@@ -25,24 +25,24 @@ def generate_thumbnail(video_path, rows, cols):
 
     # 获取视频的总帧数和帧率
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    fps = int(cap.get(cv2.CAP_PROP_FPS))
     # 计算每个缩略图之间的帧间隔
-    frame_interval = total_frames // (rows * cols)  # TODO: 时间戳时间不准，都是白谈
+    frame_interval = total_frames // (rows * cols)
 
     thumbnails = []
 
     for i in tqdm(range(rows * cols)):
         # 定位到指定帧
         cap.set(cv2.CAP_PROP_POS_FRAMES, i * frame_interval)
+        milliseconds = cap.get(cv2.CAP_PROP_POS_MSEC)
         ret, frame = cap.read()
 
         if ret:
             # 计算时间戳
-            seconds = (i * frame_interval) / fps
-            hours = int(seconds // 3600)
-            seconds %= 3600
-            minutes = int(seconds // 60)
-            seconds = int(seconds % 60)
+            seconds_total = milliseconds
+            hours = int(seconds_total // 3600)
+            seconds_total %= 3600
+            minutes = int(seconds_total // 60)
+            seconds = int(seconds_total % 60)
             timestamp = "{:02d}:{:02d}:{:02d}".format(hours, minutes, seconds)
 
             # 在图像的右上角添加时间戳（包括轮廓）
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 2:
         video_path = sys.argv[1]
         rows = 7
-        cols = 7  # TODO: 好像行列数不相等就会出错，解决一下
+        cols = 7
     elif len(sys.argv) == 4:
         video_path = sys.argv[1]
         rows = int(sys.argv[2])
