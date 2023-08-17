@@ -1,35 +1,65 @@
 import json
 import os
-from typing import Iterable
+import time
+from typing import Iterable, List
 
+import torch
 from faster_whisper import WhisperModel
 from faster_whisper.transcribe import Segment
+from moviepy.editor import VideoFileClip
+from pyannote.audio import Pipeline
+from tqdm import tqdm
 
 
 class FasterWhisper:
     def __init__(self, model_size="large-v2", local_files_only=True) -> None:
         self.model = WhisperModel(model_size, device="cuda", compute_type="float16", local_files_only=local_files_only)
+        self.pyannote_pipeline = None
 
     def transcribe(self, media_path, word_timestamps=True, language=None):
         segments, info = self.model.transcribe(media_path, beam_size=5, word_timestamps=word_timestamps, language=language)
         print("Detected language '%s' with probability %f" % (info.language, info.language_probability))
-        return list(segments), info
+        segments_result: List[Segment] = []
+        total_duration = int(info.duration)
+        with tqdm(total=total_duration, unit=" seconds") as pbar:
+            for segment in segments:
+                segment_duration = int(segment.end - segment.start)
+                pbar.update(segment_duration)
+                segments_result.append(segment)
+        return segments_result, info
 
-    def transcribe_to_file(self, media_path, word_timestamps=True, language=None, with_txt=False, with_json=False):
+    def transcribe_to_file(
+        self,
+        media_path,
+        word_timestamps=True,
+        language=None,
+        with_txt=False,
+        with_json=False,
+        with_diarization=False,
+    ):
+        with VideoFileClip(media_path) as video:
+            video_duration = video.duration
+            print(f"视频时长为: {video_duration}")
+        b_time = time.time()
         segments, info = self.transcribe(media_path, word_timestamps=word_timestamps, language=language)
+        print(f"音转文环节运行时间为：{int(time.time()-b_time)}秒，速率为：{round(video_duration/(time.time()-b_time),2)}")
         srt_content = self.generate_srt(self.segments_to_srt_subtitles(segments))
         with open(os.path.splitext(media_path)[0] + ".srt", "w", encoding="utf-8") as f:
             f.write(srt_content)
         if with_txt:
             with open(os.path.splitext(media_path)[0] + ".txt", "w", encoding="utf-8") as f:
                 f.write("\n".join([i.text for i in segments]))
+        if with_diarization:
+            b_time = time.time()
+            self.get_diarization(media_path)
+            print(f"说话人识别环节运行时间为：{int(time.time()-b_time)}秒，速率为：{round(video_duration/(time.time()-b_time),2)}")
         if word_timestamps and with_json:
             json_data = [
                 {
                     "start": s.start,
                     "end": s.end,
                     "text": s.text,
-                    "words": [{"start": w.start, "end": w.end, "word": w.word} for w in s.words],
+                    "words": [{"start": w.start, "end": w.end, "word": w.word} for w in s.words],  # type:ignore
                 }
                 for s in segments
             ]
@@ -57,11 +87,24 @@ class FasterWhisper:
     def segments_to_srt_subtitles(self, segments: Iterable[Segment]):
         return [(i.start, i.end, i.text) for i in segments]
 
+    def get_diarization(self, media_path):
+        audio_path = os.path.splitext(media_path)[0] + ".mp3"
+        png_path = os.path.splitext(media_path)[0] + ".png"
+        video = VideoFileClip(media_path)
+        video.audio.write_audiofile(audio_path)  # type:ignore
+        if not self.pyannote_pipeline:
+            self.pyannote_pipeline = Pipeline.from_pretrained(
+                "pyannote/speaker-diarization", use_auth_token="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"
+            ).to(torch.device("cuda"))
+        diarization = self.pyannote_pipeline(audio_path)
+        png_data = diarization._repr_png_()
+        with open(png_path, "wb") as f:
+            f.write(png_data)
+        os.remove(audio_path)
+        return [(i[0].start, i[0].end, i[2]) for i in diarization.itertracks(yield_label=True)]
+
 
 if __name__ == "__main__":
     w = FasterWhisper(local_files_only=True)
-    w.transcribe_to_file(
-        r"C:\Users\sisplayer\Downloads\CONFIDENCE BABY ! 💪💪.mp4",
-        word_timestamps=False,
-        with_txt=True,
-    )
+    w.transcribe_to_file(r"C:\Users\sisplayer\Downloads\42598c7c2317d74145bd1fcb11664df9.mp4", with_json=True, with_txt=True, with_diarization=True)
+    w.transcribe_to_file(r"C:\Users\sisplayer\Downloads\da6b10c07bae8b9252be669f13695259.mp4", with_json=True, with_txt=True, with_diarization=True)
