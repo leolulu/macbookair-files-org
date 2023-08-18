@@ -37,9 +37,13 @@ class FasterWhisper:
         with_json=False,
         with_diarization=False,
     ):
-        with VideoFileClip(media_path) as video:
-            video_duration = video.duration
-            print(f"视频时长为: {video_duration}")
+        try:
+            with VideoFileClip(media_path) as video:
+                video_duration = video.duration
+                print(f"视频时长为: {video_duration}")
+        except Exception as e:
+            print(e)
+            video_duration = 9999
         b_time = time.time()
         segments, info = self.transcribe(media_path, word_timestamps=word_timestamps, language=language)
         print(f"音转文环节运行时间为：{int(time.time()-b_time)}秒，速率为：{round(video_duration/(time.time()-b_time),2)}")
