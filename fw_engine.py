@@ -51,18 +51,22 @@ class FasterWhisper:
                 f.write("\n".join([i.text for i in segments]))
         if with_diarization:
             b_time = time.time()
-            self.get_diarization(media_path)
+            diarization_info = self.get_diarization(media_path)
             print(f"说话人识别环节运行时间为：{int(time.time()-b_time)}秒，速率为：{round(video_duration/(time.time()-b_time),2)}")
         if word_timestamps and with_json:
-            json_data = [
-                {
-                    "start": s.start,
-                    "end": s.end,
-                    "text": s.text,
-                    "words": [{"start": w.start, "end": w.end, "word": w.word} for w in s.words],  # type:ignore
-                }
-                for s in segments
-            ]
+            json_data = {
+                "asr_info": [
+                    {
+                        "start": s.start,
+                        "end": s.end,
+                        "text": s.text,
+                        "words": [{"start": w.start, "end": w.end, "word": w.word} for w in s.words],  # type:ignore
+                    }
+                    for s in segments
+                ],
+            }
+            if with_diarization:
+                json_data["diarization_info"] = [{"start": d[0], "end": d[1], "label": d[2]} for d in diarization_info]  # type: ignore
             with open(os.path.splitext(media_path)[0] + ".json", "w", encoding="utf-8") as f:
                 f.write(json.dumps(json_data, indent=2, ensure_ascii=False))
 
@@ -106,5 +110,9 @@ class FasterWhisper:
 
 if __name__ == "__main__":
     w = FasterWhisper(local_files_only=True)
-    w.transcribe_to_file(r"C:\Users\sisplayer\Downloads\42598c7c2317d74145bd1fcb11664df9.mp4", with_json=True, with_txt=True, with_diarization=True)
-    w.transcribe_to_file(r"C:\Users\sisplayer\Downloads\da6b10c07bae8b9252be669f13695259.mp4", with_json=True, with_txt=True, with_diarization=True)
+    w.transcribe_to_file(
+        r"C:\Users\sisplayer\Downloads\42598c7c2317d74145bd1fcb11664df9.mp4", with_json=True, with_txt=True, with_diarization=True
+    )
+    w.transcribe_to_file(
+        r"C:\Users\sisplayer\Downloads\da6b10c07bae8b9252be669f13695259.mp4", with_json=True, with_txt=True, with_diarization=True
+    )
