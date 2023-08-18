@@ -93,7 +93,7 @@ class FasterWhisper:
 
     def get_diarization(self, media_path):
         png_path = os.path.splitext(media_path)[0] + ".png"
-        self.media_to_mp3(media_path)
+        audio_path = self.media_to_mp3(media_path)
         if not self.pyannote_pipeline:
             self.pyannote_pipeline = Pipeline.from_pretrained(
                 "pyannote/speaker-diarization", use_auth_token="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"
