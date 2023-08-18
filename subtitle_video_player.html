@@ -61,6 +61,12 @@
             background-color: whitesmoke;
         }
 
+        .subtitle-word:hover,
+        .subtitle-word.highlight {
+            color: #FFFFFF;
+            background-color: #336DF4;
+        }
+
         .subtitle.highlight {
             background-color: yellow;
             color: black;
@@ -205,6 +211,7 @@
                     bigDiv.removeChild(bigDiv.firstChild);
                 }
                 var files = e.target.files;
+                var srtLoaded = false
                 for (var i = 0; i < files.length; i++) {
                     if (files[i].name.endsWith('.mp4')) {
                         var url = URL.createObjectURL(files[i]);
@@ -214,13 +221,90 @@
                         $('#videoFileName').text(files[i].name);
                     } else if (files[i].name.endsWith('.srt')) {
                         loadSubtitles(files[i]);
-                    }
-                    else if (files[i].name.endsWith('.json')) {
+                        srtLoaded = true
+                    } else if (files[i].name.endsWith('.json')) {
                         loadDiarizationInfo(files[i]);
+                        if (!srtLoaded) {
+                            loadSubtitlesFromJSON(files[i]);
+                        }
                     }
                 }
             });
 
+
+            function loadSubtitlesFromJSON(file) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    var asr_data = JSON.parse(event.target.result).asr_info;
+                    subtitles = [];
+                    var tempSubtitles = [];
+
+                    asr_data.forEach(function (sentence) {
+                        tempSubtitles.push({ start: sentence.start, end: sentence.end, text: sentence.text.trim(), words: sentence.words });
+                    });
+
+                    // Combine short subtitles
+                    let minLength = parseInt(document.getElementById("textLength").value, 10);
+                    var i = 0;
+                    while (i < tempSubtitles.length) {
+                        var sentence_div = document.createElement('div');
+                        var sentence_text = tempSubtitles[i].text;
+                        var sentence_start = tempSubtitles[i].start;
+                        var sentence_end = tempSubtitles[i].end;
+
+                        function appendWords() {
+                            var words = tempSubtitles[i].words;
+                            words.forEach(function (word) {
+                                var word_span = document.createElement('span');
+                                word_span.innerText = word.word;
+                                word_span.style.cursor = 'pointer';
+                                word_span.onclick = function (event) {
+                                    event.stopPropagation();
+                                    video.currentTime = word.start;
+                                    if ($('#clickToPlay').prop('checked')) {
+                                        $('#video')[0].play();
+                                    }
+                                    $('#video')[0].focus();
+                                };
+                                word_span.setAttribute('data-start', word.start);
+                                word_span.setAttribute('data-end', word.end);
+                                word_span.className = 'subtitle-word'
+                                sentence_div.appendChild(word_span);
+                            });
+                        }
+
+                        appendWords()
+
+                        while (i + 1 < tempSubtitles.length && sentence_text.length < minLength) {
+                            i++;
+                            sentence_text += "，" + tempSubtitles[i].text;
+                            sentence_end = tempSubtitles[i].end;
+                            let span = document.createElement('span');
+                            span.textContent = '，';
+                            sentence_div.append(span);
+                            appendWords()
+                        }
+                        subtitles.push({ start: sentence_start, end: sentence_end, text: sentence_text });
+                        sentence_div.className = 'subtitle';
+                        sentence_div.setAttribute('data-index', subtitles.length - 1);
+                        sentence_div.setAttribute('data-sentence-start', sentence_start);
+                        sentence_div.setAttribute('data-sentence-end', sentence_end);
+                        $('#subtitles').append(sentence_div)
+                        i++;
+                    }
+                    // Set up event listener for clicking on subtitles
+                    $('.subtitle').click(function () {
+                        var index = $(this).data('index');
+                        $('#video')[0].currentTime = subtitles[index].start;
+                        if ($('#clickToPlay').prop('checked')) {
+                            $('#video')[0].play();
+                        }
+                        $('#video')[0].focus();
+                    });
+                    $('#subtitles').css('width', window.innerWidth - $('#video-player').width() - $('#divider').width() + 'px');
+                };
+                reader.readAsText(file);
+            }
 
             function loadDiarizationInfo(file) {
                 const reader = new FileReader();
@@ -302,7 +386,6 @@
                         if (event.target !== container) {
                             clickPosition += event.target.offsetLeft;
                         }
-                        console.log(clickPosition)
                         const containerWidth = container.offsetWidth;
                         const clickedPercentage = (clickPosition / containerWidth);
                         video.currentTime = clickedPercentage * videoDuration;
@@ -340,8 +423,18 @@
                     }
                 }
 
+                document.querySelectorAll('.subtitle-word').forEach(function (span) {
+                    let start = parseFloat(span.getAttribute('data-start'));
+                    let end = parseFloat(span.getAttribute('data-end'));
+                    if (currentTime >= start && currentTime < end) {
+                        $('.subtitle-word').removeClass('highlight');
+                        $(span).addClass('highlight');
+                    }
+                })
+
                 if (!found) {
                     $('.subtitle').removeClass('highlight');
+                    $('.subtitle-word').removeClass('highlight');
                 }
 
                 var currentVideoTime = $('#video')[0].currentTime;
