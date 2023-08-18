@@ -244,18 +244,25 @@
 
             function visualizeSpeakers(diarizationInfo, labelHeights, heightIncrement, labels) {
                 const video = document.getElementById('video');
+                const videoPlayer = document.getElementById('video-player');
                 video.onloadedmetadata = function () {
                     const videoDuration = video.duration;
 
+                    const existingContainer = document.getElementById('speaker-container');
+                    if (existingContainer) {
+                        videoPlayer.removeChild(existingContainer);
+                    }
+
                     const container = document.createElement('div');
-                    container.style.width = '99%';
+                    container.id = 'speaker-container';  // Assigning an ID to the container for easy reference
                     container.style.border = '1px solid #aaa';
                     container.style.height = (Object.keys(labelHeights).length * 50) + 'px'; // Adjust height based on number of speakers
                     container.style.position = 'relative';
                     container.style.marginTop = '20px';
+                    container.style.overflow = 'hidden';
 
                     // Define a set of colors
-                    const colors = ["#E41B1D", "#4E8CC0", "#3357FF", "#FF33A1", "#FF8C33", "#8C33FF", "#33FFC1"];
+                    const colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628', '#f781bf'];
 
                     diarizationInfo.forEach(info => {
                         const speakerDiv = document.createElement('div');
@@ -302,7 +309,7 @@
                         $('#video')[0].focus();
                     });
 
-                    document.getElementById('video-player').appendChild(container);
+                    videoPlayer.appendChild(container);
                 };
             }
 
