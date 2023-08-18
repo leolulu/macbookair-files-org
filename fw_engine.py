@@ -1,12 +1,13 @@
 import json
 import os
+import re
+import subprocess
 import time
 from typing import Iterable, List
 
 import torch
 from faster_whisper import WhisperModel
 from faster_whisper.transcribe import Segment
-from moviepy.editor import VideoFileClip
 from pyannote.audio import Pipeline
 from tqdm import tqdm
 
@@ -37,13 +38,8 @@ class FasterWhisper:
         with_json=False,
         with_diarization=False,
     ):
-        try:
-            with VideoFileClip(media_path) as video:
-                video_duration = video.duration
-                print(f"视频时长为: {video_duration}")
-        except Exception as e:
-            print(e)
-            video_duration = 9999
+        video_duration = self.get_video_duration(media_path)
+        print(f"视频时长为: {video_duration}")
         b_time = time.time()
         segments, info = self.transcribe(media_path, word_timestamps=word_timestamps, language=language)
         print(f"音转文环节运行时间为：{int(time.time()-b_time)}秒，速率为：{round(video_duration/(time.time()-b_time),2)}")
@@ -96,10 +92,8 @@ class FasterWhisper:
         return [(i.start, i.end, i.text) for i in segments]
 
     def get_diarization(self, media_path):
-        audio_path = os.path.splitext(media_path)[0] + ".mp3"
         png_path = os.path.splitext(media_path)[0] + ".png"
-        video = VideoFileClip(media_path)
-        video.audio.write_audiofile(audio_path)  # type:ignore
+        self.media_to_mp3(media_path)
         if not self.pyannote_pipeline:
             self.pyannote_pipeline = Pipeline.from_pretrained(
                 "pyannote/speaker-diarization", use_auth_token="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"
@@ -110,6 +104,21 @@ class FasterWhisper:
             f.write(png_data)
         os.remove(audio_path)
         return [(i[0].start, i[0].end, i[2]) for i in diarization.itertracks(yield_label=True)]
+
+    def get_video_duration(self, video_path):
+        cmd = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", video_path]
+        output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).stdout.decode("utf-8")
+        match = re.search(r"(\d+(?:\.\d+)?)", output)
+        if match:
+            return float(match.group(1))
+        else:
+            raise UserWarning(f"无法正确获取视频时长:\n{output}")
+
+    def media_to_mp3(self, video_path):
+        mp3_path = os.path.splitext(video_path)[0] + ".mp3"
+        cmd = ["ffmpeg", "-i", video_path, "-q:a", "0", "-map", "a", mp3_path]
+        subprocess.run(cmd)
+        return mp3_path
 
 
 if __name__ == "__main__":
