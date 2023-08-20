@@ -33,12 +33,12 @@ def generate_thumbnail(video_path, rows, cols):
     for i in tqdm(range(rows * cols)):
         # 定位到指定帧
         cap.set(cv2.CAP_PROP_POS_FRAMES, i * frame_interval)
-        milliseconds = cap.get(cv2.CAP_PROP_POS_MSEC)
         ret, frame = cap.read()
+        milliseconds = cap.get(cv2.CAP_PROP_POS_MSEC)
 
         if ret:
             # 计算时间戳
-            seconds_total = milliseconds
+            seconds_total = milliseconds / 1000
             hours = int(seconds_total // 3600)
             seconds_total %= 3600
             minutes = int(seconds_total // 60)
