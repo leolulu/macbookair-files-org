@@ -1,7 +1,9 @@
 import os
+import shutil
 import sys
-from typing import Tuple
 import uuid
+from pathlib import Path
+from typing import Tuple
 
 import cv2
 import numpy as np
@@ -89,12 +91,12 @@ def generate_thumbnail(video_path, rows, cols):
 
     # 保存缩略图
     output_path = os.path.splitext(video_path)[0] + ".jpg"
-    temp_output_path = os.path.join(os.path.dirname(video_path), f"{uuid.uuid4().hex}.jpg")
+    temp_output_path = os.path.join(str(Path.home() / "Downloads"), f"{uuid.uuid4().hex}.jpg")
     print(f"缩略图保存路径为：{output_path}")
     if os.path.exists(output_path):
         os.remove(output_path)
     cv2.imwrite(temp_output_path, thumbnail)
-    os.rename(temp_output_path, output_path)
+    shutil.move(temp_output_path, output_path)
 
 
 if __name__ == "__main__":
