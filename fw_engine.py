@@ -40,7 +40,6 @@ class FasterWhisper:
             time.sleep(set_delay)  # wait for whole chunk to be iterated
             pbar.update(timestamp_last - timestamp_prev)
             timestamp_prev = timestamp_last
-            print("\33]0;" + capture.getvalue().splitlines()[-1] + "\a", end="", flush=True)
             print(capture.getvalue().splitlines()[-1])
 
         with tqdm(
@@ -60,8 +59,8 @@ class FasterWhisper:
             time.sleep(set_delay + 0.3)
             if timestamp_last < total_duration:
                 pbar.update(total_duration - timestamp_last)
-                print("\33]0;" + capture.getvalue().splitlines()[-1] + "\a", end="", flush=True)
                 print(capture.getvalue().splitlines()[-1])
+
         return segments_result, info
 
     def transcribe_to_file(
