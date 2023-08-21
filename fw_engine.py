@@ -1,8 +1,10 @@
+import io
 import json
 import os
 import re
 import subprocess
 import time
+from threading import Thread
 from typing import Iterable, List
 
 import torch
@@ -21,13 +23,45 @@ class FasterWhisper:
     def transcribe(self, media_path, word_timestamps=True, language=None):
         segments, info = self.model.transcribe(media_path, beam_size=5, word_timestamps=word_timestamps, language=language)
         print("Detected language '%s' with probability %f" % (info.language, info.language_probability))
+
         segments_result: List[Segment] = []
         total_duration = int(info.duration)
-        with tqdm(total=total_duration, unit=" seconds") as pbar:
+
+        td_len = str(len(str(total_duration)))
+        last_burst = 0.0
+        set_delay = 0.1
+        global timestamp_prev, timestamp_last
+        timestamp_prev = 0  # last timestamp in previous chunk
+        timestamp_last = 0
+        capture = io.StringIO()
+
+        def pbar_delayed():  # to get last timestamp from chunk
+            global timestamp_prev
+            time.sleep(set_delay)  # wait for whole chunk to be iterated
+            pbar.update(timestamp_last - timestamp_prev)
+            timestamp_prev = timestamp_last
+            print("\33]0;" + capture.getvalue().splitlines()[-1] + "\a", end="", flush=True)
+            print(capture.getvalue().splitlines()[-1])
+
+        with tqdm(
+            file=capture,
+            total=total_duration,
+            unit=" seconds",
+            smoothing=0.00001,
+            bar_format="{percentage:3.0f}% | {n_fmt:>" + td_len + "}/{total_fmt} | {elapsed}<<{remaining} | {rate_noinv_fmt}",
+        ) as pbar:
             for segment in segments:
-                segment_duration = int(segment.end - segment.start)
-                pbar.update(segment_duration)
+                timestamp_last = round(segment.end)
+                time_now = time.time()
+                if time_now - last_burst > set_delay:  # catch new chunk
+                    last_burst = time_now
+                    Thread(target=pbar_delayed, daemon=False).start()
                 segments_result.append(segment)
+            time.sleep(set_delay + 0.3)
+            if timestamp_last < total_duration:
+                pbar.update(total_duration - timestamp_last)
+                print("\33]0;" + capture.getvalue().splitlines()[-1] + "\a", end="", flush=True)
+                print(capture.getvalue().splitlines()[-1])
         return segments_result, info
 
     def transcribe_to_file(
@@ -126,8 +160,8 @@ class FasterWhisper:
 if __name__ == "__main__":
     w = FasterWhisper(local_files_only=True)
     w.transcribe_to_file(
-        r"C:\Users\sisplayer\Downloads\42598c7c2317d74145bd1fcb11664df9.mp4", with_json=True, with_txt=True, with_diarization=True
-    )
-    w.transcribe_to_file(
-        r"C:\Users\sisplayer\Downloads\da6b10c07bae8b9252be669f13695259.mp4", with_json=True, with_txt=True, with_diarization=True
+        r"C:\Users\sisplayer\Downloads\09e93919b4bad41ce70d2f2ff949043d.mp4",
+        with_json=True,
+        with_txt=True,
+        with_diarization=True,
     )
