@@ -9,6 +9,7 @@ import torch
 from faster_whisper import WhisperModel
 from faster_whisper.transcribe import Segment
 from pyannote.audio import Pipeline
+from pyannote.audio.pipelines.utils.hook import ProgressHook
 from tqdm import tqdm
 
 
@@ -98,7 +99,8 @@ class FasterWhisper:
             self.pyannote_pipeline = Pipeline.from_pretrained(
                 "pyannote/speaker-diarization", use_auth_token="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"
             ).to(torch.device("cuda"))
-        diarization = self.pyannote_pipeline(audio_path)
+        with ProgressHook() as hook:
+            diarization = self.pyannote_pipeline(audio_path, hook=hook)
         png_data = diarization._repr_png_()
         with open(png_path, "wb") as f:
             f.write(png_data)
