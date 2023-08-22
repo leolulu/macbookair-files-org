@@ -87,6 +87,10 @@
         #textLength {
             max-width: 2rem;
         }
+
+        #timeConcat {
+            max-width: 3rem;
+        }
     </style>
 </head>
 
@@ -104,6 +108,9 @@
             <input type="checkbox" id="clickToPlay" />
             <label for="textLength">句长:</label>
             <input type="number" id="textLength" value="1">
+            <label for="enableTimeConcat">间隔:</label>
+            <input type="text" id="timeConcat" value="0.001">
+            <input type="checkbox" id="enableTimeConcat" />
             <!-- 添加一个元素用来显示视频文件名 -->
             <div id="videoFileName"></div>
         </div>
@@ -274,7 +281,7 @@
 
                         appendWords()
 
-                        while (i + 1 < tempSubtitles.length && sentence_text.length < minLength) {
+                        while (i + 1 < tempSubtitles.length && $('#enableTimeConcat').prop('checked') && tempSubtitles[i + 1].start - sentence_end < parseFloat(document.getElementById('timeConcat').value)) {
                             i++;
                             sentence_text += "，" + tempSubtitles[i].text;
                             sentence_end = tempSubtitles[i].end;
@@ -339,7 +346,7 @@
                     const container = document.createElement('div');
                     container.id = 'speaker-container';  // Assigning an ID to the container for easy reference
                     container.style.border = '1px solid #aaa';
-                    container.style.height = (Object.keys(labelHeights).length * 50) + 'px'; // Adjust height based on number of speakers
+                    container.style.height = (Object.keys(labelHeights).length * 40) + 'px'; // Adjust height based on number of speakers
                     container.style.position = 'relative';
                     container.style.marginTop = '20px';
                     container.style.overflow = 'hidden';
