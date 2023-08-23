@@ -134,6 +134,7 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script>
         var isResizing = false;
+        var isResizingVertically = false;
 
         // 通过拖动水平分割线调整视频高度
         $(function () {
@@ -150,7 +151,9 @@
             `;
 
             video.on('mouseenter', function () {
-                document.head.removeChild(hideControlsStyle);
+                if (document.head.contains(hideControlsStyle)) {
+                    document.head.removeChild(hideControlsStyle);
+                }
             });
             video.on('mouseleave', function () {
                 if (video.prop('readyState') == 4) {
@@ -251,9 +254,9 @@
 
 
 
-            function loadSubtitlesFromJSONImpl() {
+            function loadSubtitlesFromJSONImpl(triggeredFromSentenceLength = false) {
+                subtitles = [];
                 // Combine short subtitles
-                let minLength = parseInt(document.getElementById("textLength").value, 10);
                 var i = 0;
                 while (i < tempSubtitles.length) {
                     var sentence_div = document.createElement('div');
@@ -284,7 +287,18 @@
 
                     appendWords()
 
-                    while (i + 1 < tempSubtitles.length && $('#enableTimeConcat').prop('checked') && tempSubtitles[i + 1].start - sentence_end < parseFloat(document.getElementById('timeConcat').value)) {
+                    function whileCondition(i) {
+                        if (triggeredFromSentenceLength) {
+                            let minLength = parseInt(document.getElementById("textLength").value, 10);
+                            return sentence_text.length < minLength
+                        } else {
+                            let checked = $('#enableTimeConcat').prop('checked')
+                            let adjacent = tempSubtitles[i + 1].start - sentence_end < parseFloat(document.getElementById('timeConcat').value)
+                            return checked && adjacent
+                        }
+                    }
+
+                    while (i + 1 < tempSubtitles.length && whileCondition(i)) {
                         i++;
                         sentence_text += "，" + tempSubtitles[i].text;
                         sentence_end = tempSubtitles[i].end;
@@ -334,7 +348,7 @@
                 const reader = new FileReader();
                 reader.onload = function (event) {
                     var asr_data = JSON.parse(event.target.result).asr_info;
-                    subtitles = [];
+
                     tempSubtitles = [];
 
                     asr_data.forEach(function (sentence) {
@@ -358,6 +372,18 @@
 
             $('#enableTimeConcat').on('change', callLoadSubtitlesFromJSONImpl);
             $('#timeConcat').on('input', callLoadSubtitlesFromJSONImpl);
+
+            function reloadSubtitleBySentenceLength() {
+                clearAllSub()
+                if (srtLoaded) {
+                    loadSubtitlesImpl()
+                } else {
+                    loadSubtitlesFromJSONImpl(triggeredFromSentenceLength = true)
+                }
+            }
+
+            $('#textLength').on('input', reloadSubtitleBySentenceLength);
+
 
             function loadDiarizationInfo(file) {
                 const reader = new FileReader();
@@ -511,13 +537,45 @@
             // Listen for timeupdate event to highlight the subtitle
             $('#video').on('timeupdate', highlightSubtitle);
 
+            function loadSubtitlesImpl() {
+                subtitles = [];
+                // Combine short subtitles
+                let minLength = parseInt(document.getElementById("textLength").value, 10);
+                var i = 0;
+                while (i < tempSubtitles.length) {
+                    var text = tempSubtitles[i].text;
+                    var start = tempSubtitles[i].start;
+                    var end = tempSubtitles[i].end;
+                    while (i + 1 < tempSubtitles.length && text.length < minLength) {
+                        i++;
+                        text += "，" + tempSubtitles[i].text;
+                        end = tempSubtitles[i].end;
+                    }
+                    // text += "。"
+                    subtitles.push({ start: start, end: end, text: text });
+                    $('#subtitles').append('<div class="subtitle" data-index="' + (subtitles.length - 1) + '">' + text + '</div>');
+                    i++;
+                }
+
+                // Set up event listener for clicking on subtitles
+                $('.subtitle').click(function () {
+                    var index = $(this).data('index');
+                    $('#video')[0].currentTime = subtitles[index].start;
+                    if ($('#clickToPlay').prop('checked')) {
+                        $('#video')[0].play();
+                    }
+                    $('#video')[0].focus();
+                });
+                $('#subtitles').css('width', window.innerWidth - $('#video-player').width() - $('#divider').width() + 'px');
+            }
+
             function loadSubtitles(file) {
                 var reader = new FileReader();
                 reader.onload = function (e) {
                     // Parse SRT file
                     var data = e.target.result;
                     var lines = data.split('\n');
-                    subtitles = [];
+
                     tempSubtitles = []; // Store unprocessed subtitles
 
                     for (var i = 0; i < lines.length; i++) {
@@ -537,34 +595,7 @@
                         }
                     }
 
-                    // Combine short subtitles
-                    let minLength = parseInt(document.getElementById("textLength").value, 10);
-                    var i = 0;
-                    while (i < tempSubtitles.length) {
-                        var text = tempSubtitles[i].text;
-                        var start = tempSubtitles[i].start;
-                        var end = tempSubtitles[i].end;
-                        while (i + 1 < tempSubtitles.length && text.length < minLength) {
-                            i++;
-                            text += "，" + tempSubtitles[i].text;
-                            end = tempSubtitles[i].end;
-                        }
-                        // text += "。"
-                        subtitles.push({ start: start, end: end, text: text });
-                        $('#subtitles').append('<div class="subtitle" data-index="' + (subtitles.length - 1) + '">' + text + '</div>');
-                        i++;
-                    }
-
-                    // Set up event listener for clicking on subtitles
-                    $('.subtitle').click(function () {
-                        var index = $(this).data('index');
-                        $('#video')[0].currentTime = subtitles[index].start;
-                        if ($('#clickToPlay').prop('checked')) {
-                            $('#video')[0].play();
-                        }
-                        $('#video')[0].focus();
-                    });
-                    $('#subtitles').css('width', window.innerWidth - $('#video-player').width() - $('#divider').width() + 'px');
+                    loadSubtitlesImpl()
                 };
                 reader.readAsText(file);
             }
