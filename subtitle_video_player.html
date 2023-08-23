@@ -46,6 +46,7 @@
             border-bottom: 1px dashed #d1c4c4;
             font-size: 18px;
             font-family: PingFang SC, Hiragino Sans GB, Microsoft Yahei, Arial, sans-serif;
+            position: relative;
         }
 
         .subtitle:nth-child(even) {
@@ -69,6 +70,14 @@
         .subtitle.highlight {
             background-color: yellow;
             color: black;
+        }
+
+        .transparent-sentence {
+            color: transparent;
+            position: absolute;
+            left: 0;
+            top: 2px;
+            z-index: -1;
         }
 
         #videoFileName {
@@ -286,7 +295,7 @@
                             sentence_text += "，" + tempSubtitles[i].text;
                             sentence_end = tempSubtitles[i].end;
                             let span = document.createElement('span');
-                            span.textContent = '，';
+                            span.textContent = "，";
                             (function (currentI) {
                                 span.onclick = function (event) {
                                     event.stopPropagation();
@@ -305,6 +314,12 @@
                         sentence_div.setAttribute('data-index', subtitles.length - 1);
                         sentence_div.setAttribute('data-sentence-start', sentence_start);
                         sentence_div.setAttribute('data-sentence-end', sentence_end);
+
+                        var transparent_sentence_div = document.createElement('div');
+                        transparent_sentence_div.textContent = sentence_text;
+                        transparent_sentence_div.className = 'transparent-sentence';
+                        sentence_div.append(transparent_sentence_div);
+
                         $('#subtitles').append(sentence_div)
                         i++;
                     }
