@@ -287,6 +287,16 @@
                             sentence_end = tempSubtitles[i].end;
                             let span = document.createElement('span');
                             span.textContent = '，';
+                            (function (currentI) {
+                                span.onclick = function (event) {
+                                    event.stopPropagation();
+                                    video.currentTime = tempSubtitles[currentI].start;
+                                    if ($('#clickToPlay').prop('checked')) {
+                                        $('#video')[0].play();
+                                    }
+                                    $('#video')[0].focus();
+                                };
+                            })(i)
                             sentence_div.append(span);
                             appendWords()
                         }
