@@ -487,15 +487,15 @@
                         activeSubtitle.addClass('highlight');
 
                         // Check if active subtitle is in the viewport
-                        var parent = $('#subtitles');
-                        var scrollTop = parent.scrollTop();
-                        var scrollBottom = scrollTop + parent.height();
-                        var elementTop = activeSubtitle.position().top + scrollTop;
-                        var elementBottom = elementTop + activeSubtitle.height();
+                        var subtitlesBox = $('#subtitles');
+                        var scrollTop = subtitlesBox.scrollTop();
+                        var scrollBottom = scrollTop + subtitlesBox.height();
+                        var activeSubtitleTop = activeSubtitle.position().top + scrollTop;
+                        var activeSubtitleBottom = activeSubtitleTop + activeSubtitle.height();
 
-                        if (elementTop < scrollTop || elementBottom > scrollBottom) {
+                        if (activeSubtitleTop < scrollTop || activeSubtitleBottom > scrollBottom) {
                             // Scroll to active subtitle
-                            parent.scrollTop(elementTop - activeSubtitle.height());
+                            subtitlesBox.scrollTop(activeSubtitleTop - 10);
                         }
                         found = true;
                         break;
