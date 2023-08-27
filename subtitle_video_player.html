@@ -231,6 +231,10 @@
                 }
             }
 
+            function accTime(num) {
+                return parseFloat(num.toFixed(3));
+            }
+
             // Set up event listener for video file input
             $('#videoFile').change(function (e) {
                 clearAllSub()
@@ -273,14 +277,14 @@
                             word_span.style.cursor = 'pointer';
                             word_span.onclick = function (event) {
                                 event.stopPropagation();
-                                video.currentTime = word.start;
+                                video.currentTime = accTime(word.start);
                                 if ($('#clickToPlay').prop('checked')) {
                                     $('#video')[0].play();
                                 }
                                 $('#video')[0].focus();
                             };
-                            word_span.setAttribute('data-start', word.start);
-                            word_span.setAttribute('data-end', word.end);
+                            word_span.setAttribute('data-start', accTime(word.start));
+                            word_span.setAttribute('data-end', accTime(word.end));
                             word_span.className = 'subtitle-word'
                             sentence_div.appendChild(word_span);
                         });
@@ -353,7 +357,7 @@
                     tempSubtitles = [];
 
                     asr_data.forEach(function (sentence) {
-                        tempSubtitles.push({ start: sentence.start, end: sentence.end, text: sentence.text.trim(), words: sentence.words });
+                        tempSubtitles.push({ start: accTime(sentence.start), end: accTime(sentence.end), text: sentence.text.trim(), words: sentence.words });
                     });
 
                     loadSubtitlesFromJSONImpl();
@@ -479,7 +483,7 @@
 
             // Set up event listener for video time updates
             function highlightSubtitle() {
-                var currentTime = $('#video')[0].currentTime;
+                var currentTime = accTime($('#video')[0].currentTime);
                 var found = false;
                 for (var i = 0; i < subtitles.length; i++) {
                     if (currentTime >= subtitles[i].start && currentTime < subtitles[i].end) {
@@ -494,7 +498,7 @@
                         var activeSubtitleTop = activeSubtitle.position().top + scrollTop;
                         var activeSubtitleBottom = activeSubtitleTop + activeSubtitle.height();
 
-                        if (activeSubtitleTop < scrollTop || activeSubtitleBottom > scrollBottom-24) {
+                        if (activeSubtitleTop < scrollTop || activeSubtitleBottom > scrollBottom - 24) {
                             // Scroll to active subtitle
                             subtitlesBox.scrollTop(activeSubtitleTop - 10);
                         }
@@ -592,7 +596,7 @@
                                 }
                                 text += lines[j] + "\n";
                             }
-                            tempSubtitles.push({ start: start, end: end, text: text.trim() });
+                            tempSubtitles.push({ start: accTime(start), end: accTime(end), text: text.trim() });
                         }
                     }
 
