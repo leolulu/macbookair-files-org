@@ -494,7 +494,7 @@
                         var activeSubtitleTop = activeSubtitle.position().top + scrollTop;
                         var activeSubtitleBottom = activeSubtitleTop + activeSubtitle.height();
 
-                        if (activeSubtitleTop < scrollTop || activeSubtitleBottom > scrollBottom) {
+                        if (activeSubtitleTop < scrollTop || activeSubtitleBottom > scrollBottom-24) {
                             // Scroll to active subtitle
                             subtitlesBox.scrollTop(activeSubtitleTop - 10);
                         }
