@@ -8,6 +8,7 @@ from threading import Thread
 from typing import Iterable, List
 
 import torch
+import zhconv
 from faster_whisper import WhisperModel
 from faster_whisper.transcribe import Segment
 from pyannote.audio import Pipeline
@@ -50,6 +51,8 @@ class FasterWhisper:
             bar_format="{percentage:3.0f}% | {n_fmt:>" + td_len + "}/{total_fmt} | {elapsed}<<{remaining} | {rate_noinv_fmt}",
         ) as pbar:
             for segment in segments:
+                if info.language == "zh":
+                    segment.text = zhconv.convert(segment.text, "zh-cn")
                 timestamp_last = round(segment.end)
                 time_now = time.time()
                 if time_now - last_burst > set_delay:  # catch new chunk
