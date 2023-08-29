@@ -161,9 +161,10 @@ class FasterWhisper:
 
 if __name__ == "__main__":
     w = FasterWhisper(local_files_only=True)
-    w.transcribe_to_file(
-        r"C:\Users\sisplayer\Downloads\09e93919b4bad41ce70d2f2ff949043d.mp4",
-        with_json=True,
-        with_txt=True,
-        with_diarization=True,
-    )
+    while True:
+        w.transcribe_to_file(
+            input("请输入媒体文件绝对路径："),
+            with_json=True,
+            with_txt=True,
+            with_diarization=True,
+        )
