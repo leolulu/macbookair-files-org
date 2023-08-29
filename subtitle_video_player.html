@@ -82,10 +82,15 @@
             pointer-events: none;
         }
 
+        #videoFileNameContainer {
+            display: flex;
+            flex-direction: row-reverse;
+            margin: 10px;
+        }
+
         #videoFileName {
-            text-align: right;
+
             font-weight: 800;
-            margin-right: 10px;
             color: #28569F;
         }
 
@@ -123,7 +128,9 @@
             <input type="text" id="timeConcat" value="0.001">
             <input type="checkbox" id="enableTimeConcat" />
             <!-- 添加一个元素用来显示视频文件名 -->
-            <div id="videoFileName"></div>
+            <div id="videoFileNameContainer">
+                <span id="videoFileName"></span>
+            </div>
         </div>
         <div id="divider"></div>
         <div id="subtitles">
@@ -427,7 +434,7 @@
                     container.style.border = '1px solid #aaa';
                     container.style.height = (Object.keys(labelHeights).length * 40) + 'px'; // Adjust height based on number of speakers
                     container.style.position = 'relative';
-                    container.style.marginTop = '20px';
+                    container.style.marginTop = '10px';
                     container.style.overflow = 'hidden';
 
                     // Define a set of colors
