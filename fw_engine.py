@@ -52,7 +52,7 @@ class FasterWhisper:
         ) as pbar:
             for segment in segments:
                 if info.language == "zh":
-                    segment.text = zhconv.convert(segment.text, "zh-cn")
+                    segment = segment._replace(text=zhconv.convert(segment.text, "zh-cn"))
                 timestamp_last = round(segment.end)
                 time_now = time.time()
                 if time_now - last_burst > set_delay:  # catch new chunk
