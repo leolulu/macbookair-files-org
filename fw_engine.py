@@ -2,7 +2,9 @@ import io
 import json
 import os
 import re
+import shutil
 import subprocess
+import tempfile
 import time
 from threading import Thread
 from typing import Iterable, List
@@ -67,6 +69,12 @@ class FasterWhisper:
 
         return segments_result, info
 
+    def _default_move_result_file_callback(self, file_path, **kwargs):
+        shutil.move(
+            file_path,
+            os.path.splitext(kwargs["media_path"])[0] + os.path.splitext(file_path)[-1],
+        )
+
     def transcribe_to_file(
         self,
         media_path,
@@ -75,21 +83,28 @@ class FasterWhisper:
         with_txt=False,
         with_json=False,
         with_diarization=False,
+        move_result_file_callback=None,
     ):
+        if move_result_file_callback is None:
+            move_result_file_callback = self._default_move_result_file_callback
         video_duration = self.get_video_duration(media_path)
         print(f"视频时长为: {video_duration}")
         b_time = time.time()
         segments, info = self.transcribe(media_path, word_timestamps=word_timestamps, language=language)
         print(f"音转文环节运行时间为：{int(time.time()-b_time)}秒，速率为：{round(video_duration/(time.time()-b_time),2)}\n")
         srt_content = self.generate_srt(self.segments_to_srt_subtitles(segments))
-        with open(os.path.splitext(media_path)[0] + ".srt", "w", encoding="utf-8") as f:
+        srt_file_path = os.path.splitext(os.path.basename(media_path))[0] + ".srt"
+        with open(srt_file_path, "w", encoding="utf-8") as f:
             f.write(srt_content)
+        move_result_file_callback(srt_file_path, media_path=media_path)
         if with_txt:
-            with open(os.path.splitext(media_path)[0] + ".txt", "w", encoding="utf-8") as f:
+            txt_file_path = os.path.splitext(os.path.basename(media_path))[0] + ".txt"
+            with open(txt_file_path, "w", encoding="utf-8") as f:
                 f.write("\n".join([i.text for i in segments]))
+            move_result_file_callback(txt_file_path, media_path=media_path)
         if with_diarization:
             b_time = time.time()
-            diarization_info = self.get_diarization(media_path)
+            diarization_info = self.get_diarization(media_path, move_result_file_callback)
             print(f"说话人识别环节运行时间为：{int(time.time()-b_time)}秒，速率为：{round(video_duration/(time.time()-b_time),2)}\n")
         if word_timestamps and with_json:
             json_data = {
@@ -105,8 +120,10 @@ class FasterWhisper:
             }
             if with_diarization:
                 json_data["diarization_info"] = [{"start": d[0], "end": d[1], "label": d[2]} for d in diarization_info]  # type: ignore
-            with open(os.path.splitext(media_path)[0] + ".json", "w", encoding="utf-8") as f:
+            json_file_path = os.path.splitext(os.path.basename(media_path))[0] + ".json"
+            with open(json_file_path, "w", encoding="utf-8") as f:
                 f.write(json.dumps(json_data, indent=2, ensure_ascii=False))
+            move_result_file_callback(json_file_path, media_path=media_path)
 
     def generate_srt(self, subtitles):
         def convert_to_srt_time_format(original_seconds):
@@ -129,9 +146,9 @@ class FasterWhisper:
     def segments_to_srt_subtitles(self, segments: Iterable[Segment]):
         return [(i.start, i.end, i.text) for i in segments]
 
-    def get_diarization(self, media_path):
-        png_path = os.path.splitext(media_path)[0] + ".png"
-        audio_path = self.media_to_mp3(media_path)
+    def get_diarization(self, media_path, move_result_file_callback):
+        png_path = os.path.splitext(os.path.basename(media_path))[0] + ".png"
+        audio_path, temp_dir_for_mp3 = self.media_to_mp3(media_path)
         if not self.pyannote_pipeline:
             self.pyannote_pipeline = Pipeline.from_pretrained(
                 "pyannote/speaker-diarization", use_auth_token="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"
@@ -141,7 +158,8 @@ class FasterWhisper:
         png_data = diarization._repr_png_()
         with open(png_path, "wb") as f:
             f.write(png_data)
-        os.remove(audio_path)
+        move_result_file_callback(png_path, media_path=media_path)
+        temp_dir_for_mp3.cleanup()
         return [(i[0].start, i[0].end, i[2]) for i in diarization.itertracks(yield_label=True)]
 
     def get_video_duration(self, video_path):
@@ -154,10 +172,11 @@ class FasterWhisper:
             raise UserWarning(f"无法正确获取视频时长:\n{output}")
 
     def media_to_mp3(self, video_path):
-        mp3_path = os.path.splitext(video_path)[0] + ".mp3"
+        temp_dir_for_mp3 = tempfile.TemporaryDirectory()
+        mp3_path = os.path.join(temp_dir_for_mp3.name, os.path.splitext(os.path.basename(video_path))[0] + ".mp3")
         cmd = ["ffmpeg", "-i", video_path, "-q:a", "0", "-map", "a", mp3_path]
         subprocess.run(cmd)
-        return mp3_path
+        return mp3_path, temp_dir_for_mp3
 
 
 if __name__ == "__main__":
