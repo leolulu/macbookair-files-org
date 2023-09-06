@@ -80,7 +80,7 @@ class FasterWhisper:
         print(f"视频时长为: {video_duration}")
         b_time = time.time()
         segments, info = self.transcribe(media_path, word_timestamps=word_timestamps, language=language)
-        print(f"音转文环节运行时间为：{int(time.time()-b_time)}秒，速率为：{round(video_duration/(time.time()-b_time),2)}")
+        print(f"音转文环节运行时间为：{int(time.time()-b_time)}秒，速率为：{round(video_duration/(time.time()-b_time),2)}\n")
         srt_content = self.generate_srt(self.segments_to_srt_subtitles(segments))
         with open(os.path.splitext(media_path)[0] + ".srt", "w", encoding="utf-8") as f:
             f.write(srt_content)
@@ -90,7 +90,7 @@ class FasterWhisper:
         if with_diarization:
             b_time = time.time()
             diarization_info = self.get_diarization(media_path)
-            print(f"说话人识别环节运行时间为：{int(time.time()-b_time)}秒，速率为：{round(video_duration/(time.time()-b_time),2)}")
+            print(f"说话人识别环节运行时间为：{int(time.time()-b_time)}秒，速率为：{round(video_duration/(time.time()-b_time),2)}\n")
         if word_timestamps and with_json:
             json_data = {
                 "asr_info": [
