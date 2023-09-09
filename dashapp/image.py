@@ -23,9 +23,18 @@ def get_img_path_list(img_path_list: List):
     temp_img_list = []
     for root, dirs_, files_ in os.walk("./static/img"):
         for file_ in files_:
-            if os.path.splitext(file_)[-1].lower() in [".htm", ".html", ".txt", ".swf", ".db", ".css", ".js", ".bak"] or re.search(
-                r"ds_store$", file_.lower()
-            ):
+            if os.path.splitext(file_)[-1].lower() in [
+                ".htm",
+                ".html",
+                ".txt",
+                ".swf",
+                ".db",
+                ".css",
+                ".js",
+                ".bak",
+                ".wmv",
+                ".psd",
+            ] or re.search(r"ds_store$", file_.lower()):
                 continue
             temp_img_list.append(os.path.join(root, file_).replace("\\", "/").replace("#", "%23"))
     temp_img_list.sort()
