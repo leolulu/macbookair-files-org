@@ -32,7 +32,7 @@ def get_img_path_list(img_path_list: List):
                 ".css",
                 ".js",
                 ".bak",
-                ".wav",
+                ".wmv",
                 ".psd",
             ] or re.search(r"ds_store$", file_.lower()):
                 continue
