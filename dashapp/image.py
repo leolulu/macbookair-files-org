@@ -1,11 +1,11 @@
 import os
-from dash import html
-from dash import dcc
-import dash
-import os
-from PIL import Image
 import random
+import re
 from typing import List
+
+import dash
+from dash import dcc, html
+from PIL import Image
 
 app = dash.Dash(__name__)
 
@@ -23,7 +23,7 @@ def get_img_path_list(img_path_list: List):
     temp_img_list = []
     for root, dirs_, files_ in os.walk('./static/img'):
         for file_ in files_:
-            if os.path.splitext(file_)[-1].lower() in ['.htm', '.html', '.txt', '.swf', '.css', '.js']:
+            if os.path.splitext(file_)[-1].lower() in ['.htm', '.html', '.txt', '.swf', '.db', '.css', '.js'] or re.search(r"ds_store$",file_.lower()) :
                 continue 
             temp_img_list.append(os.path.join(root, file_).replace('\\', '/').replace("#","%23"))
     temp_img_list.sort()
