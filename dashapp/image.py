@@ -34,6 +34,8 @@ def get_img_path_list(img_path_list: List):
                 ".bak",
                 ".wmv",
                 ".psd",
+                ".url",
+                ".mp3",
             ] or re.search(r"ds_store$", file_.lower()):
                 continue
             temp_img_list.append(os.path.join(root, file_).replace("\\", "/").replace("#", "%23"))
