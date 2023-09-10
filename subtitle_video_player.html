@@ -403,6 +403,7 @@
                 reader.onload = function (event) {
                     const data = JSON.parse(event.target.result);
                     const diarizationInfo = data.diarization_info;
+                    const videoDuration = data.video_duration;
 
                     // Determine unique labels and assign them a vertical position
                     const labels = [...new Set(diarizationInfo.map(info => info.label))];
@@ -413,79 +414,77 @@
                     });
 
                     // Process the data
-                    visualizeSpeakers(diarizationInfo, labelHeights, heightIncrement, labels);
+                    visualizeSpeakers(diarizationInfo, labelHeights, heightIncrement, labels, videoDuration);
                 };
                 reader.readAsText(file);
             }
 
-            function visualizeSpeakers(diarizationInfo, labelHeights, heightIncrement, labels) {
+            function visualizeSpeakers(diarizationInfo, labelHeights, heightIncrement, labels, videoDuration) {
                 const video = document.getElementById('video');
                 const videoPlayer = document.getElementById('video-player');
-                video.onloadedmetadata = function () {
-                    const videoDuration = video.duration;
 
-                    const existingContainer = document.getElementById('speaker-container');
-                    if (existingContainer) {
-                        videoPlayer.removeChild(existingContainer);
+                const existingContainer = document.getElementById('speaker-container');
+                if (existingContainer) {
+                    videoPlayer.removeChild(existingContainer);
+                }
+
+                const container = document.createElement('div');
+                container.id = 'speaker-container';  // Assigning an ID to the container for easy reference
+                container.style.border = '1px solid #aaa';
+                container.style.height = (Object.keys(labelHeights).length * 40) + 'px'; // Adjust height based on number of speakers
+                container.style.position = 'relative';
+                container.style.marginTop = '10px';
+                container.style.overflow = 'hidden';
+
+                // Define a set of colors
+                const colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628', '#f781bf'];
+
+                diarizationInfo.forEach(info => {
+                    const speakerDiv = document.createElement('div');
+                    const startPercentage = (info.start / videoDuration) * 100;
+                    const endPercentage = (info.end / videoDuration) * 100;
+
+                    speakerDiv.style.position = 'absolute';
+                    speakerDiv.style.top = labelHeights[info.label] + '%';
+                    speakerDiv.style.height = heightIncrement + '%';
+                    speakerDiv.style.left = startPercentage + '%';
+                    speakerDiv.style.width = (endPercentage - startPercentage) + '%';
+                    speakerDiv.style.background = colors[labels.indexOf(info.label) % colors.length];
+                    speakerDiv.title = info.label;
+
+                    container.appendChild(speakerDiv);
+                });
+
+                // Create and add the progress line to the container
+                const progressLine = document.createElement('div');
+                progressLine.style.position = 'absolute';
+                progressLine.style.top = '0';
+                progressLine.style.bottom = '0';
+                progressLine.style.width = '1px';
+                progressLine.style.background = '#000000';  // Color of the progress line
+                container.appendChild(progressLine);
+
+                // Update the position of the progress line based on the video's current time
+                video.addEventListener('timeupdate', function () {
+                    const progressPercentage = (video.currentTime / videoDuration) * 100;
+                    progressLine.style.left = progressPercentage + '%';
+                });
+
+                // Jump to the clicked position in the video
+                container.addEventListener('click', function (event) {
+                    let clickPosition = event.offsetX;
+                    // Adjust the click position if the target is a speakerDiv
+                    if (event.target !== container) {
+                        clickPosition += event.target.offsetLeft;
                     }
+                    const containerWidth = container.offsetWidth;
+                    const clickedPercentage = (clickPosition / containerWidth);
+                    video.currentTime = clickedPercentage * videoDuration;
+                    $('#video')[0].focus();
+                });
 
-                    const container = document.createElement('div');
-                    container.id = 'speaker-container';  // Assigning an ID to the container for easy reference
-                    container.style.border = '1px solid #aaa';
-                    container.style.height = (Object.keys(labelHeights).length * 40) + 'px'; // Adjust height based on number of speakers
-                    container.style.position = 'relative';
-                    container.style.marginTop = '10px';
-                    container.style.overflow = 'hidden';
+                videoPlayer.appendChild(container);
 
-                    // Define a set of colors
-                    const colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628', '#f781bf'];
-
-                    diarizationInfo.forEach(info => {
-                        const speakerDiv = document.createElement('div');
-                        const startPercentage = (info.start / videoDuration) * 100;
-                        const endPercentage = (info.end / videoDuration) * 100;
-
-                        speakerDiv.style.position = 'absolute';
-                        speakerDiv.style.top = labelHeights[info.label] + '%';
-                        speakerDiv.style.height = heightIncrement + '%';
-                        speakerDiv.style.left = startPercentage + '%';
-                        speakerDiv.style.width = (endPercentage - startPercentage) + '%';
-                        speakerDiv.style.background = colors[labels.indexOf(info.label) % colors.length];
-                        speakerDiv.title = info.label;
-
-                        container.appendChild(speakerDiv);
-                    });
-
-                    // Create and add the progress line to the container
-                    const progressLine = document.createElement('div');
-                    progressLine.style.position = 'absolute';
-                    progressLine.style.top = '0';
-                    progressLine.style.bottom = '0';
-                    progressLine.style.width = '1px';
-                    progressLine.style.background = '#000000';  // Color of the progress line
-                    container.appendChild(progressLine);
-
-                    // Update the position of the progress line based on the video's current time
-                    video.addEventListener('timeupdate', function () {
-                        const progressPercentage = (video.currentTime / videoDuration) * 100;
-                        progressLine.style.left = progressPercentage + '%';
-                    });
-
-                    // Jump to the clicked position in the video
-                    container.addEventListener('click', function (event) {
-                        let clickPosition = event.offsetX;
-                        // Adjust the click position if the target is a speakerDiv
-                        if (event.target !== container) {
-                            clickPosition += event.target.offsetLeft;
-                        }
-                        const containerWidth = container.offsetWidth;
-                        const clickedPercentage = (clickPosition / containerWidth);
-                        video.currentTime = clickedPercentage * videoDuration;
-                        $('#video')[0].focus();
-                    });
-
-                    videoPlayer.appendChild(container);
-                };
             }
 
 

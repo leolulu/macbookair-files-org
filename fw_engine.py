@@ -55,7 +55,7 @@ class FasterWhisper:
             for segment in segments:
                 if info.language == "zh":
                     segment = segment._replace(text=zhconv.convert(segment.text, "zh-cn"))
-                    segment = segment._replace(words=[w._replace(word=zhconv.convert(w.word, "zh-cn")) for w in segment.words])
+                    segment = segment._replace(words=[w._replace(word=zhconv.convert(w.word, "zh-cn")) for w in segment.words]) # type: ignore
                 timestamp_last = round(segment.end)
                 time_now = time.time()
                 if time_now - last_burst > set_delay:  # catch new chunk
@@ -120,6 +120,7 @@ class FasterWhisper:
             }
             if with_diarization:
                 json_data["diarization_info"] = [{"start": d[0], "end": d[1], "label": d[2]} for d in diarization_info]  # type: ignore
+            json_data["video_duration"] = video_duration  # type: ignore
             json_file_path = os.path.splitext(os.path.basename(media_path))[0] + ".json"
             with open(json_file_path, "w", encoding="utf-8") as f:
                 f.write(json.dumps(json_data, indent=2, ensure_ascii=False))
