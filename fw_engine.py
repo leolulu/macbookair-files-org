@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import tempfile
 import time
+from collections import defaultdict
 from threading import Thread
 from typing import Iterable, List, Union
 
@@ -13,6 +14,7 @@ import stable_whisper
 import torch
 import zhconv
 from faster_whisper import WhisperModel
+from faster_whisper.audio import decode_audio
 from faster_whisper.transcribe import Segment
 from pyannote.audio import Pipeline
 from pyannote.audio.pipelines.utils.hook import ProgressHook
@@ -87,6 +89,9 @@ class FasterWhisper:
         move_result_file_callback=None,
         force_align=True,
     ):
+        if str(language).lower() == "auto":
+            print("自动检测语言中...")
+            language = self.detect_language_by_longer_material(media_path)
         if move_result_file_callback is None:
             move_result_file_callback = self._default_move_result_file_callback
         video_duration = self.get_video_duration(media_path)
@@ -185,9 +190,42 @@ class FasterWhisper:
     def media_to_mp3(self, video_path):
         temp_dir_for_mp3 = tempfile.TemporaryDirectory()
         mp3_path = os.path.join(temp_dir_for_mp3.name, os.path.splitext(os.path.basename(video_path))[0] + ".mp3")
-        cmd = ["ffmpeg", "-i", video_path, "-q:a", "0", "-map", "a", mp3_path]
+        cmd = ["ffmpeg", "-i", video_path, "-q:a", "0", "-map", "a", "-loglevel", "warning", mp3_path]
         subprocess.run(cmd)
         return mp3_path, temp_dir_for_mp3
+
+    def detect_language(self, media_path):
+        audio = os.path.abspath(media_path)
+        audio = decode_audio(audio, sampling_rate=self.model.feature_extractor.sampling_rate)
+        features = self.model.feature_extractor(audio)
+        segment = features[:, : self.model.feature_extractor.nb_max_frames]
+        encoder_output = self.model.encode(segment)
+        result = self.model.model.detect_language(encoder_output)
+        return max(result[0], key=lambda x: x[-1])[0].replace("<|", "").replace("|>", "")
+
+    def detect_language_by_longer_material(self, media_path):
+        with tempfile.TemporaryDirectory() as temp_dir_for_ffmpeg:
+            lang_results = defaultdict(int)
+            duration = self.get_video_duration(media_path)
+            start_time = 0
+            while start_time < duration:
+                end_time = min(duration, start_time + 30)
+                sub_media_file_path = f"_{start_time}_{end_time}".join(os.path.splitext(media_path))
+                sub_media_file_path = os.path.join(temp_dir_for_ffmpeg, os.path.basename(sub_media_file_path))
+                subprocess.call(
+                    f'ffmpeg -i "{media_path}" -ss {start_time} -to {end_time} -c copy -loglevel warning {sub_media_file_path}', shell=True
+                )
+                lang_result = self.detect_language(sub_media_file_path)
+                lang_results[lang_result] += 1
+                print(f"语言检测结果：{lang_result}，时间：{start_time} - {end_time}")
+                print(f"当前所有结果：{lang_results}")
+                start_time += 30
+                os.remove(sub_media_file_path)
+
+        lang_results.pop("nn", None)
+        final_result = max(lang_results.items(), key=lambda x: x[-1])[0]
+        print(f"语言自动检测结果为：{final_result}")
+        return final_result
 
 
 if __name__ == "__main__":
@@ -198,4 +236,5 @@ if __name__ == "__main__":
             with_json=True,
             with_txt=True,
             with_diarization=True,
+            language="auto",
         )
