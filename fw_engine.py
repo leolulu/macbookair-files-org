@@ -7,8 +7,9 @@ import subprocess
 import tempfile
 import time
 from threading import Thread
-from typing import Iterable, List
+from typing import Iterable, List, Union
 
+import stable_whisper
 import torch
 import zhconv
 from faster_whisper import WhisperModel
@@ -55,7 +56,7 @@ class FasterWhisper:
             for segment in segments:
                 if info.language == "zh":
                     segment = segment._replace(text=zhconv.convert(segment.text, "zh-cn"))
-                    segment = segment._replace(words=[w._replace(word=zhconv.convert(w.word, "zh-cn")) for w in segment.words]) # type: ignore
+                    segment = segment._replace(words=[w._replace(word=zhconv.convert(w.word, "zh-cn")) for w in segment.words])  # type: ignore
                 timestamp_last = round(segment.end)
                 time_now = time.time()
                 if time_now - last_burst > set_delay:  # catch new chunk
@@ -84,6 +85,7 @@ class FasterWhisper:
         with_json=False,
         with_diarization=False,
         move_result_file_callback=None,
+        force_align=True,
     ):
         if move_result_file_callback is None:
             move_result_file_callback = self._default_move_result_file_callback
@@ -91,6 +93,14 @@ class FasterWhisper:
         print(f"视频时长为: {video_duration}")
         b_time = time.time()
         segments, info = self.transcribe(media_path, word_timestamps=word_timestamps, language=language)
+
+        if force_align:
+            segments = stable_whisper.transcribe_any(
+                lambda audio, **kwargs: [[{"word": j.word, "start": j.start, "end": j.end} for j in i.words] for i in segments],  # type: ignore
+                media_path,
+                regroup=False,
+            ).segments
+
         print(f"音转文环节运行时间为：{int(time.time()-b_time)}秒，速率为：{round(video_duration/(time.time()-b_time),2)}\n")
         srt_content = self.generate_srt(self.segments_to_srt_subtitles(segments))
         srt_file_path = os.path.splitext(os.path.basename(media_path))[0] + ".srt"
@@ -144,7 +154,7 @@ class FasterWhisper:
             counter += 1
         return srt_content
 
-    def segments_to_srt_subtitles(self, segments: Iterable[Segment]):
+    def segments_to_srt_subtitles(self, segments: Iterable[Union[stable_whisper.result.Segment, Segment]]):
         return [(i.start, i.end, i.text) for i in segments]
 
     def get_diarization(self, media_path, move_result_file_callback):
