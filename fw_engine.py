@@ -100,11 +100,14 @@ class FasterWhisper:
         segments, info = self.transcribe(media_path, word_timestamps=word_timestamps, language=language)
 
         if force_align:
-            segments = stable_whisper.transcribe_any(
-                lambda audio, **kwargs: [[{"word": j.word, "start": j.start, "end": j.end} for j in i.words] for i in segments],  # type: ignore
-                media_path,
-                regroup=False,
-            ).segments
+            try:
+                segments = stable_whisper.transcribe_any(
+                    lambda audio, **kwargs: [[{"word": j.word, "start": j.start, "end": j.end} for j in i.words] for i in segments],  # type: ignore
+                    media_path,
+                    regroup=False,
+                ).segments
+            except Exception as e:
+                print(f"矫正字幕时出错，取消矫正，原因为：{e}")
 
         print(f"音转文环节运行时间为：{int(time.time()-b_time)}秒，速率为：{round(video_duration/(time.time()-b_time),2)}\n")
         srt_content = self.generate_srt(self.segments_to_srt_subtitles(segments))
