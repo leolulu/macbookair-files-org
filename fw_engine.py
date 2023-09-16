@@ -217,7 +217,7 @@ class FasterWhisper:
                 sub_media_file_path = f"_{start_time}_{end_time}".join(os.path.splitext(media_path))
                 sub_media_file_path = os.path.join(temp_dir_for_ffmpeg, os.path.basename(sub_media_file_path))
                 subprocess.call(
-                    f'ffmpeg -i "{media_path}" -ss {start_time} -to {end_time} -c copy -loglevel warning {sub_media_file_path}', shell=True
+                    f'ffmpeg -i "{media_path}" -ss {start_time} -to {end_time} -c copy -loglevel warning "{sub_media_file_path}"', shell=True
                 )
                 lang_result = self.detect_language(sub_media_file_path)
                 lang_results[lang_result] += 1
