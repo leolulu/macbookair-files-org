@@ -101,6 +101,7 @@ class FasterWhisper:
 
         if force_align:
             try:
+                print("开始使用stable-ts提升字幕精度...")
                 segments = stable_whisper.transcribe_any(
                     lambda audio, **kwargs: [[{"word": j.word, "start": j.start, "end": j.end} for j in i.words] for i in segments],  # type: ignore
                     media_path,
