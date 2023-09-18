@@ -88,6 +88,7 @@ class FasterWhisper:
         with_diarization=False,
         move_result_file_callback=None,
         force_align=True,
+        regroup_eng=True,
     ):
         if str(language).lower() == "auto":
             print("自动检测语言中...")
@@ -105,7 +106,7 @@ class FasterWhisper:
                 segments = stable_whisper.transcribe_any(
                     lambda audio, **kwargs: [[{"word": j.word, "start": j.start, "end": j.end} for j in i.words] for i in segments],  # type: ignore
                     media_path,
-                    regroup=False,
+                    regroup=True if regroup_eng and info.language == "en" else False,
                 ).segments
             except Exception as e:
                 print(f"矫正字幕时出错，取消矫正，原因为：{e}")
@@ -217,7 +218,8 @@ class FasterWhisper:
                 sub_media_file_path = f"_{start_time}_{end_time}".join(os.path.splitext(media_path))
                 sub_media_file_path = os.path.join(temp_dir_for_ffmpeg, os.path.basename(sub_media_file_path))
                 subprocess.call(
-                    f'ffmpeg -i "{media_path}" -ss {start_time} -to {end_time} -c copy -loglevel warning "{sub_media_file_path}"', shell=True
+                    f'ffmpeg -i "{media_path}" -ss {start_time} -to {end_time} -c copy -loglevel warning "{sub_media_file_path}"',
+                    shell=True,
                 )
                 lang_result = self.detect_language(sub_media_file_path)
                 lang_results[lang_result] += 1
