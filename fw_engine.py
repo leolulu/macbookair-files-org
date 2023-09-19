@@ -237,10 +237,19 @@ class FasterWhisper:
 if __name__ == "__main__":
     w = FasterWhisper(local_files_only=True)
     while True:
-        w.transcribe_to_file(
-            input("请输入媒体文件绝对路径："),
-            with_json=True,
-            with_txt=True,
-            with_diarization=True,
-            language="auto",
-        )
+        input_path = input("请输入媒体文件或文件夹的绝对路径：").strip()
+        if os.path.isfile(input_path):
+            media_paths = [input_path]
+        elif os.path.isdir(input_path):
+            media_paths = [os.path.join(input_path, i) for i in os.listdir(input_path) if i.lower().endswith(".mp4")]
+        else:
+            media_paths = []
+        for media_path in media_paths:
+            print(f"开始转换文件: {media_path}")
+            w.transcribe_to_file(
+                media_path=media_path.strip(),
+                with_json=True,
+                with_txt=True,
+                with_diarization=False,
+                language=None,
+            )
