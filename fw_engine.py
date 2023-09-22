@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import tempfile
 import time
+import traceback
 from collections import defaultdict
 from threading import Thread
 from typing import Iterable, List, Union
@@ -245,11 +246,14 @@ if __name__ == "__main__":
         else:
             media_paths = []
         for media_path in media_paths:
-            print(f"开始转换文件: {media_path}")
-            w.transcribe_to_file(
-                media_path=media_path.strip(),
-                with_json=True,
-                with_txt=True,
-                with_diarization=False,
-                language=None,
-            )
+            try:
+                print(f"开始转换文件: {media_path}")
+                w.transcribe_to_file(
+                    media_path=media_path.strip(),
+                    with_json=True,
+                    with_txt=True,
+                    with_diarization=False,
+                    language="auto",
+                )
+            except:
+                traceback.print_exc()
