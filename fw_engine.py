@@ -5,9 +5,11 @@ import re
 import shutil
 import subprocess
 import tempfile
+import threading
 import time
 import traceback
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from threading import Thread
 from typing import Iterable, List, Union
 
@@ -214,20 +216,31 @@ class FasterWhisper:
             lang_results = defaultdict(int)
             duration = self.get_video_duration(media_path)
             start_time = 0
-            while start_time < duration:
-                end_time = min(duration, start_time + 30)
-                sub_media_file_path = f"_{start_time}_{end_time}".join(os.path.splitext(media_path))
-                sub_media_file_path = os.path.join(temp_dir_for_ffmpeg, os.path.basename(sub_media_file_path))
+            detect_language_lock = threading.Lock()
+
+            def detect_language_par(command_info):
+                sub_media_file_path, start_time, end_time = command_info
                 subprocess.call(
                     f'ffmpeg -i "{media_path}" -ss {start_time} -to {end_time} -c copy -loglevel warning "{sub_media_file_path}"',
                     shell=True,
                 )
                 lang_result = self.detect_language(sub_media_file_path)
-                lang_results[lang_result] += 1
+                with detect_language_lock:
+                    lang_results[lang_result] += 1
                 print(f"语言检测结果：{lang_result}，时间：{start_time} - {end_time}")
                 print(f"当前所有结果：{lang_results}")
-                start_time += 30
                 os.remove(sub_media_file_path)
+
+            commands_info = []
+            while start_time < duration:
+                end_time = min(duration, start_time + 30)
+                sub_media_file_path = f"_{start_time}_{end_time}".join(os.path.splitext(media_path))
+                sub_media_file_path = os.path.join(temp_dir_for_ffmpeg, os.path.basename(sub_media_file_path))
+                commands_info.append((sub_media_file_path, start_time, end_time))
+                start_time += 30
+
+            with ThreadPoolExecutor(max_workers=os.cpu_count() if os.cpu_count() else 4) as executor:
+                executor.map(detect_language_par, commands_info)
 
         lang_results.pop("nn", None)
         final_result = max(lang_results.items(), key=lambda x: x[-1])[0]
