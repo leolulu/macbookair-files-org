@@ -249,9 +249,40 @@ class FasterWhisper:
 
 
 if __name__ == "__main__":
+
+    def process_media(media_path):
+        if os.path.exists(os.path.splitext(media_path)[0] + ".srt") or os.path.exists(os.path.splitext(media_path)[0] + ".json"):
+            # print(f"已经有字幕，跳过转换：{media_path}")
+            return
+        try:
+            print(f"开始转换文件: {media_path}")
+            w.transcribe_to_file(
+                media_path=media_path.strip(),
+                with_json=True,
+                with_txt=True,
+                with_diarization=False,
+                language="auto",
+            )
+        except:
+            traceback.print_exc()
+
     w = FasterWhisper(local_files_only=True)
     while True:
         input_path = input("请输入媒体文件或文件夹的绝对路径：").strip()
+        if not input_path:
+            continue
+        if input_path[0] == '"' and input_path[-1] == '"':
+            input_path = input_path[1:-1]
+
+        if input_path == "loop":
+            from pathlib import Path
+
+            download_path = str(Path.home() / "Downloads")
+            while True:
+                for media_path in [os.path.join(download_path, i) for i in os.listdir(download_path) if i.lower().endswith(".mp4")]:
+                    process_media(media_path)
+                time.sleep(5)
+
         if os.path.isfile(input_path):
             media_paths = [input_path]
         elif os.path.isdir(input_path):
@@ -259,14 +290,4 @@ if __name__ == "__main__":
         else:
             media_paths = []
         for media_path in media_paths:
-            try:
-                print(f"开始转换文件: {media_path}")
-                w.transcribe_to_file(
-                    media_path=media_path.strip(),
-                    with_json=True,
-                    with_txt=True,
-                    with_diarization=False,
-                    language="auto",
-                )
-            except:
-                traceback.print_exc()
+            process_media(media_path)
