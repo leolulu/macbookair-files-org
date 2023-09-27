@@ -96,7 +96,10 @@ def generate_thumbnail(video_path, rows, cols):
     if os.path.exists(output_path):
         os.remove(output_path)
     cv2.imwrite(temp_output_path, thumbnail)
-    shutil.move(temp_output_path, output_path)
+    try:
+        shutil.move(temp_output_path, output_path)
+    except:
+        shutil.move(temp_output_path, os.path.join(os.path.dirname(temp_output_path), os.path.basename(output_path)))
 
 
 if __name__ == "__main__":
