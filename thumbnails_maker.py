@@ -113,4 +113,9 @@ if __name__ == "__main__":
         cols = int(sys.argv[3])
     else:
         raise UserWarning("参数错误！要么只提供视频路径，要么同时提供视频路径和行列数！")
-    generate_thumbnail(video_path, rows, cols)
+    if os.path.isdir(video_path):
+        video_paths = [os.path.join(video_path, f) for f in os.listdir(video_path) if f.lower().endswith(".mp4")]
+        for video_path in video_paths:
+            generate_thumbnail(video_path, rows, cols)
+    else:
+        generate_thumbnail(video_path, rows, cols)
