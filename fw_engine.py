@@ -227,7 +227,7 @@ class FasterWhisper:
                 lang_result = self.detect_language(sub_media_file_path)
                 with detect_language_lock:
                     lang_results[lang_result] += 1
-                print(f"语言检测结果：{lang_result}，时间：{start_time} - {end_time}")
+                print(f"语言检测结果：【{lang_result}】，时间：{start_time} - {end_time}")
                 print(f"当前所有结果：{lang_results}")
                 os.remove(sub_media_file_path)
 
@@ -243,8 +243,12 @@ class FasterWhisper:
                 executor.map(detect_language_par, commands_info)
 
         lang_results.pop("nn", None)
-        final_result = max(lang_results.items(), key=lambda x: x[-1])[0]
-        print(f"语言自动检测结果为：{final_result}")
+        try:
+            final_result = max(lang_results.items(), key=lambda x: x[-1])[0]
+            print(f"语言自动检测结果为：{final_result}")
+        except ValueError:
+            final_result = None
+            print(f"语言自动检测结果中只有nn，提交默认语言进行处理")
         return final_result
 
 
