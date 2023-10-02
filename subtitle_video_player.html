@@ -547,12 +547,14 @@
                     var nextSubtitle = subtitles.find(function (subtitle) {
                         return subtitle.start > currentVideoTime;
                     });
+                    $('#video').off('timeupdate', highlightSubtitle);
                     if (nextSubtitle) {
                         $('#video')[0].currentTime = nextSubtitle.start;
                     } else {
                         $('#video')[0].currentTime = $('#video')[0].duration;
                         $('#video')[0].pause();
                     }
+                    $('#video').on('timeupdate', highlightSubtitle);
                 }
             }
 
