@@ -86,6 +86,7 @@ class FasterWhisper:
         media_path,
         word_timestamps=True,
         language=None,
+        with_srt=True,
         with_txt=False,
         with_json=False,
         with_diarization=False,
@@ -115,11 +116,12 @@ class FasterWhisper:
                 print(f"矫正字幕时出错，取消矫正，原因为：{e}")
 
         print(f"音转文环节运行时间为：{int(time.time()-b_time)}秒，速率为：{round(video_duration/(time.time()-b_time),2)}\n")
-        srt_content = self.generate_srt(self.segments_to_srt_subtitles(segments))
-        srt_file_path = os.path.splitext(os.path.basename(media_path))[0] + ".srt"
-        with open(srt_file_path, "w", encoding="utf-8") as f:
-            f.write(srt_content)
-        move_result_file_callback(srt_file_path, media_path=media_path)
+        if with_srt:
+            srt_content = self.generate_srt(self.segments_to_srt_subtitles(segments))
+            srt_file_path = os.path.splitext(os.path.basename(media_path))[0] + ".srt"
+            with open(srt_file_path, "w", encoding="utf-8") as f:
+                f.write(srt_content)
+            move_result_file_callback(srt_file_path, media_path=media_path)
         if with_txt:
             txt_file_path = os.path.splitext(os.path.basename(media_path))[0] + ".txt"
             with open(txt_file_path, "w", encoding="utf-8") as f:
@@ -262,8 +264,9 @@ if __name__ == "__main__":
             print(f"开始转换文件: {media_path}")
             w.transcribe_to_file(
                 media_path=media_path.strip(),
+                with_srt=False,
                 with_json=True,
-                with_txt=True,
+                with_txt=False,
                 with_diarization=False,
                 language="auto",
             )
