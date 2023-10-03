@@ -536,25 +536,22 @@
                     $('.subtitle-word').removeClass('highlight');
                 }
 
-                var currentVideoTime = $('#video')[0].currentTime;
                 var skipBlanks = $('#skipBlanks').prop('checked');
                 var skipIntervalChecked = $('#enableSkipInterval').prop('checked');
                 var skipInterval = parseFloat(document.getElementById('skipInterval').value);
                 var currentSubtitleIndex = subtitles.findIndex(function (subtitle) {
-                    return subtitle.start <= currentVideoTime && (skipIntervalChecked ? subtitle.start + skipInterval : subtitle.end) > currentVideoTime;
+                    return subtitle.start <= currentTime && (skipIntervalChecked ? subtitle.start + skipInterval : subtitle.end) > currentTime;
                 });
                 if (skipBlanks && currentSubtitleIndex == -1) {
                     var nextSubtitle = subtitles.find(function (subtitle) {
-                        return subtitle.start > currentVideoTime;
+                        return subtitle.start > currentTime;
                     });
-                    $('#video').off('timeupdate', highlightSubtitle);
                     if (nextSubtitle) {
                         $('#video')[0].currentTime = nextSubtitle.start;
                     } else {
                         $('#video')[0].currentTime = $('#video')[0].duration;
                         $('#video')[0].pause();
                     }
-                    $('#video').on('timeupdate', highlightSubtitle);
                 }
             }
 
