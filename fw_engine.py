@@ -94,6 +94,8 @@ class FasterWhisper:
         force_align=True,
         regroup_eng=True,
     ):
+        if not (with_srt or with_json or with_txt):
+            raise UserWarning(f"srt、json、txt需要选择至少一种输出!")
         if str(language).lower() == "auto":
             print("自动检测语言中...")
             language = self.detect_language_by_longer_material(media_path)
