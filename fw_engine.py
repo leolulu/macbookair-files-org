@@ -90,6 +90,7 @@ class FasterWhisper:
         with_txt=False,
         with_json=False,
         with_diarization=False,
+        with_png=False,
         move_result_file_callback=None,
         force_align=True,
         regroup_eng=True,
@@ -131,7 +132,7 @@ class FasterWhisper:
             move_result_file_callback(txt_file_path, media_path=media_path)
         if with_diarization:
             b_time = time.time()
-            diarization_info = self.get_diarization(media_path, move_result_file_callback)
+            diarization_info = self.get_diarization(media_path, move_result_file_callback, with_png)
             print(f"说话人识别环节运行时间为：{int(time.time()-b_time)}秒，速率为：{round(video_duration/(time.time()-b_time),2)}\n")
         if word_timestamps and with_json:
             json_data = {
@@ -174,7 +175,7 @@ class FasterWhisper:
     def segments_to_srt_subtitles(self, segments: Iterable[Union[stable_whisper.result.Segment, Segment]]):
         return [(i.start, i.end, i.text) for i in segments]
 
-    def get_diarization(self, media_path, move_result_file_callback):
+    def get_diarization(self, media_path, move_result_file_callback, with_png):
         png_path = os.path.splitext(os.path.basename(media_path))[0] + ".png"
         audio_path, temp_dir_for_mp3 = self.media_to_mp3(media_path)
         if not self.pyannote_pipeline:
@@ -184,9 +185,10 @@ class FasterWhisper:
         with ProgressHook() as hook:
             diarization = self.pyannote_pipeline(audio_path, hook=hook)
         png_data = diarization._repr_png_()
-        with open(png_path, "wb") as f:
-            f.write(png_data)
-        move_result_file_callback(png_path, media_path=media_path)
+        if with_png:
+            with open(png_path, "wb") as f:
+                f.write(png_data)
+            move_result_file_callback(png_path, media_path=media_path)
         temp_dir_for_mp3.cleanup()
         return [(i[0].start, i[0].end, i[2]) for i in diarization.itertracks(yield_label=True)]
 
@@ -269,7 +271,7 @@ if __name__ == "__main__":
                 with_srt=False,
                 with_json=True,
                 with_txt=False,
-                with_diarization=False,
+                with_diarization=True,
                 language="auto",
             )
         except:
