@@ -268,10 +268,11 @@ if __name__ == "__main__":
             print(f"开始转换文件: {media_path}")
             w.transcribe_to_file(
                 media_path=media_path.strip(),
-                with_srt=False,
+                with_srt=True,
                 with_json=True,
-                with_txt=False,
-                with_diarization=True,
+                with_txt=True,
+                with_diarization=False,
+                with_png=False,
                 language="auto",
             )
         except:
@@ -297,7 +298,11 @@ if __name__ == "__main__":
         if os.path.isfile(input_path):
             media_paths = [input_path]
         elif os.path.isdir(input_path):
-            media_paths = [os.path.join(input_path, i) for i in os.listdir(input_path) if i.lower().endswith(".mp4")]
+            media_paths = [
+                os.path.join(input_path, i)
+                for i in os.listdir(input_path)
+                if os.path.splitext(i)[-1].lower() in [".mp4", ".flv", ".avi", ".mpg", ".wmv", ".mpeg", ".mov"]
+            ]
         else:
             media_paths = []
         for media_path in media_paths:
