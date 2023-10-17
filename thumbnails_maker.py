@@ -1,3 +1,4 @@
+import math
 import os
 import shutil
 import sys
@@ -25,6 +26,7 @@ def generate_thumbnail(video_path, rows, cols=None):
 
     if cols is None:
         height, width, _ = cap.read()[1].shape
+        rows = math.ceil(width / height / (16 / 9) * rows)
         cols = int(16 * height * rows / 9 / width)
 
     print(f"开始生成视频缩略图，视频路径：{video_path}，行列数：{rows}x{cols}")
