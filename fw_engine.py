@@ -291,7 +291,11 @@ if __name__ == "__main__":
 
             download_path = str(Path.home() / "Downloads")
             while True:
-                for media_path in [os.path.join(download_path, i) for i in os.listdir(download_path) if i.lower().endswith(".mp4")]:
+                for media_path in [
+                    os.path.join(download_path, i)
+                    for i in os.listdir(download_path)
+                    if os.path.splitext(i)[-1].lower() in [".mp4", ".flv", ".avi", ".mpg", ".wmv", ".mpeg", ".mov"]
+                ]:
                     process_media(media_path)
                 time.sleep(5)
 
