@@ -1,3 +1,4 @@
+import math
 import os
 import shutil
 import sys
@@ -17,11 +18,16 @@ def get_font_location(frame, content: str, fontFace: int, font_scale: float, thi
     return (start_x, start_y)
 
 
-def generate_thumbnail(video_path, rows, cols):
+def generate_thumbnail(video_path, rows, cols=None):
     # 读取视频
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         raise UserWarning("无法打开视频文件!")
+
+    if cols is None:
+        height, width, _ = cap.read()[1].shape
+        rows = math.ceil(width / height / (16 / 9) * rows)
+        cols = int(16 * height * rows / 9 / width)
 
     print(f"开始生成视频缩略图，视频路径：{video_path}，行列数：{rows}x{cols}")
 
@@ -107,6 +113,10 @@ if __name__ == "__main__":
         video_path = sys.argv[1]
         rows = 7
         cols = 7
+    if len(sys.argv) == 3:
+        video_path = sys.argv[1]
+        rows = int(sys.argv[2])
+        cols = None
     elif len(sys.argv) == 4:
         video_path = sys.argv[1]
         rows = int(sys.argv[2])
