@@ -113,7 +113,7 @@ if __name__ == "__main__":
         video_path = sys.argv[1]
         rows = 7
         cols = 7
-    if len(sys.argv) == 3:
+    elif len(sys.argv) == 3:
         video_path = sys.argv[1]
         rows = int(sys.argv[2])
         cols = None
