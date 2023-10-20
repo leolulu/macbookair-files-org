@@ -17,7 +17,7 @@ def get_length(file_path):
     return duration
 
 
-def cut_video(file_path, interval: int, copy: bool):
+def cut_video(file_path, interval: int, encode: bool):
     duration = get_length(file_path)
     btime = 0
     idx = 1
@@ -25,7 +25,7 @@ def cut_video(file_path, interval: int, copy: bool):
     while btime < duration:
         etime = min(btime + interval, duration)
         output_name = f"_{str(idx).zfill(3)}".join(os.path.splitext(file_path))
-        exe_string = f'ffmpeg -ss {btime} -to {etime} -accurate_seek -i "{file_path}" {"-codec copy" if copy else ""} -map_chapters -1 -avoid_negative_ts 1 "{output_name}"'
+        exe_string = f'ffmpeg -ss {btime} -to {etime} -accurate_seek -i "{file_path}" {"" if encode else "-codec copy"} -map_chapters -1 -avoid_negative_ts 1 "{output_name}"'
         print(f"指令：{exe_string}")
         subprocess.run(exe_string, shell=True)
         btime += interval
@@ -36,8 +36,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("file_path", help="媒体路径")
     parser.add_argument("interval", help="每段切分的时长", type=int)
-    parser.add_argument("-c", "--copy", help="是否直接复制音视频流", action="store_true")
+    parser.add_argument("-e", "--encode", help="是否需要重编码", action="store_true")
     args = parser.parse_args()
-
-    file_path = r"C:\Users\Admin\Downloads\Classic Sexy Rene Bond Teenage Fantasies - Pornhub.com[index-f1-v1-a1.m3u8]_001.mp4"
-    cut_video(args.file_path, args.interval, args.copy)
+    cut_video(args.file_path, args.interval, args.encode)
