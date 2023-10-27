@@ -127,7 +127,7 @@ if __name__ == "__main__":
         video_paths = [
             os.path.join(video_path, f)
             for f in os.listdir(video_path)
-            if os.path.splitext(f)[-1].lower() in [".mp4", ".flv", ".avi", ".mpg", ".wmv", ".mpeg", ".mov"]
+            if os.path.splitext(f)[-1].lower() in [".mp4", ".flv", ".avi", ".mpg", ".wmv", ".mpeg", ".mov", ".mkv", ".ts"]
         ]
         for video_path in video_paths:
             generate_thumbnail(video_path, rows, cols)
