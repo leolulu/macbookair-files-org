@@ -1,8 +1,10 @@
 import math
 import os
 import shutil
+import subprocess
 import sys
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Tuple
 
@@ -31,6 +33,7 @@ def generate_thumbnail(video_path, rows, cols=None):
 
     print(f"开始生成视频缩略图，视频路径：{video_path}，行列数：{rows}x{cols}")
 
+    fps = cap.get(cv2.CAP_PROP_FPS)
     # 获取视频的总帧数和帧率
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     # 计算每个缩略图之间的帧间隔
@@ -55,7 +58,7 @@ def generate_thumbnail(video_path, rows, cols=None):
 
             # 在图像的右上角添加时间戳（包括轮廓）
             font_face = cv2.FONT_HERSHEY_SIMPLEX
-            font_scale = frame.shape[0] / 1080 * 7
+            font_scale = frame.shape[0] / 1080 * 4
             inner_white = (font_scale, 12)
             outer_black = (font_scale, 6)
 
@@ -96,16 +99,72 @@ def generate_thumbnail(video_path, rows, cols=None):
             thumbnail[i * height : (i + 1) * height, j * width : (j + 1) * width, :] = thumbnails[i * cols + j]
 
     # 保存缩略图
-    output_path = os.path.splitext(video_path)[0] + ".jpg"
-    temp_output_path = os.path.join(str(Path.home() / "Downloads"), f"{uuid.uuid4().hex}.jpg")
-    print(f"缩略图保存路径为：{output_path}")
-    if os.path.exists(output_path):
-        os.remove(output_path)
-    cv2.imwrite(temp_output_path, thumbnail)
+    output_path_img = os.path.splitext(video_path)[0] + ".jpg"
+    output_path_video = os.path.splitext(video_path)[0] + "_DAthumb.mp4"
+    temp_output_path_img = os.path.join(str(Path.home() / "Downloads"), f"{uuid.uuid4().hex}.jpg")
+    temp_output_path_video = os.path.join(str(Path.home() / "Downloads"), f"{uuid.uuid4().hex}.mp4")
+    print(f"缩略图保存路径为：{output_path_img}")
+    if os.path.exists(output_path_img):
+        os.remove(output_path_img)
+    cv2.imwrite(temp_output_path_img, thumbnail)
+
     try:
-        shutil.move(temp_output_path, output_path)
+        shutil.move(temp_output_path_img, output_path_img)
     except:
-        shutil.move(temp_output_path, os.path.join(os.path.dirname(temp_output_path), os.path.basename(output_path)))
+        shutil.move(temp_output_path_img, os.path.join(os.path.dirname(temp_output_path_img), os.path.basename(output_path_img)))
+
+    # 生成视频缩略图
+    # 生成中间文件落盘
+    key_timestamp = [i * frame_interval / fps for i in range(rows * cols)]
+    thumbnail_duration = 30
+    max_output_height = 2160
+    input_template = ' -ss {start_time} -t {duration} -i "{input_file_path}" '
+    footage_paths = []
+    gen_footage_commands = []
+    for i in key_timestamp:
+        gen_footage_command = "ffmpeg " + input_template.format(start_time=i, duration=thumbnail_duration, input_file_path=video_path)
+        if height > max_output_height / rows:
+            gen_footage_command += r" -vf scale=w=-1:h=scale_height,drawtext=text='%{pts\:gmtime\:drawtext_pts_offset\:%H\\\:%M\\\:%S}':x=10:y=10:fontsize=h/10:fontcolor=white:bordercolor=black:borderw=2 "
+            gen_footage_command = gen_footage_command.replace("scale_height", str(int(max_output_height / rows)))
+            gen_footage_command = gen_footage_command.replace("drawtext_pts_offset", str(int(i)))
+        output_file_path = os.path.join(str(Path.home() / "Downloads"), f"{int(i)}.mp4")
+        footage_paths.append(output_file_path)
+        gen_footage_command += " -preset ultrafast "
+        gen_footage_command += f'"{output_file_path}"'
+        gen_footage_commands.append(gen_footage_command)
+    with ThreadPoolExecutor(4) as exe:
+        exe.map(lambda c: subprocess.run(c, shell=True), gen_footage_commands)
+
+    # 合并中间文件
+    command = "ffmpeg "
+    for footage_path in footage_paths:
+        command += f' -i "{footage_path}" '
+    # 生成filter_complex指令
+    filter_complex_template = ' -filter_complex "{filter_complex_section}" '
+    h_commands = []
+    row_ids = []
+    for r_num in range(rows):
+        h_command = "".join([f"[{r_num*cols+i}:v]" for i in range(cols)])
+        h_command += f"hstack=inputs={cols}[row{r_num}]"
+        row_ids.append(f"[row{r_num}]")
+        h_commands.append(h_command)
+    h_commands = ";".join(h_commands)
+    v_commands = "".join([i for i in row_ids])
+    v_commands += f"vstack=inputs={rows}[out_final]"
+    filter_complex_command = filter_complex_template.format(filter_complex_section=";".join([h_commands, v_commands]))
+    command += filter_complex_command
+    # 其他指令部分
+    command += ' -map "[out_final]" -preset ultrafast -c:a copy -movflags +faststart '
+    command += f' "{temp_output_path_video}"'
+    print(f"生成动态缩略图指令：{command}")
+    subprocess.call(command, shell=True)
+
+    try:
+        shutil.move(temp_output_path_video, output_path_video)
+    except:
+        shutil.move(temp_output_path_video, os.path.join(os.path.dirname(temp_output_path_video), os.path.basename(output_path_video)))
+    for f in footage_paths:
+        os.remove(f)
 
 
 if __name__ == "__main__":
