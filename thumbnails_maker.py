@@ -123,10 +123,13 @@ def generate_thumbnail(video_path, rows, cols=None):
     gen_footage_commands = []
     for i in key_timestamp:
         gen_footage_command = "ffmpeg " + input_template.format(start_time=i, duration=thumbnail_duration, input_file_path=video_path)
+        filter_commands = []
         if height > max_output_height / rows:
-            gen_footage_command += r" -vf scale=w=-1:h=scale_height,drawtext=text='%{pts\:gmtime\:drawtext_pts_offset\:%H\\\:%M\\\:%S}':x=10:y=10:fontsize=h/10:fontcolor=white:bordercolor=black:borderw=2 "
-            gen_footage_command = gen_footage_command.replace("scale_height", str(int(max_output_height / rows)))
-            gen_footage_command = gen_footage_command.replace("drawtext_pts_offset", str(int(i)))
+            filter_commands.append(f"scale=w=-1:h={int(max_output_height / rows)}")
+        filter_drawtext_command = r"drawtext=text='%{pts\:gmtime\:drawtext_pts_offset\:%H\\\:%M\\\:%S}':x=10:y=10:fontsize=h/10:fontcolor=white:bordercolor=black:borderw=2"
+        filter_drawtext_command = filter_drawtext_command.replace("drawtext_pts_offset", str(int(i)))
+        filter_commands.append(filter_drawtext_command)
+        gen_footage_command += f" -vf {','.join(filter_commands)} "
         output_file_path = os.path.join(str(Path.home() / "Downloads"), f"{int(i)}.mp4")
         footage_paths.append(output_file_path)
         gen_footage_command += " -preset ultrafast "
