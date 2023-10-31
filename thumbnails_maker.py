@@ -125,7 +125,9 @@ def generate_thumbnail(video_path, rows, cols=None):
         gen_footage_command = "ffmpeg " + input_template.format(start_time=i, duration=thumbnail_duration, input_file_path=video_path)
         filter_commands = []
         if height > max_output_height / rows:
-            filter_commands.append(f"scale=w=-1:h={int(max_output_height / rows)}")
+            target_height = int(max_output_height / rows)
+            target_height = target_height if target_height % 2 == 0 else target_height - 1
+            filter_commands.append(f"scale=w=-2:h={target_height}")
         filter_drawtext_command = r"drawtext=text='%{pts\:gmtime\:drawtext_pts_offset\:%H\\\:%M\\\:%S}':x=10:y=10:fontsize=h/10:fontcolor=white:bordercolor=black:borderw=2"
         filter_drawtext_command = filter_drawtext_command.replace("drawtext_pts_offset", str(int(i)))
         filter_commands.append(filter_drawtext_command)
