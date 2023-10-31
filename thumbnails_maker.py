@@ -153,7 +153,10 @@ def generate_thumbnail(video_path, rows, cols=None):
         h_commands.append(h_command)
     h_commands = ";".join(h_commands)
     v_commands = "".join([i for i in row_ids])
-    v_commands += f"vstack=inputs={rows}[out_final]"
+    if len(row_ids) > 1:
+        v_commands += f"vstack=inputs={rows}[out_final]"
+    else:
+        v_commands += f"null[out_final]"
     filter_complex_command = filter_complex_template.format(filter_complex_section=";".join([h_commands, v_commands]))
     command += filter_complex_command
     # 其他指令部分
