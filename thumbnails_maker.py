@@ -100,7 +100,7 @@ def generate_thumbnail(video_path, rows, cols=None):
 
     # 保存缩略图
     output_path_img = os.path.splitext(video_path)[0] + ".jpg"
-    output_path_video = os.path.splitext(video_path)[0] + ".thb.mp4"
+    output_path_video = os.path.splitext(video_path)[0] + ".tbnl"
     temp_output_path_img = os.path.join(str(Path.home() / "Downloads"), f"{uuid.uuid4().hex}.jpg")
     temp_output_path_video = os.path.join(str(Path.home() / "Downloads"), f"{uuid.uuid4().hex}.mp4")
     print(f"缩略图保存路径为：{output_path_img}")
