@@ -33,11 +33,13 @@ def generate_thumbnail(video_path, rows, cols=None):
 
     print(f"开始生成视频缩略图，视频路径：{video_path}，行列数：{rows}x{cols}")
 
-    fps = cap.get(cv2.CAP_PROP_FPS)
     # 获取视频的总帧数和帧率
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     # 计算每个缩略图之间的帧间隔
     frame_interval = total_frames // (rows * cols)
+    # 计算其他数据
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    duration_in_seconds = total_frames / fps
 
     thumbnails = []
 
@@ -100,7 +102,7 @@ def generate_thumbnail(video_path, rows, cols=None):
 
     # 保存缩略图
     output_path_img = os.path.splitext(video_path)[0] + ".jpg"
-    output_path_video = os.path.splitext(video_path)[0] + ".thb.mp4"
+    output_path_video = os.path.splitext(video_path)[0] + ".tbnl"
     temp_output_path_img = os.path.join(str(Path.home() / "Downloads"), f"{uuid.uuid4().hex}.jpg")
     temp_output_path_video = os.path.join(str(Path.home() / "Downloads"), f"{uuid.uuid4().hex}.mp4")
     print(f"缩略图保存路径为：{output_path_img}")
@@ -116,17 +118,22 @@ def generate_thumbnail(video_path, rows, cols=None):
     # 生成视频缩略图
     # 生成中间文件落盘
     key_timestamp = [i * frame_interval / fps for i in range(rows * cols)]
-    thumbnail_duration = 30
+    thumbnail_duration = min(30, math.ceil(duration_in_seconds / (rows * cols)))
     max_output_height = 2160
     input_template = ' -ss {start_time} -t {duration} -i "{input_file_path}" '
     footage_paths = []
     gen_footage_commands = []
     for i in key_timestamp:
         gen_footage_command = "ffmpeg " + input_template.format(start_time=i, duration=thumbnail_duration, input_file_path=video_path)
+        filter_commands = []
         if height > max_output_height / rows:
-            gen_footage_command += r" -vf scale=w=-1:h=scale_height,drawtext=text='%{pts\:gmtime\:drawtext_pts_offset\:%H\\\:%M\\\:%S}':x=10:y=10:fontsize=h/10:fontcolor=white:bordercolor=black:borderw=2 "
-            gen_footage_command = gen_footage_command.replace("scale_height", str(int(max_output_height / rows)))
-            gen_footage_command = gen_footage_command.replace("drawtext_pts_offset", str(int(i)))
+            target_height = int(max_output_height / rows)
+            target_height = target_height if target_height % 2 == 0 else target_height - 1
+            filter_commands.append(f"scale=w=-2:h={target_height}")
+        filter_drawtext_command = r"drawtext=text='%{pts\:gmtime\:drawtext_pts_offset\:%H\\\:%M\\\:%S}':x=10:y=10:fontsize=h/10:fontcolor=white:bordercolor=black:borderw=2"
+        filter_drawtext_command = filter_drawtext_command.replace("drawtext_pts_offset", str(int(i)))
+        filter_commands.append(filter_drawtext_command)
+        gen_footage_command += f" -vf {','.join(filter_commands)} "
         output_file_path = os.path.join(str(Path.home() / "Downloads"), f"{int(i)}.mp4")
         footage_paths.append(output_file_path)
         gen_footage_command += " -preset ultrafast "
@@ -150,7 +157,10 @@ def generate_thumbnail(video_path, rows, cols=None):
         h_commands.append(h_command)
     h_commands = ";".join(h_commands)
     v_commands = "".join([i for i in row_ids])
-    v_commands += f"vstack=inputs={rows}[out_final]"
+    if len(row_ids) > 1:
+        v_commands += f"vstack=inputs={rows}[out_final]"
+    else:
+        v_commands += f"null[out_final]"
     filter_complex_command = filter_complex_template.format(filter_complex_section=";".join([h_commands, v_commands]))
     command += filter_complex_command
     # 其他指令部分
