@@ -33,11 +33,13 @@ def generate_thumbnail(video_path, rows, cols=None):
 
     print(f"开始生成视频缩略图，视频路径：{video_path}，行列数：{rows}x{cols}")
 
-    fps = cap.get(cv2.CAP_PROP_FPS)
     # 获取视频的总帧数和帧率
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     # 计算每个缩略图之间的帧间隔
     frame_interval = total_frames // (rows * cols)
+    # 计算其他数据
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    duration_in_seconds = total_frames / fps
 
     thumbnails = []
 
@@ -116,7 +118,7 @@ def generate_thumbnail(video_path, rows, cols=None):
     # 生成视频缩略图
     # 生成中间文件落盘
     key_timestamp = [i * frame_interval / fps for i in range(rows * cols)]
-    thumbnail_duration = 30
+    thumbnail_duration = min(30, math.ceil(duration_in_seconds / (rows * cols)))
     max_output_height = 2160
     input_template = ' -ss {start_time} -t {duration} -i "{input_file_path}" '
     footage_paths = []
