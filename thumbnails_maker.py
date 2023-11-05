@@ -139,7 +139,7 @@ def generate_thumbnail(video_path, rows, cols=None):
         gen_footage_command += " -preset ultrafast -y "
         gen_footage_command += f'"{output_file_path}"'
         gen_footage_commands.append(gen_footage_command)
-    with ThreadPoolExecutor(4) as exe:
+    with ThreadPoolExecutor(os.cpu_count()) as exe:
         exe.map(lambda c: subprocess.run(c, shell=True), gen_footage_commands)
 
     # 合并中间文件
@@ -196,7 +196,8 @@ if __name__ == "__main__":
         video_paths = [
             os.path.join(video_path, f)
             for f in os.listdir(video_path)
-            if os.path.splitext(f)[-1].lower() in [".mp4", ".flv", ".avi", ".mpg", ".wmv", ".mpeg", ".mov", ".mkv", ".ts", ".rmvb", ".rm", ".webm"]
+            if os.path.splitext(f)[-1].lower()
+            in [".mp4", ".flv", ".avi", ".mpg", ".wmv", ".mpeg", ".mov", ".mkv", ".ts", ".rmvb", ".rm", ".webm"]
         ]
         for video_path in video_paths:
             generate_thumbnail(video_path, rows, cols)
