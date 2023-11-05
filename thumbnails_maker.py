@@ -136,7 +136,7 @@ def generate_thumbnail(video_path, rows, cols=None):
         gen_footage_command += f" -vf {','.join(filter_commands)} "
         output_file_path = os.path.join(str(Path.home() / "Downloads"), f"{int(i)}.mp4")
         footage_paths.append(output_file_path)
-        gen_footage_command += " -preset ultrafast "
+        gen_footage_command += " -preset ultrafast -y "
         gen_footage_command += f'"{output_file_path}"'
         gen_footage_commands.append(gen_footage_command)
     with ThreadPoolExecutor(4) as exe:

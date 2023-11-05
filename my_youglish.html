@@ -1,49 +1,101 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>自己定制的YouGlish</title>
+    <style>
+        .widget-div {
+            width: 48.5%;
+            display: inline-block;
+        }
+
+        body {
+            margin: 0;
+        }
+
+        .y1 {
+            position: fixed;
+            top: 0;
+            left: 0.9%;
+        }
+
+        .y2 {
+            position: fixed;
+            top: 0;
+            right: 0.9%;
+        }
+    </style>
 </head>
-<style>
-    body {
-        margin: 0;
-    }
-
-    .youglish_container {
-        width: 49%;
-        display: inline-block;
-    }
-
-    .y1 {
-        position: fixed;
-        top: 0;
-        left: 0;
-    }
-
-    .y2 {
-        position: fixed;
-        top: 0;
-        right: 0;
-    }
-</style>
-
-<script async src="https://youglish.com/public/emb/widget.js" charset="utf-8"></script>
 
 <body>
-    <div class="youglish_container y1">
-        <a id="yg-widget-1" class="youglish-widget" data-query="sex" data-lang="english" data-accent="us"
-            data-auto-start="0" data-components="8415" data-bkg-color="theme_light" rel="nofollow"
-            href="https://youglish.com">Visit YouGlish.com</a>
+    <div class="widget-div y1">
+        <div id="widget-1"></div>
     </div>
-    <div class="youglish_container y2">
-        <a id="yg-widget-2" class="youglish-widget" data-query="sex" data-lang="english" data-accent="uk"
-            data-auto-start="0" data-components="8415" data-bkg-color="theme_light" rel="nofollow"
-            href="https://youglish.com">Visit YouGlish.com</a>
+    <div class="widget-div y2">
+        <div id="widget-2"></div>
     </div>
-    <script async src="https://youglish.com/public/emb/widget.js" charset="utf-8"></script>
+
+    <script>
+        // 2. This code loads the widget API code asynchronously.
+        var tag = document.createElement('script');
+        tag.src = "https://youglish.com/public/emb/widget.js";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        var widget1;
+        var widget2;
+        function onYouglishAPIReady() {
+            widget1 = new YG.Widget("widget-1", {
+                width: 1920,
+                autoStart: 0,
+                components: 77, //search box & caption 
+                events: {
+                    'onFetchDone': onFetchDone1,
+                    'onVideoChange': onVideoChange1,
+                }
+            });
+            widget2 = new YG.Widget("widget-2", {
+                width: 1920,
+                autoStart: 0,
+                components: 77, //search box & caption 
+                events: {
+                    'onPlayerReady': onPlayerReady2,
+                    'onVideoChange': onVideoChange2,
+                }
+            });
+            widget1.fetch("sex", "english", 'us');
+            widget2.fetch("sex", "english", 'us');
+        }
+
+        widget1TrackNumber = 1
+        function onFetchDone1(event) {
+            if (event.totalResult === 0) alert("No result found");
+        }
+        function onVideoChange1(event) {
+            if (event.trackNumber - widget1TrackNumber < 2) {
+                widget1.next();
+            } else {
+                widget1TrackNumber = event.trackNumber;
+                widget2.play();
+            }
+        }
+
+        widget2TrackNumber = 2
+        widget2_inited = false
+        function onVideoChange2(event) {
+            if (event.trackNumber - widget2TrackNumber < 2 && widget2_inited) {
+                widget2.next();
+            } else {
+                widget2TrackNumber = event.trackNumber;
+                widget1.play();
+            }
+        }
+        function onPlayerReady2(event) {
+            widget2.next();
+            setTimeout(() => {
+                widget2_inited = true;
+            }, 3000);
+        }
+    </script>
 </body>
 
 </html>
