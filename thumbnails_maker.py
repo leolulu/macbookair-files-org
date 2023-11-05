@@ -164,7 +164,7 @@ def generate_thumbnail(video_path, rows, cols=None):
     filter_complex_command = filter_complex_template.format(filter_complex_section=";".join([h_commands, v_commands]))
     command += filter_complex_command
     # 其他指令部分
-    command += ' -map "[out_final]" -preset ultrafast -c:a copy -movflags +faststart '
+    command += ' -map "[out_final]" -preset ultrafast -c:a copy -movflags +faststart -y '
     command += f' "{temp_output_path_video}"'
     print(f"生成动态缩略图指令：{command}")
     subprocess.call(command, shell=True)
