@@ -8,7 +8,7 @@ app = Flask(__name__)
 def mark_video_watched():
     payload = request.form
     video_url = payload["video_url"]
-    s = subprocess.run(f'python yt_dlp_tool.py -d "{video_url}"', shell=True)
+    s = subprocess.run(f'python yt_dlp_tool.py -d --url "{video_url}"', shell=True)
     print(video_url, s.stdout, s.stderr)
     return "ok", 200
 
