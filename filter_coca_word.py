@@ -20245,9 +20245,10 @@ def filter_difficult_word(txt_file_path):
     # 筛选出现次数大于1的词
     # result = [i for i in result if i[0][1] >= 1]
 
+    # 1. 带原句的
     print_with_save("".join(["出现次数".ljust(8), "词频".ljust(12), "单词"]))
     for i in [i for i in result if i[0][1] >= 2]:
-        print_with_save("".join([str(i[0][1]).ljust(8), str(i[1]).ljust(12), f"【【【{i[0][0]}】】】".ljust(20)]))
+        print_with_save("".join([str(i[0][1]).ljust(8), str(i[1]).ljust(12), f"▉ {i[0][0]} ▉".ljust(20)]))
         for s in sentences:
             # if s.find(i[0][0]) != -1:
             if i[0][0] in re.findall(r"\w+", s):
@@ -20255,15 +20256,18 @@ def filter_difficult_word(txt_file_path):
                 print_with_save(f">>> {s}")
         print_with_save("")
 
+    # 2. 字母顺序排序，目的是找潜在的同根词
     print_with_save("\n\n                    字母顺序排序:")
     for i in sorted(result, key=lambda x: x[0][0]):
         print_with_save("".join([str(i[0][1]).ljust(8), str(i[1]).ljust(12), i[0][0].ljust(20)]))
 
+    # 3. 标准输出
     print_with_save("\n\n")
     print_with_save("".join(["出现次数".ljust(8), "词频".ljust(12), "单词"]))
     for i in [i for i in result if i[0][1] >= 2]:
         print_with_save("".join([str(i[0][1]).ljust(8), str(i[1]).ljust(12), i[0][0].ljust(20)]))
 
+    # 4. 复制高亮用
     print_with_save("\n\n用来复制高亮的:")
     for i in [i for i in result if i[0][1] >= 2]:
         print_with_save(i[0][0])
