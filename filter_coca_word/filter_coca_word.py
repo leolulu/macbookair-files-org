@@ -65,7 +65,7 @@ def filter_difficult_word(txt_file_path):
         print_with_save("".join([str(i[0][1]).ljust(8), str(i[1]).ljust(12), i[0][0].ljust(20)]))
 
     print_with_save("\n\n用来复制高亮的:")
-    for i in [i for i in result if i[0][1] >= 1]:
+    for i in [i for i in result if i[0][1] >= 2]:
         print_with_save(i[0][0])
 
     with open("_coca".join(os.path.splitext(txt_file_path)), "w", encoding="utf-8") as f:
