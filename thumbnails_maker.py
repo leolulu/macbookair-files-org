@@ -3,6 +3,7 @@ import os
 import shutil
 import subprocess
 import sys
+import traceback
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -206,6 +207,10 @@ if __name__ == "__main__":
             in [".mp4", ".flv", ".avi", ".mpg", ".wmv", ".mpeg", ".mov", ".mkv", ".ts", ".rmvb", ".rm", ".webm"]
         ]
         for video_path in video_paths:
-            generate_thumbnail(video_path, rows, cols)
+            try:
+                generate_thumbnail(video_path, rows, cols)
+            except:
+                traceback.print_exc()
+
     else:
         generate_thumbnail(video_path, rows, cols)
