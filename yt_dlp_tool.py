@@ -28,7 +28,7 @@ parser.add_argument("--dl_dir", help='视频文件目录的路径，必须使用
 parser.add_argument("--mp4", help="是否需要【启用】后处理【转码】为mp4，默认不启用，如果开启，会禁用封装", action="store_true")
 parser.add_argument("--unremux", help="是否需要【禁用】后处理【封装】为mp4，默认开启封装", action="store_true")
 parser.add_argument("-d", "--dry_run", help="是否启动dry run模式", action="store_true")
-parser.add_argument("--url", help="youtube视频url", type=str)
+parser.add_argument("url", help="youtube视频url", type=str, nargs="?")
 args = parser.parse_args()
 
 if args.url:
