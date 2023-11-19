@@ -1,3 +1,4 @@
+import argparse
 import math
 import os
 import shutil
@@ -21,7 +22,7 @@ def get_font_location(frame, content: str, fontFace: int, font_scale: float, thi
     return (start_x, start_y)
 
 
-def generate_thumbnail(video_path, rows, cols=None):
+def generate_thumbnail(video_path, rows, cols=None, preset="ultrafast"):
     # 读取视频
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
@@ -143,7 +144,7 @@ def generate_thumbnail(video_path, rows, cols=None):
         gen_footage_command += f" -vf {','.join(filter_commands)} "
         output_file_path = os.path.join(str(Path.home() / "Downloads"), f"{int(i)}.mp4")
         footage_paths.append(output_file_path)
-        gen_footage_command += " -preset ultrafast -y "
+        gen_footage_command += f" -preset {preset} -y "
         gen_footage_command += f'"{output_file_path}"'
         gen_footage_commands.append(gen_footage_command)
     with ThreadPoolExecutor(os.cpu_count()) as exe:
@@ -171,7 +172,7 @@ def generate_thumbnail(video_path, rows, cols=None):
     filter_complex_command = filter_complex_template.format(filter_complex_section=";".join([h_commands, v_commands]))
     command += filter_complex_command
     # 其他指令部分
-    command += ' -map "[out_final]" -preset ultrafast -c:a copy -movflags +faststart -y '
+    command += f' -map "[out_final]" -preset {preset} -c:a copy -movflags +faststart -y '
     command += f' "{temp_output_path_video}"'
     print(f"生成动态缩略图指令：{command}")
     subprocess.call(command, shell=True)
@@ -185,20 +186,30 @@ def generate_thumbnail(video_path, rows, cols=None):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) == 2:
-        video_path = sys.argv[1]
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("video_path", help="视频路径或视频目录路径", type=str)
+    parser.add_argument("rows", help="缩略图行数", type=int, nargs="?")
+    parser.add_argument("cols", help="缩略图列数", type=int, nargs="?")
+    parser.add_argument(
+        "--preset",
+        help="ffmpeg的preset参数",
+        type=str,
+        default="ultrafast",
+        choices=["ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow"],
+    )
+    args = parser.parse_args()
+
+    video_path = args.video_path
+    if (args.rows is None) and (args.cols is None):
         rows = 7
         cols = 7
-    elif len(sys.argv) == 3:
-        video_path = sys.argv[1]
-        rows = int(sys.argv[2])
+    elif args.cols is None:
+        rows = args.rows
         cols = None
-    elif len(sys.argv) == 4:
-        video_path = sys.argv[1]
-        rows = int(sys.argv[2])
-        cols = int(sys.argv[3])
     else:
-        raise UserWarning("参数错误！要么只提供视频路径，要么同时提供视频路径和行列数！")
+        rows = args.rows
+        cols = args.cols
+
     if os.path.isdir(video_path):
         video_paths = [
             os.path.join(video_path, f)
@@ -208,9 +219,9 @@ if __name__ == "__main__":
         ]
         for video_path in video_paths:
             try:
-                generate_thumbnail(video_path, rows, cols)
+                generate_thumbnail(video_path, rows, cols, args.preset)
             except:
                 traceback.print_exc()
 
     else:
-        generate_thumbnail(video_path, rows, cols)
+        generate_thumbnail(video_path, rows, cols, args.preset)
