@@ -3,7 +3,6 @@ import math
 import os
 import shutil
 import subprocess
-import sys
 import traceback
 import uuid
 from concurrent.futures import ThreadPoolExecutor
@@ -12,6 +11,7 @@ from typing import Tuple
 
 import cv2
 import numpy as np
+import requests
 from tqdm import tqdm
 
 
@@ -223,5 +223,11 @@ if __name__ == "__main__":
             except:
                 traceback.print_exc()
 
+    elif str(video_path).lower().startswith("http"):
+        file_path = os.path.join(str(Path.home() / "Downloads"), os.path.basename(video_path))
+        if not os.path.exists(file_path):
+            with open(file_path, "wb") as f:
+                f.write(requests.get(video_path, proxies={"http": "http://127.0.0.1:10809", "https": "http://127.0.0.1:10809"}).content)
+        generate_thumbnail(file_path, rows, cols, args.preset)
     else:
         generate_thumbnail(video_path, rows, cols, args.preset)
