@@ -1,6 +1,7 @@
 import argparse
 import math
 import os
+import random
 import shutil
 import subprocess
 import traceback
@@ -142,7 +143,7 @@ def generate_thumbnail(video_path, rows, cols=None, preset="ultrafast"):
         filter_drawtext_command = filter_drawtext_command.replace("drawtext_pts_offset", str(int(i)))
         filter_commands.append(filter_drawtext_command)
         gen_footage_command += f" -vf {','.join(filter_commands)} "
-        output_file_path = os.path.join(str(Path.home() / "Downloads"), f"{int(i)}.mp4")
+        output_file_path = os.path.join(str(Path.home() / "Downloads"), f"{random.randint(1,9)}-{round(i,3)}.mp4")
         footage_paths.append(output_file_path)
         gen_footage_command += f" -preset {preset} -y "
         gen_footage_command += f'"{output_file_path}"'
