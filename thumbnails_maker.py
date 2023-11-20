@@ -2,6 +2,7 @@ import argparse
 import math
 import os
 import random
+import re
 import shutil
 import subprocess
 import threading
@@ -25,56 +26,29 @@ def get_font_location(frame, content: str, fontFace: int, font_scale: float, thi
     return (start_x, start_y)
 
 
-def generate_thumbnail(video_path, rows, cols=None, preset="ultrafast"):
-    # 读取视频
+def gen_pic_thumbnail(video_path, frame_interval, rows, cols, start_offset=0):
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         raise UserWarning("无法打开视频文件!")
-
-    if cols is None:
-        height, width, _ = cap.read()[1].shape
-        # rows = math.ceil(((width / height) / (16 / 9 * 2) + 1 / 2) * rows)
-
-        cols_precise = 16 * height * rows / 9 / width
-        print(f"原始列数计算结果：{cols_precise}")
-        if abs(round(cols_precise) - cols_precise) < 0.1:
-            cols = round(cols_precise)
-        else:
-            cols = int(cols_precise)
-
-    print(f"开始生成视频缩略图，视频路径：{video_path}，行列数：{rows}x{cols}")
-
-    # 获取视频的总帧数和帧率
-    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    # 计算每个缩略图之间的帧间隔
-    frame_interval = total_frames // (rows * cols)
-    # 计算其他数据
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    duration_in_seconds = total_frames / fps
-
     thumbnails = []
-
     for i in tqdm(range(rows * cols)):
         # 定位到指定帧
         cap.set(cv2.CAP_PROP_POS_FRAMES, i * frame_interval)
         ret, frame = cap.read()
         milliseconds = cap.get(cv2.CAP_PROP_POS_MSEC)
-
         if ret:
             # 计算时间戳
-            seconds_total = milliseconds / 1000
+            seconds_total = milliseconds / 1000 + start_offset
             hours = int(seconds_total // 3600)
             seconds_total %= 3600
             minutes = int(seconds_total // 60)
             seconds = int(seconds_total % 60)
             timestamp = "{:02d}:{:02d}:{:02d}".format(hours, minutes, seconds)
-
             # 在图像的右上角添加时间戳（包括轮廓）
             font_face = cv2.FONT_HERSHEY_SIMPLEX
             font_scale = frame.shape[0] / 1080 * 4
             inner_white = (font_scale, 12)
             outer_black = (font_scale, 6)
-
             cv2.putText(
                 frame,
                 timestamp,
@@ -93,9 +67,7 @@ def generate_thumbnail(video_path, rows, cols=None, preset="ultrafast"):
                 (255, 255, 255),
                 outer_black[1],
             )
-
             thumbnails.append(frame)
-
     cap.release()
 
     # 计算缩略图的大小
@@ -112,11 +84,8 @@ def generate_thumbnail(video_path, rows, cols=None, preset="ultrafast"):
             thumbnail[i * height : (i + 1) * height, j * width : (j + 1) * width, :] = thumbnails[i * cols + j]
 
     # 保存缩略图
-    video_name = os.path.splitext(os.path.basename(video_path))[0]
     output_path_img = os.path.splitext(video_path)[0] + ".jpg"
-    output_path_video = os.path.splitext(video_path)[0] + ".tbnl"
     temp_output_path_img = os.path.join(str(Path.home() / "Downloads"), f"WIP_{uuid.uuid4().hex}.jpg")
-    temp_output_path_video = os.path.join(str(Path.home() / "Downloads"), f"WIP_{uuid.uuid4().hex}.mp4")
     print(f"缩略图保存路径为：{output_path_img}")
     if os.path.exists(output_path_img):
         os.remove(output_path_img)
@@ -127,6 +96,11 @@ def generate_thumbnail(video_path, rows, cols=None, preset="ultrafast"):
     except:
         shutil.move(temp_output_path_img, os.path.join(os.path.dirname(temp_output_path_img), os.path.basename(output_path_img)))
 
+
+def gen_video_thumbnail(video_path, preset, height, fps, duration_in_seconds, frame_interval, rows, cols, start_offset=0):
+    video_name = os.path.splitext(os.path.basename(video_path))[0]
+    output_path_video = os.path.splitext(video_path)[0] + ".tbnl"
+    temp_output_path_video = os.path.join(str(Path.home() / "Downloads"), f"WIP_{uuid.uuid4().hex}.mp4")
     # 生成视频缩略图
     # 生成中间文件落盘
     key_timestamp = [i * frame_interval / fps for i in range(rows * cols)]
@@ -143,7 +117,7 @@ def generate_thumbnail(video_path, rows, cols=None, preset="ultrafast"):
             target_height = target_height if target_height % 2 == 0 else target_height - 1
             filter_commands.append(f"scale=w=-2:h={target_height}")
         filter_drawtext_command = r"drawtext=text='%{pts\:gmtime\:drawtext_pts_offset\:%H\\\:%M\\\:%S}':x=10:y=10:fontsize=h/10:fontcolor=white:bordercolor=black:borderw=2"
-        filter_drawtext_command = filter_drawtext_command.replace("drawtext_pts_offset", str(int(i)))
+        filter_drawtext_command = filter_drawtext_command.replace("drawtext_pts_offset", str(int(i) + start_offset))
         filter_commands.append(filter_drawtext_command)
         gen_footage_command += f" -vf {','.join(filter_commands)} "
         output_file_path = os.path.join(
@@ -192,6 +166,55 @@ def generate_thumbnail(video_path, rows, cols=None, preset="ultrafast"):
         os.remove(f)
 
 
+def gen_info(video_path, rows, cols):
+    cap = cv2.VideoCapture(video_path)
+    if not cap.isOpened():
+        raise UserWarning("无法打开视频文件!")
+
+    height, width, _ = cap.read()[1].shape
+    if cols is None:
+        # rows = math.ceil(((width / height) / (16 / 9 * 2) + 1 / 2) * rows)
+        cols_precise = 16 * height * rows / 9 / width
+        print(f"原始列数计算结果：{cols_precise}")
+        if abs(round(cols_precise) - cols_precise) < 0.1:
+            cols = round(cols_precise)
+        else:
+            cols = int(cols_precise)
+
+    print(f"开始生成视频缩略图，视频路径：{video_path}，行列数：{rows}x{cols}")
+    # 获取视频的总帧数和帧率
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    # 计算每个缩略图之间的帧间隔
+    frame_interval = total_frames // (rows * cols)
+    # 计算其他数据
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    duration_in_seconds = total_frames / fps
+    cap.release()
+    return frame_interval, fps, height, duration_in_seconds, rows, cols
+
+
+def generate_thumbnail(video_path, rows, cols=None, preset="ultrafast", process_full_video=False):
+    def process_video(video_path, rows_calced, cols_calced, start_offset=0):
+        frame_interval, fps, height, duration_in_seconds, _, _ = gen_info(video_path, rows_calced, cols_calced)
+        gen_pic_thumbnail(video_path, frame_interval, rows_calced, cols_calced, start_offset)
+        gen_video_thumbnail(video_path, preset, height, fps, duration_in_seconds, frame_interval, rows_calced, cols_calced, start_offset)
+
+    _, _, _, duration_in_seconds, rows_calced, cols_calced = gen_info(video_path, rows, cols)
+    if process_full_video and rows_calced * cols_calced * 30 < duration_in_seconds:
+        n = 1
+        seg_start_time = 0
+        while seg_start_time < duration_in_seconds:
+            seg_end_time = min(seg_start_time + rows_calced * cols_calced * 30, duration_in_seconds)
+            seg_file_path = f"-seg{str(n).zfill(2)}".join(os.path.splitext(video_path))
+            command = f'ffmpeg -ss {seg_start_time} -to {seg_end_time} -accurate_seek -i "{video_path}" -c copy -map_chapters -1 -avoid_negative_ts 1 "{seg_file_path}"'
+            subprocess.run(command, shell=True)
+            process_video(seg_file_path, rows_calced, cols_calced, start_offset=round(seg_start_time))
+            seg_start_time = seg_end_time
+            n += 1
+    else:
+        process_video(video_path, rows_calced, cols_calced)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("video_path", help="视频路径或视频目录路径，如果不提供的话，则进入循环模式", type=str, nargs="?")
@@ -204,6 +227,7 @@ if __name__ == "__main__":
         default="ultrafast",
         choices=["ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow"],
     )
+    parser.add_argument("--full", help="是否要生成多个缩略图以覆盖视频完整时长", action="store_true")
     args = parser.parse_args()
 
     def process_video(args):
@@ -239,7 +263,7 @@ if __name__ == "__main__":
                     f.write(requests.get(video_path, proxies={"http": "http://127.0.0.1:10809", "https": "http://127.0.0.1:10809"}).content)
             generate_thumbnail(file_path, rows, cols, args.preset)
         else:
-            generate_thumbnail(video_path, rows, cols, args.preset)
+            generate_thumbnail(video_path, rows, cols, args.preset, args.full)
 
     if args.video_path is None:
         while True:
