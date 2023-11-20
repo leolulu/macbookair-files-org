@@ -4,10 +4,12 @@ import os
 import random
 import shutil
 import subprocess
+import threading
 import traceback
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Tuple
 
 import cv2
@@ -110,10 +112,11 @@ def generate_thumbnail(video_path, rows, cols=None, preset="ultrafast"):
             thumbnail[i * height : (i + 1) * height, j * width : (j + 1) * width, :] = thumbnails[i * cols + j]
 
     # 保存缩略图
+    video_name = os.path.splitext(os.path.basename(video_path))[0]
     output_path_img = os.path.splitext(video_path)[0] + ".jpg"
     output_path_video = os.path.splitext(video_path)[0] + ".tbnl"
-    temp_output_path_img = os.path.join(str(Path.home() / "Downloads"), f"{uuid.uuid4().hex}.jpg")
-    temp_output_path_video = os.path.join(str(Path.home() / "Downloads"), f"{uuid.uuid4().hex}.mp4")
+    temp_output_path_img = os.path.join(str(Path.home() / "Downloads"), f"WIP_{uuid.uuid4().hex}.jpg")
+    temp_output_path_video = os.path.join(str(Path.home() / "Downloads"), f"WIP_{uuid.uuid4().hex}.mp4")
     print(f"缩略图保存路径为：{output_path_img}")
     if os.path.exists(output_path_img):
         os.remove(output_path_img)
@@ -143,7 +146,10 @@ def generate_thumbnail(video_path, rows, cols=None, preset="ultrafast"):
         filter_drawtext_command = filter_drawtext_command.replace("drawtext_pts_offset", str(int(i)))
         filter_commands.append(filter_drawtext_command)
         gen_footage_command += f" -vf {','.join(filter_commands)} "
-        output_file_path = os.path.join(str(Path.home() / "Downloads"), f"{random.randint(1,9)}-{round(i,3)}.mp4")
+        output_file_path = os.path.join(
+            str(Path.home() / "Downloads"),
+            f"{video_name[:2]}-{video_name[-2:]}-{round(i,3)}.mp4",
+        )
         footage_paths.append(output_file_path)
         gen_footage_command += f" -preset {preset} -y "
         gen_footage_command += f'"{output_file_path}"'
@@ -188,7 +194,7 @@ def generate_thumbnail(video_path, rows, cols=None, preset="ultrafast"):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("video_path", help="视频路径或视频目录路径", type=str)
+    parser.add_argument("video_path", help="视频路径或视频目录路径，如果不提供的话，则进入循环模式", type=str, nargs="?")
     parser.add_argument("rows", help="缩略图行数", type=int, nargs="?")
     parser.add_argument("cols", help="缩略图列数", type=int, nargs="?")
     parser.add_argument(
@@ -200,35 +206,57 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    video_path = args.video_path
-    if (args.rows is None) and (args.cols is None):
-        rows = 7
-        cols = 7
-    elif args.cols is None:
-        rows = args.rows
-        cols = None
-    else:
-        rows = args.rows
-        cols = args.cols
+    def process_video(args):
+        video_path = args.video_path
+        if (args.rows is None) and (args.cols is None):
+            rows = 7
+            cols = 7
+        elif args.cols is None:
+            rows = args.rows
+            cols = None
+        else:
+            rows = args.rows
+            cols = args.cols
 
-    if os.path.isdir(video_path):
-        video_paths = [
-            os.path.join(video_path, f)
-            for f in os.listdir(video_path)
-            if os.path.splitext(f)[-1].lower()
-            in [".mp4", ".flv", ".avi", ".mpg", ".wmv", ".mpeg", ".mov", ".mkv", ".ts", ".rmvb", ".rm", ".webm"]
-        ]
-        for video_path in video_paths:
-            try:
-                generate_thumbnail(video_path, rows, cols, args.preset)
-            except:
-                traceback.print_exc()
+        if os.path.isdir(video_path):
+            video_paths = [
+                os.path.join(video_path, f)
+                for f in os.listdir(video_path)
+                if os.path.splitext(f)[-1].lower()
+                in [".mp4", ".flv", ".avi", ".mpg", ".wmv", ".mpeg", ".mov", ".mkv", ".ts", ".rmvb", ".rm", ".webm"]
+            ]
+            for video_path in video_paths:
+                try:
+                    generate_thumbnail(video_path, rows, cols, args.preset)
+                except:
+                    traceback.print_exc()
+        elif str(video_path).lower().startswith("http"):
+            file_name = os.path.basename(video_path)
+            file_path = os.path.join(str(Path.home() / "Downloads"), file_name)
+            if not os.path.exists(file_path):
+                print(f"视频在本地不存在，开始下载: {file_name}")
+                with open(file_path, "wb") as f:
+                    f.write(requests.get(video_path, proxies={"http": "http://127.0.0.1:10809", "https": "http://127.0.0.1:10809"}).content)
+            generate_thumbnail(file_path, rows, cols, args.preset)
+        else:
+            generate_thumbnail(video_path, rows, cols, args.preset)
 
-    elif str(video_path).lower().startswith("http"):
-        file_path = os.path.join(str(Path.home() / "Downloads"), os.path.basename(video_path))
-        if not os.path.exists(file_path):
-            with open(file_path, "wb") as f:
-                f.write(requests.get(video_path, proxies={"http": "http://127.0.0.1:10809", "https": "http://127.0.0.1:10809"}).content)
-        generate_thumbnail(file_path, rows, cols, args.preset)
+    if args.video_path is None:
+        while True:
+            input_string = input("请输入视频地址和行数，以空格隔开：")
+            if not input_string:
+                continue
+            video_path, rows = input_string.rsplit(" ", 1)
+            threading.Thread(
+                target=process_video,
+                args=(
+                    SimpleNamespace(
+                        video_path=video_path.strip('"'),
+                        rows=int(rows),
+                        cols=None,
+                        preset=args.preset,
+                    ),
+                ),
+            ).start()
     else:
-        generate_thumbnail(video_path, rows, cols, args.preset)
+        process_video(args)
