@@ -35,7 +35,7 @@ def get_font_location(frame, content: str, fontFace: int, font_scale: float, thi
     return (start_x, start_y)
 
 
-def gen_pic_thumbnail(video_path, frame_interval, rows, cols, start_offset=0):
+def gen_pic_thumbnail(video_path, frame_interval, rows, cols, height, width, start_offset=0):
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         raise UserWarning("无法打开视频文件!")
@@ -77,10 +77,11 @@ def gen_pic_thumbnail(video_path, frame_interval, rows, cols, start_offset=0):
                 outer_black[1],
             )
             thumbnails.append(frame)
+        else:
+            thumbnails.append(np.zeros((height, width, 3), dtype=np.uint8))
     cap.release()
 
     # 计算缩略图的大小
-    height, width, _ = thumbnails[0].shape
     thumbnail_width = width * cols
     thumbnail_height = height * rows
 
@@ -208,16 +209,16 @@ def gen_info(video_path, rows, cols):
     fps = cap.get(cv2.CAP_PROP_FPS)
     duration_in_seconds = total_frames / fps
     cap.release()
-    return frame_interval, fps, height, duration_in_seconds, rows, cols
+    return frame_interval, fps, height, width, duration_in_seconds, rows, cols
 
 
 def generate_thumbnail(video_path, rows, cols=None, preset="ultrafast", process_full_video=False):
     def process_video(video_path, rows_calced, cols_calced, start_offset=0):
-        frame_interval, fps, height, duration_in_seconds, _, _ = gen_info(video_path, rows_calced, cols_calced)
-        gen_pic_thumbnail(video_path, frame_interval, rows_calced, cols_calced, start_offset)
+        frame_interval, fps, height, width, duration_in_seconds, _, _ = gen_info(video_path, rows_calced, cols_calced)
+        gen_pic_thumbnail(video_path, frame_interval, rows_calced, cols_calced, height, width, start_offset)
         gen_video_thumbnail(video_path, preset, height, fps, duration_in_seconds, frame_interval, rows_calced, cols_calced, start_offset)
 
-    _, _, _, duration_in_seconds, rows_calced, cols_calced = gen_info(video_path, rows, cols)
+    _, _, _, _, duration_in_seconds, rows_calced, cols_calced = gen_info(video_path, rows, cols)
     print(f"开始生成视频缩略图，视频路径：{video_path}，行列数：{rows_calced}x{cols_calced}")
     if process_full_video and rows_calced * cols_calced * 30 < duration_in_seconds:
         n = 1
