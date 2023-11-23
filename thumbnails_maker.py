@@ -19,6 +19,15 @@ import requests
 from tqdm import tqdm
 
 
+def move_with_optional_security(source, target, backup_target=None, msg=""):
+    try:
+        shutil.move(source, target)
+    except:
+        if backup_target:
+            shutil.move(source, target)
+    print(msg)
+
+
 def get_font_location(frame, content: str, fontFace: int, font_scale: float, thickness: int) -> Tuple[int, int]:
     (text_width, text_height), _ = cv2.getTextSize(content, fontFace, font_scale, thickness)
     start_x = min(0, frame.shape[1] - text_width)
@@ -91,10 +100,15 @@ def gen_pic_thumbnail(video_path, frame_interval, rows, cols, start_offset=0):
         os.remove(output_path_img)
     cv2.imwrite(temp_output_path_img, thumbnail)
 
-    try:
-        shutil.move(temp_output_path_img, output_path_img)
-    except:
-        shutil.move(temp_output_path_img, os.path.join(os.path.dirname(temp_output_path_img), os.path.basename(output_path_img)))
+    threading.Thread(
+        target=move_with_optional_security,
+        args=(
+            temp_output_path_img,
+            output_path_img,
+            os.path.join(os.path.dirname(temp_output_path_img), os.path.basename(output_path_img)),
+            "图片缩略图移动到目标目录完毕...",
+        ),
+    ).start()
 
 
 def gen_video_thumbnail(video_path, preset, height, fps, duration_in_seconds, frame_interval, rows, cols, start_offset=0):
@@ -158,10 +172,15 @@ def gen_video_thumbnail(video_path, preset, height, fps, duration_in_seconds, fr
     print(f"生成动态缩略图指令：{command}")
     subprocess.call(command, shell=True)
 
-    try:
-        shutil.move(temp_output_path_video, output_path_video)
-    except:
-        shutil.move(temp_output_path_video, os.path.join(os.path.dirname(temp_output_path_video), os.path.basename(output_path_video)))
+    threading.Thread(
+        target=move_with_optional_security,
+        args=(
+            temp_output_path_video,
+            output_path_video,
+            os.path.join(os.path.dirname(temp_output_path_video), os.path.basename(output_path_video)),
+            "视频缩略图移动到目标目录完毕...",
+        ),
+    ).start()
     for f in footage_paths:
         os.remove(f)
 
@@ -181,7 +200,6 @@ def gen_info(video_path, rows, cols):
         else:
             cols = int(cols_precise)
 
-    print(f"开始生成视频缩略图，视频路径：{video_path}，行列数：{rows}x{cols}")
     # 获取视频的总帧数和帧率
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     # 计算每个缩略图之间的帧间隔
@@ -200,6 +218,7 @@ def generate_thumbnail(video_path, rows, cols=None, preset="ultrafast", process_
         gen_video_thumbnail(video_path, preset, height, fps, duration_in_seconds, frame_interval, rows_calced, cols_calced, start_offset)
 
     _, _, _, duration_in_seconds, rows_calced, cols_calced = gen_info(video_path, rows, cols)
+    print(f"开始生成视频缩略图，视频路径：{video_path}，行列数：{rows_calced}x{cols_calced}")
     if process_full_video and rows_calced * cols_calced * 30 < duration_in_seconds:
         n = 1
         seg_start_time = 0
