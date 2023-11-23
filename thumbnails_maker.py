@@ -279,6 +279,7 @@ if __name__ == "__main__":
                         rows=int(rows),
                         cols=None,
                         preset=args.preset,
+                        full=args.full,
                     ),
                 ),
             ).start()
