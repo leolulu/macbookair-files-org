@@ -135,6 +135,8 @@
             <label for="enableTimeConcat">间隔:</label>
             <input type="text" id="timeConcat" value="0.001">
             <input type="checkbox" id="enableTimeConcat" />
+            <label for="hideControl">隐藏控件</label>
+            <input type="checkbox" id="hideControl" />
             <!-- 添加一个元素用来显示视频文件名 -->
             <div id="videoFileNameContainer">
                 <span id="videoFileName"></span>
@@ -168,7 +170,8 @@
             `;
 
             video.on('mouseenter', function () {
-                if (document.head.contains(hideControlsStyle)) {
+                var hideControl = $('#hideControl').prop('checked');
+                if (document.head.contains(hideControlsStyle) && !hideControl) {
                     document.head.removeChild(hideControlsStyle);
                 }
             });
