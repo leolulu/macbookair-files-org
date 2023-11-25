@@ -14,10 +14,26 @@
             height: 100vh;
         }
 
+        .container-layout-normal {
+            flex-direction: row;
+        }
+
+        .container-layout-reversed {
+            flex-direction: row-reverse;
+        }
+
         #video-player {
             width: 66%;
             overflow: auto;
             align-self: flex-start;
+        }
+
+        .video-layout-normal {
+            margin-left: 0px;
+        }
+
+        .video-layout-reversed {
+            margin-left: -4px;
         }
 
         #video {
@@ -137,6 +153,8 @@
             <input type="checkbox" id="enableTimeConcat" />
             <label for="hideControl">隐藏控件</label>
             <input type="checkbox" id="hideControl" />
+            <label for="toggleLayout">反转布局</label>
+            <input type="checkbox" id="toggleLayout" />
             <!-- 添加一个元素用来显示视频文件名 -->
             <div id="videoFileNameContainer">
                 <span id="videoFileName"></span>
@@ -158,6 +176,16 @@
         // 通过拖动水平分割线调整视频高度
         $(function () {
             var video = $('#video');
+
+            $('#toggleLayout').change(function () {
+                if ($(this).is(':checked')) {
+                    $('#container').addClass('container-layout-reversed').removeClass('container-layout-normal');
+                    $('#video-player').addClass('video-layout-reversed').removeClass('video-layout-normal');
+                } else {
+                    $('#container').addClass('container-layout-normal').removeClass('container-layout-reversed');
+                    $('#video-player').addClass('video-layout-normal').removeClass('video-layout-reversed');
+                }
+            });
 
             const hideControlsStyle = document.createElement('style');
             hideControlsStyle.innerHTML = `
@@ -217,8 +245,13 @@
 
                 var x = e.clientX;
 
-                var videoPlayerWidth = (x - videoPlayer.offset().left);
-                var subtitlesWidth = window.innerWidth - videoPlayerWidth - divider.width();
+                if ($('#toggleLayout').prop('checked')) {
+                    var subtitlesWidth = x - subtitles.offset().left;
+                    var videoPlayerWidth = window.innerWidth - x - divider.width();
+                } else {
+                    var videoPlayerWidth = (x - videoPlayer.offset().left);
+                    var subtitlesWidth = window.innerWidth - videoPlayerWidth - divider.width();
+                }
 
                 videoPlayer.css('width', videoPlayerWidth + 'px');
                 subtitles.css('width', subtitlesWidth + 'px');
