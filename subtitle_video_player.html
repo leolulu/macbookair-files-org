@@ -247,7 +247,7 @@
 
                 if ($('#toggleLayout').prop('checked')) {
                     var subtitlesWidth = x - subtitles.offset().left;
-                    var videoPlayerWidth = window.innerWidth - x - divider.width();
+                    var videoPlayerWidth = window.innerWidth - subtitlesWidth - divider.width();
                 } else {
                     var videoPlayerWidth = (x - videoPlayer.offset().left);
                     var subtitlesWidth = window.innerWidth - videoPlayerWidth - divider.width();
