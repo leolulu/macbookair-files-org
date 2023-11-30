@@ -226,7 +226,7 @@ def generate_thumbnail(video_path, rows, cols=None, preset="ultrafast", process_
         while seg_start_time < duration_in_seconds:
             seg_end_time = min(seg_start_time + rows_calced * cols_calced * 30, duration_in_seconds)
             seg_file_path = f"-seg{str(n).zfill(2)}".join(os.path.splitext(video_path))
-            command = f'ffmpeg -ss {seg_start_time} -to {seg_end_time} -accurate_seek -i "{video_path}" -c copy -map_chapters -1 -avoid_negative_ts 1 "{seg_file_path}"'
+            command = f'ffmpeg -ss {seg_start_time} -to {seg_end_time} -accurate_seek -i "{video_path}" -c copy -map_chapters -1 -y -avoid_negative_ts 1 "{seg_file_path}"'
             subprocess.run(command, shell=True)
             process_video(seg_file_path, rows_calced, cols_calced, start_offset=round(seg_start_time))
             seg_start_time = seg_end_time
