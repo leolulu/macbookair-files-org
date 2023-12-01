@@ -175,9 +175,10 @@ def gen_video_thumbnail(video_path, preset, height, fps, duration_in_seconds, fr
         print(f"开始修复以下受损文件:")
         print("\n".join(corrupted_file_paths))
         for corrupted_file_path in corrupted_file_paths:
-            fix_command = 'ffmpeg -f lavfi -i color=c=gray:s={}x{}:d=1 -c:v libx264 -y "{}"'.format(
-                intermediate_file_dimension[0], intermediate_file_dimension[1], corrupted_file_path
+            fix_command = 'ffmpeg -f lavfi -i color=c=gray:s={}x{}:d=1 -r {} -c:v libx264 -y "{}"'.format(
+                intermediate_file_dimension[0], intermediate_file_dimension[1], fps, corrupted_file_path
             )
+            print(f"修复指令：{fix_command}")
             subprocess.run(fix_command, shell=True)
 
     # 合并中间文件
