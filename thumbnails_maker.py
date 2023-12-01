@@ -19,6 +19,17 @@ import requests
 from tqdm import tqdm
 
 
+def check_video_corrupted(video_file_path):
+    command = f'ffprobe "{video_file_path}"'
+    result = subprocess.run(command, capture_output=True, text=True)
+    is_corrupted, width, height = True, None, None
+    for line_content in result.stderr.split("\n"):
+        if "Stream" in line_content and "Video" in line_content:
+            width, height = re.findall(r", (\d+)x(\d+) ", line_content)[0]
+            is_corrupted = False
+    return is_corrupted, width, height
+
+
 def move_with_optional_security(source, target, backup_target=None, msg=""):
     try:
         shutil.move(source, target)
@@ -124,6 +135,7 @@ def gen_video_thumbnail(video_path, preset, height, fps, duration_in_seconds, fr
     input_template = ' -ss {start_time} -t {duration} -i "{input_file_path}" '
     footage_paths = []
     gen_footage_commands = []
+    intermediate_file_paths = []
     for i in key_timestamp:
         gen_footage_command = "ffmpeg " + input_template.format(start_time=i, duration=thumbnail_duration, input_file_path=video_path)
         filter_commands = []
@@ -142,9 +154,30 @@ def gen_video_thumbnail(video_path, preset, height, fps, duration_in_seconds, fr
         footage_paths.append(output_file_path)
         gen_footage_command += f" -preset {preset} -y "
         gen_footage_command += f'"{output_file_path}"'
+        intermediate_file_paths.append(output_file_path)
         gen_footage_commands.append(gen_footage_command)
     with ThreadPoolExecutor(os.cpu_count()) as exe:
         exe.map(lambda c: subprocess.run(c, shell=True), gen_footage_commands)
+
+    # 检查中间文件是否损坏
+    print("开始检查中间文件是否损坏...")
+    corrupted_file_paths = []
+    intermediate_file_dimension: Tuple[int, int] = None  # type: ignore
+    for intermediate_file_path in intermediate_file_paths:
+        is_corrupted, intermediate_file_width, intermediate_file_height = check_video_corrupted(intermediate_file_path)
+        if is_corrupted:
+            corrupted_file_paths.append(intermediate_file_path)
+        else:
+            if intermediate_file_dimension is None:
+                intermediate_file_dimension = (intermediate_file_width, intermediate_file_height)  # type: ignore
+    # 修复受损的中间文件
+    print(f"开始修复以下受损文件:")
+    print("\n".join(corrupted_file_paths))
+    for corrupted_file_path in corrupted_file_paths:
+        fix_command = 'ffmpeg -f lavfi -i color=c=gray:s={}x{}:d=1 -c:v libx264 -y "{}"'.format(
+            intermediate_file_dimension[0], intermediate_file_dimension[1], corrupted_file_path
+        )
+        subprocess.run(fix_command, shell=True)
 
     # 合并中间文件
     command = "ffmpeg "
