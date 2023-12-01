@@ -25,7 +25,7 @@ def check_video_corrupted(video_file_path):
     is_corrupted, width, height = True, None, None
     for line_content in result.stderr.split("\n"):
         if "Stream" in line_content and "Video" in line_content:
-            width, height = re.findall(r", (\d+)x(\d+) ", line_content)[0]
+            width, height = re.findall(r", (\d+)x(\d+)[ ,]", line_content)[0]
             is_corrupted = False
     return is_corrupted, width, height
 
