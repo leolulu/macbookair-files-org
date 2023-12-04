@@ -325,14 +325,19 @@ if __name__ == "__main__":
             input_string = input("请输入视频地址和行数，以空格隔开：")
             if not input_string:
                 continue
-            video_path, rows = input_string.rsplit(" ", 1)
+            video_path, rows_input = input_string.rsplit(" ", 1)
+            try:
+                rows = int(rows_input)
+                cols = None
+            except ValueError:
+                rows, cols = [int(i) for i in rows_input.split("-")]
             threading.Thread(
                 target=process_video,
                 args=(
                     SimpleNamespace(
                         video_path=video_path.strip('"'),
-                        rows=int(rows),
-                        cols=None,
+                        rows=rows,
+                        cols=cols,
                         preset=args.preset,
                         full=args.full,
                     ),
