@@ -588,6 +588,10 @@
                     } else {
                         $('#video')[0].currentTime = $('#video')[0].duration;
                         $('#video')[0].pause();
+                        $('#skipBlanks').trigger('click');
+                        setTimeout(() => {
+                            $('#skipBlanks').trigger('click');
+                        }, 1000);
                     }
                 }
             }
