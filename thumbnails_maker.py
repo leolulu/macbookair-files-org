@@ -19,6 +19,17 @@ import requests
 from tqdm import tqdm
 
 
+def check_video_corrupted(video_file_path):
+    command = f'ffprobe "{video_file_path}"'
+    result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8")
+    is_corrupted, width, height = True, None, None
+    for line_content in result.stderr.split("\n"):
+        if "Stream" in line_content and "Video" in line_content:
+            width, height = re.findall(r", (\d+)x(\d+)[ ,]", line_content)[0]
+            is_corrupted = False
+    return is_corrupted, width, height
+
+
 def move_with_optional_security(source, target, backup_target=None, msg=""):
     try:
         shutil.move(source, target)
@@ -124,6 +135,7 @@ def gen_video_thumbnail(video_path, preset, height, fps, duration_in_seconds, fr
     input_template = ' -ss {start_time} -t {duration} -i "{input_file_path}" '
     footage_paths = []
     gen_footage_commands = []
+    intermediate_file_paths = []
     for i in key_timestamp:
         gen_footage_command = "ffmpeg " + input_template.format(start_time=i, duration=thumbnail_duration, input_file_path=video_path)
         filter_commands = []
@@ -142,9 +154,32 @@ def gen_video_thumbnail(video_path, preset, height, fps, duration_in_seconds, fr
         footage_paths.append(output_file_path)
         gen_footage_command += f" -preset {preset} -y "
         gen_footage_command += f'"{output_file_path}"'
+        intermediate_file_paths.append(output_file_path)
         gen_footage_commands.append(gen_footage_command)
     with ThreadPoolExecutor(os.cpu_count()) as exe:
         exe.map(lambda c: subprocess.run(c, shell=True), gen_footage_commands)
+
+    # 检查中间文件是否损坏
+    print("开始检查中间文件是否损坏...")
+    corrupted_file_paths = []
+    intermediate_file_dimension: Tuple[int, int] = None  # type: ignore
+    for intermediate_file_path in intermediate_file_paths:
+        is_corrupted, intermediate_file_width, intermediate_file_height = check_video_corrupted(intermediate_file_path)
+        if is_corrupted:
+            corrupted_file_paths.append(intermediate_file_path)
+        else:
+            if intermediate_file_dimension is None:
+                intermediate_file_dimension = (intermediate_file_width, intermediate_file_height)  # type: ignore
+    # 修复受损的中间文件
+    if corrupted_file_paths:
+        print(f"开始修复以下受损文件:")
+        print("\n".join(corrupted_file_paths))
+        for corrupted_file_path in corrupted_file_paths:
+            fix_command = 'ffmpeg -f lavfi -i color=c=gray:s={}x{}:d=1 -r {} -c:v libx264 -y "{}"'.format(
+                intermediate_file_dimension[0], intermediate_file_dimension[1], fps, corrupted_file_path
+            )
+            print(f"修复指令：{fix_command}")
+            subprocess.run(fix_command, shell=True)
 
     # 合并中间文件
     command = "ffmpeg "
@@ -226,7 +261,7 @@ def generate_thumbnail(video_path, rows, cols=None, preset="ultrafast", process_
         while seg_start_time < duration_in_seconds:
             seg_end_time = min(seg_start_time + rows_calced * cols_calced * 30, duration_in_seconds)
             seg_file_path = f"-seg{str(n).zfill(2)}".join(os.path.splitext(video_path))
-            command = f'ffmpeg -ss {seg_start_time} -to {seg_end_time} -accurate_seek -i "{video_path}" -c copy -map_chapters -1 -avoid_negative_ts 1 "{seg_file_path}"'
+            command = f'ffmpeg -ss {seg_start_time} -to {seg_end_time} -accurate_seek -i "{video_path}" -c copy -map_chapters -1 -y -avoid_negative_ts 1 "{seg_file_path}"'
             subprocess.run(command, shell=True)
             process_video(seg_file_path, rows_calced, cols_calced, start_offset=round(seg_start_time))
             seg_start_time = seg_end_time
@@ -290,14 +325,19 @@ if __name__ == "__main__":
             input_string = input("请输入视频地址和行数，以空格隔开：")
             if not input_string:
                 continue
-            video_path, rows = input_string.rsplit(" ", 1)
+            video_path, rows_input = input_string.rsplit(" ", 1)
+            try:
+                rows = int(rows_input)
+                cols = None
+            except ValueError:
+                rows, cols = [int(i) for i in rows_input.split("-")]
             threading.Thread(
                 target=process_video,
                 args=(
                     SimpleNamespace(
                         video_path=video_path.strip('"'),
-                        rows=int(rows),
-                        cols=None,
+                        rows=rows,
+                        cols=cols,
                         preset=args.preset,
                         full=args.full,
                     ),

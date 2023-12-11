@@ -14,10 +14,26 @@
             height: 100vh;
         }
 
+        .container-layout-normal {
+            flex-direction: row;
+        }
+
+        .container-layout-reversed {
+            flex-direction: row-reverse;
+        }
+
         #video-player {
             width: 66%;
             overflow: auto;
             align-self: flex-start;
+        }
+
+        .video-layout-normal {
+            margin-left: 0px;
+        }
+
+        .video-layout-reversed {
+            margin-left: -4px;
         }
 
         #video {
@@ -29,6 +45,7 @@
             cursor: col-resize;
             border-left: 1px solid #aaa;
             width: 4px;
+            z-index: 2;
         }
 
         #subtitles {
@@ -101,7 +118,8 @@
             height: 5px;
         }
 
-        #textLength {
+        #textLength,
+        #mediaGain {
             max-width: 2rem;
         }
 
@@ -132,9 +150,15 @@
             <input type="checkbox" id="clickToPlay" />
             <label for="textLength">句长:</label>
             <input type="number" id="textLength" value="1">
-            <label for="enableTimeConcat">间隔:</label>
+            <label for="enableTimeConcat">合并句间隔:</label>
             <input type="text" id="timeConcat" value="0.001">
             <input type="checkbox" id="enableTimeConcat" />
+            <label for="hideControl">隐藏播放器控件</label>
+            <input type="checkbox" id="hideControl" />
+            <label for="toggleLayout">反转布局</label>
+            <input type="checkbox" id="toggleLayout" />
+            <label for="mediaGain">强制放大音量:</label>
+            <input type="number" id="mediaGain" value="1">
             <!-- 添加一个元素用来显示视频文件名 -->
             <div id="videoFileNameContainer">
                 <span id="videoFileName"></span>
@@ -157,6 +181,30 @@
         $(function () {
             var video = $('#video');
 
+            $('#toggleLayout').change(function () {
+                if ($(this).is(':checked')) {
+                    $('#container').addClass('container-layout-reversed').removeClass('container-layout-normal');
+                    $('#video-player').addClass('video-layout-reversed').removeClass('video-layout-normal');
+                } else {
+                    $('#container').addClass('container-layout-normal').removeClass('container-layout-reversed');
+                    $('#video-player').addClass('video-layout-normal').removeClass('video-layout-reversed');
+                }
+            });
+
+            var needInitAudioCtx = true;
+            var gainNode = null;
+            $('#mediaGain').on('input', () => {
+                if (needInitAudioCtx) {
+                    var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    gainNode = audioCtx.createGain();
+                    var mediaElementSource = audioCtx.createMediaElementSource(document.getElementById("video"));
+                    mediaElementSource.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    needInitAudioCtx = false;
+                }
+                gainNode.gain.value = parseInt(document.getElementById("mediaGain").value, 10);
+            });
+
             const hideControlsStyle = document.createElement('style');
             hideControlsStyle.innerHTML = `
                 video::-webkit-media-controls-panel {
@@ -168,7 +216,8 @@
             `;
 
             video.on('mouseenter', function () {
-                if (document.head.contains(hideControlsStyle)) {
+                var hideControl = $('#hideControl').prop('checked');
+                if (document.head.contains(hideControlsStyle) && !hideControl) {
                     document.head.removeChild(hideControlsStyle);
                 }
             });
@@ -214,8 +263,13 @@
 
                 var x = e.clientX;
 
-                var videoPlayerWidth = (x - videoPlayer.offset().left);
-                var subtitlesWidth = window.innerWidth - videoPlayerWidth - divider.width();
+                if ($('#toggleLayout').prop('checked')) {
+                    var subtitlesWidth = x - subtitles.offset().left;
+                    var videoPlayerWidth = window.innerWidth - subtitlesWidth - divider.width();
+                } else {
+                    var videoPlayerWidth = (x - videoPlayer.offset().left);
+                    var subtitlesWidth = window.innerWidth - videoPlayerWidth - divider.width();
+                }
 
                 videoPlayer.css('width', videoPlayerWidth + 'px');
                 subtitles.css('width', subtitlesWidth + 'px');
@@ -551,6 +605,10 @@
                     } else {
                         $('#video')[0].currentTime = $('#video')[0].duration;
                         $('#video')[0].pause();
+                        $('#skipBlanks').trigger('click');
+                        setTimeout(() => {
+                            $('#skipBlanks').trigger('click');
+                        }, 1000);
                     }
                 }
             }
