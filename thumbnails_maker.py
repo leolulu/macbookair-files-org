@@ -1,11 +1,11 @@
 import argparse
 import math
 import os
-import random
 import re
 import shutil
 import subprocess
 import threading
+import time
 import traceback
 import uuid
 from concurrent.futures import ThreadPoolExecutor
@@ -149,7 +149,7 @@ def gen_video_thumbnail(video_path, preset, height, fps, duration_in_seconds, fr
         gen_footage_command += f" -vf {','.join(filter_commands)} "
         output_file_path = os.path.join(
             str(Path.home() / "Downloads"),
-            f"{video_name[:2]}-{video_name[-2:]}-{round(i,3)}.mp4",
+            f"{video_name[:2]}-{video_name[-2:]}-{round(i,3)}-{str(time.time())[-3:]}.mp4",
         )
         footage_paths.append(output_file_path)
         gen_footage_command += f" -preset {preset} -y "
