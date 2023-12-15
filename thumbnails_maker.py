@@ -123,14 +123,16 @@ def gen_pic_thumbnail(video_path, frame_interval, rows, cols, height, width, sta
     ).start()
 
 
-def gen_video_thumbnail(video_path, preset, height, fps, duration_in_seconds, frame_interval, rows, cols, start_offset=0):
+def gen_video_thumbnail(
+    video_path, preset, height, fps, duration_in_seconds, frame_interval, rows, cols, max_thumb_duration, start_offset=0
+):
     video_name = os.path.splitext(os.path.basename(video_path))[0]
     output_path_video = os.path.splitext(video_path)[0] + ".tbnl"
     temp_output_path_video = os.path.join(str(Path.home() / "Downloads"), f"WIP_{uuid.uuid4().hex}.mp4")
     # 生成视频缩略图
     # 生成中间文件落盘
     key_timestamp = [i * frame_interval / fps for i in range(rows * cols)]
-    thumbnail_duration = min(30, math.ceil(duration_in_seconds / (rows * cols)))
+    thumbnail_duration = min(max_thumb_duration, math.ceil(duration_in_seconds / (rows * cols)))
     max_output_height = 2160
     input_template = ' -ss {start_time} -t {duration} -i "{input_file_path}" '
     footage_paths = []
@@ -247,19 +249,21 @@ def gen_info(video_path, rows, cols):
     return frame_interval, fps, height, width, duration_in_seconds, rows, cols
 
 
-def generate_thumbnail(video_path, rows, cols=None, preset="ultrafast", process_full_video=False):
+def generate_thumbnail(video_path, rows, cols=None, preset="ultrafast", process_full_video=False, max_thumb_duration=30):
     def process_video(video_path, rows_calced, cols_calced, start_offset=0):
         frame_interval, fps, height, width, duration_in_seconds, _, _ = gen_info(video_path, rows_calced, cols_calced)
         gen_pic_thumbnail(video_path, frame_interval, rows_calced, cols_calced, height, width, start_offset)
-        gen_video_thumbnail(video_path, preset, height, fps, duration_in_seconds, frame_interval, rows_calced, cols_calced, start_offset)
+        gen_video_thumbnail(
+            video_path, preset, height, fps, duration_in_seconds, frame_interval, rows_calced, cols_calced, max_thumb_duration, start_offset
+        )
 
     _, _, _, _, duration_in_seconds, rows_calced, cols_calced = gen_info(video_path, rows, cols)
     print(f"开始生成视频缩略图，视频路径：{video_path}，行列数：{rows_calced}x{cols_calced}")
-    if process_full_video and rows_calced * cols_calced * 30 < duration_in_seconds:
+    if process_full_video and rows_calced * cols_calced * max_thumb_duration < duration_in_seconds:
         n = 1
         seg_start_time = 0
         while seg_start_time < duration_in_seconds:
-            seg_end_time = min(seg_start_time + rows_calced * cols_calced * 30, duration_in_seconds)
+            seg_end_time = min(seg_start_time + rows_calced * cols_calced * max_thumb_duration, duration_in_seconds)
             seg_file_path = f"-seg{str(n).zfill(2)}".join(os.path.splitext(video_path))
             command = f'ffmpeg -ss {seg_start_time} -to {seg_end_time} -accurate_seek -i "{video_path}" -c copy -map_chapters -1 -y -avoid_negative_ts 1 "{seg_file_path}"'
             subprocess.run(command, shell=True)
@@ -283,6 +287,7 @@ if __name__ == "__main__":
         choices=["ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow"],
     )
     parser.add_argument("--full", help="是否要生成多个缩略图以覆盖视频完整时长", action="store_true")
+    parser.add_argument("-m", "--max", help="指定生成单个视频缩略图的最大时长", type=int, default=30)
     args = parser.parse_args()
 
     def process_video(args):
@@ -318,7 +323,7 @@ if __name__ == "__main__":
                     f.write(requests.get(video_path, proxies={"http": "http://127.0.0.1:10809", "https": "http://127.0.0.1:10809"}).content)
             generate_thumbnail(file_path, rows, cols, args.preset)
         else:
-            generate_thumbnail(video_path, rows, cols, args.preset, args.full)
+            generate_thumbnail(video_path, rows, cols, args.preset, args.full, args.max)
 
     if args.video_path is None:
         while True:
