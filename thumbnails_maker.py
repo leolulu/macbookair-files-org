@@ -345,6 +345,7 @@ if __name__ == "__main__":
                         cols=cols,
                         preset=args.preset,
                         full=args.full,
+                        max=args.max,
                     ),
                 ),
             ).start()
