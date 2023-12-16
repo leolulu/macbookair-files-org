@@ -21,7 +21,7 @@ from tqdm import tqdm
 
 def check_video_corrupted(video_file_path):
     command = f'ffprobe "{video_file_path}"'
-    result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8")
+    result = subprocess.run(command, capture_output=True, text=True)
     is_corrupted, width, height = True, None, None
     for line_content in result.stderr.split("\n"):
         if "Stream" in line_content and "Video" in line_content:
