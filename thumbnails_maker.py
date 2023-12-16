@@ -314,7 +314,7 @@ if __name__ == "__main__":
             ]
             for video_path in video_paths:
                 try:
-                    generate_thumbnail(video_path, rows, cols, args.preset)
+                    generate_thumbnail(video_path, rows, cols, args.preset, args.full, args.max)
                 except:
                     traceback.print_exc()
         elif str(video_path).lower().startswith("http"):
@@ -324,7 +324,7 @@ if __name__ == "__main__":
                 print(f"视频在本地不存在，开始下载: {file_name}")
                 with open(file_path, "wb") as f:
                     f.write(requests.get(video_path, proxies={"http": "http://127.0.0.1:10809", "https": "http://127.0.0.1:10809"}).content)
-            generate_thumbnail(file_path, rows, cols, args.preset)
+            generate_thumbnail(file_path, rows, cols, args.preset, args.full, args.max)
         else:
             generate_thumbnail(video_path, rows, cols, args.preset, args.full, args.max)
 
