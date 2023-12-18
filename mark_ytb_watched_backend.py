@@ -13,5 +13,10 @@ def mark_video_watched():
     return "ok", 200
 
 
+@app.route("/mark_video_watched", methods=["GET"])
+def hello():
+    return "hello"
+
+
 if __name__ == "__main__":
     app.run(debug=False, port=59521, host="0.0.0.0")
