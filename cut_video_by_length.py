@@ -35,7 +35,7 @@ def cut_video(file_path, interval: int, encode: bool):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("file_path", help="媒体路径")
-    parser.add_argument("interval", help="每段切分的时长", type=int)
+    parser.add_argument("interval", help="每段切分的时长(单位：秒)", type=int)
     parser.add_argument("-e", "--encode", help="是否需要重编码", action="store_true")
     args = parser.parse_args()
     cut_video(args.file_path, args.interval, args.encode)
