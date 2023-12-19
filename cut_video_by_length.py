@@ -7,7 +7,7 @@ import sys
 
 def get_length(file_path):
     command = f'ffprobe "{file_path}"'
-    s = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+    s = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, encoding='utf-8')
     stdout, stderr = s.communicate()
     result = re.findall(r"Duration: (\d+):(\d+):([\d\.]+),", stderr)[0]
     hour = result[0]
