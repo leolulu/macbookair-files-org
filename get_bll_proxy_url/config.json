@@ -1,0 +1,12 @@
+{
+    "group":"llb",
+    "speedtestMode":"all",
+    "pingMethod":"googleping",
+    "sortMethod":"rspeed",
+    "concurrency":2,
+    "testMode":2,
+    "timeout":5,
+    "language":"cn",
+    "unique": true,
+    "outputMode": 3
+}
