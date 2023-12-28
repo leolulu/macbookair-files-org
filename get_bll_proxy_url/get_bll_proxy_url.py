@@ -43,7 +43,7 @@ class ProxyNode:
 
 
 class BLL_proxy_getter:
-    def __init__(self) -> None:
+    def __init__(self, top_node_count=5) -> None:
         self.proxy = "http://127.0.0.1:10809"
         self.last_frame_file_name = "last.jpg"
         self.result_file_name = "filtered_node.txt"
@@ -58,6 +58,7 @@ class BLL_proxy_getter:
                 self.proxy_nodes = pickle.loads(f.read())
         else:
             self.proxy_nodes = set()
+        self.top_node_count = top_node_count
 
     def set_proxy(self):
         os.environ["http_proxy"] = self.proxy
@@ -143,11 +144,11 @@ class BLL_proxy_getter:
         for node_to_remove in nodes_to_remove:
             self.proxy_nodes.remove(node_to_remove)
 
-        top_3_node = sorted([i for i in self.proxy_nodes if i.isok], key=lambda x: x.longterm_avg_speed, reverse=True)[:5]
-        if top_3_node:
+        top_nodes = sorted([i for i in self.proxy_nodes if i.isok], key=lambda x: x.longterm_avg_speed, reverse=True)[: self.top_node_count]
+        if top_nodes:
             result_output_content = "{}\n\n{}\n\n更新时间: {}".format(
-                "\n".join([i.link for i in top_3_node]),
-                "\n".join([f"{round(i.longterm_avg_speed/1024/1024,2)}MB/S - {i.name}" for i in top_3_node]),
+                "\n".join([i.link for i in top_nodes]),
+                "\n".join([f"{round(i.longterm_avg_speed/1024/1024,2)}MB/S - {i.name}" for i in top_nodes]),
                 time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
             )
             with open(self.result_file_name, "w", encoding="utf-8") as f:
@@ -179,13 +180,14 @@ class BLL_proxy_getter:
 
 if __name__ == "__main__":
     round_interval = 600
-    bll = BLL_proxy_getter()
+    top_node_count = 5
+    bll = BLL_proxy_getter(top_node_count=top_node_count)
     while True:
         last_btime = time.time()
         try:
             bll.run()
         except:
             traceback.print_exc()
-        while time.time() - last_btime < round_interval:
+        while time.time() - last_btime < (30 if len(bll.proxy_nodes) < top_node_count else round_interval):
             print(f"等待下一轮测速，剩余时间：{int(round_interval - (time.time() - last_btime))}秒...")
             time.sleep(10)
