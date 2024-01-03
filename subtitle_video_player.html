@@ -143,6 +143,24 @@
         .censored:hover {
             filter: none;
         }
+
+        @keyframes blink {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .blinking {
+            animation: blink 0.2s ease infinite;
+        }
     </style>
 </head>
 
@@ -326,6 +344,12 @@
                     document.title = extractFilename(videoUrl)
                     $('#videoFileName').text(extractFilename(videoUrl));
                     document.getElementById('videoUrl').value = "";
+                } else {
+                    var element = document.getElementById("videoUrl");
+                    element.classList.add("blinking");
+                    setTimeout(function () {
+                        element.classList.remove("blinking");
+                    }, 800);
                 }
             }
             document.getElementById('loadVideoUrl').addEventListener('click', updateVideoSource);
