@@ -124,7 +124,7 @@
         }
 
         #videoUrl {
-            max-width: 6.8rem;
+            max-width: 9rem;
         }
 
         #skipInterval {
@@ -172,8 +172,9 @@
             <input type="checkbox" id="toggleLayout" />
             <label for="mediaGain">强制放大音量:</label>
             <input type="number" id="mediaGain" value="1">
-            <input type="text" id="videoUrl" placeholder="手动加载视频URL">
+            <input type="text" id="videoUrl" placeholder="粘贴视频url,弹框选字幕">
             <button id="loadVideoUrl">加载</button>
+            <input type="file" id="VideoUrlWithFile" accept=".srt, .json" multiple style="display:none;" />
             <!-- 添加一个元素用来显示视频文件名 -->
             <div id="videoFileNameContainer">
                 <span id="videoFileName"></span>
@@ -305,11 +306,26 @@
                 $('#video-player').draggable('destroy');
             });
 
+            function extractFilename(urlString) {
+                try {
+                    var url = new URL(urlString);
+                    var decodedPathname = decodeURIComponent(url.pathname);
+                    return decodedPathname.split('/').pop();
+                } catch (error) {
+                    console.error("Invalid URL:", error);
+                    return null;
+                }
+            }
+
             function updateVideoSource() {
                 var videoUrl = document.getElementById('videoUrl').value;
                 var videoElement = document.getElementById('video');
                 if (videoUrl) {
                     videoElement.src = videoUrl;
+                    document.getElementById("VideoUrlWithFile").click();
+                    document.title = extractFilename(videoUrl)
+                    $('#videoFileName').text(extractFilename(videoUrl));
+                    document.getElementById('videoUrl').value = "";
                 }
             }
             document.getElementById('loadVideoUrl').addEventListener('click', updateVideoSource);
@@ -329,8 +345,7 @@
                 return parseFloat(num.toFixed(3));
             }
 
-            // Set up event listener for video file input
-            $('#videoFile').change(function (e) {
+            function processFiles(e) {
                 clearAllSub()
                 var files = e.target.files;
                 for (var i = 0; i < files.length; i++) {
@@ -349,9 +364,11 @@
                         loadSubtitlesFromJSON(files[i]);
                     }
                 }
-            });
+            }
 
-
+            // Set up event listener for video file input
+            $('#videoFile').change(processFiles);
+            $('#VideoUrlWithFile').change(processFiles);
 
             function loadSubtitlesFromJSONImpl(triggeredFromSentenceLength = false) {
                 subtitles = [];
