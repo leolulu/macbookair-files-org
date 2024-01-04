@@ -123,19 +123,22 @@ class BLL_proxy_getter:
             link_str = proxy_node.link
             command = f'lite-windows-amd64.exe -config config.json -test "{link_str}" >nul 2>&1'
             print(f"开始测速，指令：\n{command[:100]}...")
-            subprocess.run(command, shell=True)
-            with open("output.json", "r", encoding="utf-8") as f:
-                all_result = json.loads(f.read())
-            for node_result in all_result["nodes"]:
-                for proxy_node in self.proxy_nodes:
-                    if proxy_node.link == node_result["link"]:
-                        isok = node_result["isok"]
-                        proxy_node.mark_fail_streak(isok)
-                        if isok:
-                            proxy_node.avg_speeds.append(node_result["avg_speed"])
-                        if not proxy_node.name:
-                            proxy_node.name = node_result["remarks"]
-                        continue
+            try:
+                subprocess.run(command, shell=True, timeout=60)
+                with open("output.json", "r", encoding="utf-8") as f:
+                    all_result = json.loads(f.read())
+                for node_result in all_result["nodes"]:
+                    for proxy_node in self.proxy_nodes:
+                        if proxy_node.link == node_result["link"]:
+                            isok = node_result["isok"]
+                            proxy_node.mark_fail_streak(isok)
+                            if isok:
+                                proxy_node.avg_speeds.append(node_result["avg_speed"])
+                            if not proxy_node.name:
+                                proxy_node.name = node_result["remarks"]
+                            break
+            except subprocess.TimeoutExpired:
+                print(f"测速超时，跳过当前节点本轮测速...")
 
         nodes_to_remove = []
         for proxy_node in self.proxy_nodes:
