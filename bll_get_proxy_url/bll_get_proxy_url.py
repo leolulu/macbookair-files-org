@@ -113,6 +113,12 @@ class BLL_proxy_getter:
         print(f"获取到当前图像的二维码内容：\n{link}")
         self.proxy_nodes.add(ProxyNode(link))
 
+    def find_node_by_link(self, link):
+        for proxy_node in self.proxy_nodes:
+            if proxy_node.link == link:
+                return proxy_node
+        return None
+
     def test_node_speed(self):
         if not self.proxy_nodes:
             print(f"节点池中没有节点，跳过测速环节...")
@@ -124,21 +130,28 @@ class BLL_proxy_getter:
             command = f'lite-windows-amd64.exe -config config.json -test "{link_str}" >nul 2>&1'
             print(f"开始测速，指令：\n{command[:100]}...")
             try:
-                subprocess.run(command, shell=True, timeout=60)
+                subprocess.run(command, shell=True, timeout=180)
                 with open("output.json", "r", encoding="utf-8") as f:
                     all_result = json.loads(f.read())
                 for node_result in all_result["nodes"]:
-                    for proxy_node in self.proxy_nodes:
-                        if proxy_node.link == node_result["link"]:
-                            isok = node_result["isok"]
-                            proxy_node.mark_fail_streak(isok)
-                            if isok:
-                                proxy_node.avg_speeds.append(node_result["avg_speed"])
-                            if not proxy_node.name:
-                                proxy_node.name = node_result["remarks"]
-                            break
-            except subprocess.TimeoutExpired:
-                print(f"测速超时，跳过当前节点本轮测速...")
+                    proxy_node = self.find_node_by_link(node_result["link"])
+                    if proxy_node:
+                        isok = node_result["isok"]
+                        proxy_node.mark_fail_streak(isok)
+                        if isok:
+                            proxy_node.avg_speeds.append(node_result["avg_speed"])
+                        if not proxy_node.name:
+                            proxy_node.name = node_result["remarks"]
+                        break
+                    else:
+                        print(f"[DEBUG]竟然有link在node库里面找不到，奇了个怪了...")
+            except (subprocess.TimeoutExpired, FileNotFoundError) as e:
+                print(f"测速超时，跳过当前节点本轮测速，标记测速失败...{e}")
+                node = self.find_node_by_link(link_str)
+                if node:
+                    node.mark_fail_streak(False)
+                else:
+                    print(f"[DEBUG]无法通过link匹配节点...")
 
         nodes_to_remove = []
         for proxy_node in self.proxy_nodes:
