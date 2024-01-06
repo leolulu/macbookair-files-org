@@ -129,7 +129,7 @@ class BLL_proxy_getter:
             command = f'lite-windows-amd64.exe -config config.json -test "{link_str}" >nul 2>&1'
             print(f"开始测速，指令：\n{command[:100]}...")
             try:
-                subprocess.run(command, shell=True, timeout=180)
+                subprocess.run(command, shell=True, timeout=60)
                 with open("output.json", "r", encoding="utf-8") as f:
                     all_result = json.loads(f.read())
                 for node_result in all_result["nodes"]:
