@@ -94,10 +94,9 @@ class BLL_proxy_getter:
 
     def get_qr_data(self):
         url = "http://api.qrserver.com/v1/read-qr-code/"
-        f = open(self.last_frame_file_name, "rb")
-        files = {"file": f}
-        response = requests.post(url, files=files)
-        f.close()
+        with open(self.last_frame_file_name, "rb") as f:
+            files = {"file": f}
+            response = requests.post(url, files=files)
         response.raise_for_status()
         link = json.loads(response.content)[0]["symbol"][0]["data"]
         self.deal_with_link(link)
