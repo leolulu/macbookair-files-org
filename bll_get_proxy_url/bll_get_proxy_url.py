@@ -218,7 +218,7 @@ class BLL_proxy_getter:
 
 
 if __name__ == "__main__":
-    round_interval = 600
+    raw_round_interval = 600
     top_node_count = 5
     bll = BLL_proxy_getter(top_node_count=top_node_count)
     while True:
@@ -227,6 +227,7 @@ if __name__ == "__main__":
             bll.run()
         except:
             traceback.print_exc()
-        while time.time() - last_btime < (30 if len(bll.proxy_nodes) < top_node_count else round_interval):
-            print(f"等待下一轮测速，剩余时间：{int(round_interval - (time.time() - last_btime))}秒...")
+        organic_round_interval = 30 if len(bll.proxy_nodes) < top_node_count else raw_round_interval
+        while time.time() - last_btime < organic_round_interval:
+            print(f"等待下一轮测速，剩余时间：{int(organic_round_interval - (time.time() - last_btime))}秒...")
             time.sleep(10)
