@@ -10,11 +10,16 @@ import requests
 
 
 class ProxyNode:
+    TYPE_VMESS = "vmess"
+    TYPE_TROJAN = "trojan"
+    TYPE_UNDEFINE = "undefine"
+
     def __init__(self, link) -> None:
         self.link = link
         self.avg_speeds = deque(maxlen=10)
         self.fail_streak = 0
         self.name = None
+        self.type = self.judge_node_type(link)
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, ProxyNode):
@@ -23,6 +28,14 @@ class ProxyNode:
 
     def __hash__(self) -> int:
         return hash(self.link)
+
+    def judge_node_type(self, link):
+        if link.lower().startswith(ProxyNode.TYPE_VMESS):
+            return ProxyNode.TYPE_VMESS
+        elif link.lower().startswith(ProxyNode.TYPE_TROJAN):
+            return ProxyNode.TYPE_TROJAN
+        else:
+            return ProxyNode.TYPE_UNDEFINE
 
     def mark_fail_streak(self, isok: bool):
         if isok:
@@ -106,7 +119,7 @@ class BLL_proxy_getter:
         if link.lower().startswith("ss"):
             print(f"节点为ss系，跳过...")
             return
-        if link.lower().startswith("trojan"):
+        if link.lower().startswith("trojan") and len(self.proxy_nodes) >= self.top_node_count:
             print(f"节点为trojan类型，跳过...")
             return
         print(f"获取到当前图像的二维码内容：\n{link}")
@@ -159,7 +172,18 @@ class BLL_proxy_getter:
         for node_to_remove in nodes_to_remove:
             self.proxy_nodes.remove(node_to_remove)
 
-        top_nodes = sorted([i for i in self.proxy_nodes if i.isok], key=lambda x: x.longterm_avg_speed, reverse=True)[: self.top_node_count]
+        top_nodes = sorted(
+            [i for i in self.proxy_nodes if i.isok and i.type == ProxyNode.TYPE_VMESS], key=lambda x: x.longterm_avg_speed, reverse=True
+        )[: self.top_node_count]
+        if len(top_nodes) < self.top_node_count:
+            top_nodes.extend(
+                sorted(
+                    [i for i in self.proxy_nodes if i.isok and i.type == ProxyNode.TYPE_TROJAN],
+                    key=lambda x: x.longterm_avg_speed,
+                    reverse=True,
+                )[: self.top_node_count - len(top_nodes)]
+            )
+
         if top_nodes:
             result_output_content = "{}\n\n{}\n\n更新时间: {}".format(
                 "\n".join([i.link for i in top_nodes]),
