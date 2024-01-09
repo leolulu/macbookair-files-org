@@ -156,7 +156,7 @@ def gen_video_thumbnail(
         filter_commands.append(filter_drawtext_command)
         gen_footage_command += f" -vf {','.join(filter_commands)} "
         output_file_path = os.path.join(
-            str(Path.home() / "Downloads"),
+            str(Path.home() / "Videos"),
             f"{video_name[:2]}-{video_name[-2:]}-{round(i,3)}-{str(time.time())[-3:]}.mp4",
         )
         footage_paths.append(output_file_path)
