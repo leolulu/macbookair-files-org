@@ -333,7 +333,7 @@ if __name__ == "__main__":
 
     if args.video_path is None:
         while True:
-            input_string = input("请输入视频地址和行数，以空格隔开：")
+            input_string = input("请输入视频地址和行数，以空格隔开，若有列数则'row-col'的形式：")
             if not input_string:
                 continue
             video_path, rows_input = input_string.rsplit(" ", 1)
