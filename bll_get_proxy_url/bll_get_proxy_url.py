@@ -5,7 +5,9 @@ import subprocess
 import time
 import traceback
 from collections import deque
+from typing import Optional
 
+import psutil
 import requests
 
 
@@ -55,17 +57,21 @@ class ProxyNode:
         return self.fail_streak == 0
 
 
-class BLL_proxy_getter:
+class BLL_PROXY_GETTER:
     def __init__(self, top_node_count=5) -> None:
-        self.proxy = "http://127.0.0.1:10809"
+        self.default_proxy = "http://127.0.0.1:10809"
+        self.active_proxy = self.default_proxy
         self.last_frame_file_name = "last.jpg"
         self.result_file_name = "filtered_node.txt"
         self.speed_test_output_file_name = "output.json"
         self.serialized_nodes_file_name = "proxy_nodes.pkl"
+        self.temp_proxy_server_log_file_name = "temp_proxy_server.log"
         if os.path.exists(self.result_file_name):
             os.remove(self.result_file_name)
         if os.path.exists(self.speed_test_output_file_name):
             os.remove(self.speed_test_output_file_name)
+        if os.path.exists(self.temp_proxy_server_log_file_name):
+            os.remove(self.temp_proxy_server_log_file_name)
         if os.path.exists(self.serialized_nodes_file_name):
             with open(self.serialized_nodes_file_name, "rb") as f:
                 self.proxy_nodes = pickle.loads(f.read())
@@ -74,12 +80,50 @@ class BLL_proxy_getter:
         self.top_node_count = top_node_count
 
     def set_proxy(self):
-        os.environ["http_proxy"] = self.proxy
-        os.environ["https_proxy"] = self.proxy
+        os.environ["http_proxy"] = self.active_proxy
+        os.environ["https_proxy"] = self.active_proxy
 
     def unset_proxy(self):
         os.environ.pop("http_proxy", None)
         os.environ.pop("https_proxy", None)
+
+    def kill_subprocess_recursively(self, p: subprocess.Popen):
+        process = psutil.Process(p.pid)
+        for proc in process.children(recursive=True):
+            proc.kill()
+        process.kill()
+
+    def check_proxy_availability(self):
+        alternative_proxy_port = 27653
+        alternative_proxy = f"http://127.0.0.1:{alternative_proxy_port}"
+
+        def test_by_youtube(proxy_str):
+            try:
+                proxies = {"http": proxy_str, "https": proxy_str}
+                response = requests.get("https://www.youtube.com/", proxies=proxies, timeout=10)
+                response.raise_for_status()
+                return True
+            except:
+                return False
+
+        print(f"开始测试proxy可用性...")
+        if test_by_youtube(self.active_proxy):
+            print(f"默认proxy测试通过...")
+            return None
+        else:
+            print(f"默认proxy不可用，尝试使用存量节点构建临时proxy...")
+            for link in [i.link for i in self.proxy_nodes if i.isok]:
+                print(f"尝试节点: {link[:50]}...")
+                command = f'lite-windows-amd64.exe -p {alternative_proxy_port} "{link}"  >> "{self.temp_proxy_server_log_file_name}" 2>&1'
+                p = subprocess.Popen(command, shell=True)
+                if test_by_youtube(alternative_proxy):
+                    print(f"替代节点测试成功，替换proxy...")
+                    self.active_proxy = alternative_proxy
+                    return p
+                else:
+                    self.kill_subprocess_recursively(p)
+
+        raise UserWarning("没有可用的代理服务器(默认的与存量proxy节点)，跳过本轮环节...")
 
     def get_streaming_url(self):
         self.set_proxy()
@@ -208,9 +252,17 @@ class BLL_proxy_getter:
             response.raise_for_status()
         print(f"测速完毕，结果已保存...\n")
 
+    def reset_proxy_if_necessary(self, p: Optional[subprocess.Popen]):
+        if p:
+            self.kill_subprocess_recursively(p)
+            self.active_proxy = self.default_proxy
+            print(f"替代proxy下线，恢复默认proxy，关闭temp proxy server...")
+
     def run(self):
+        temp_proxy_server_subprocess = self.check_proxy_availability()
         self.get_streaming_url()
         self.get_last_frame()
+        self.reset_proxy_if_necessary(temp_proxy_server_subprocess)
         self.get_qr_data()
         self.test_node_speed()
         self.save_nodes()
@@ -220,7 +272,7 @@ class BLL_proxy_getter:
 if __name__ == "__main__":
     raw_round_interval = 600
     top_node_count = 5
-    bll = BLL_proxy_getter(top_node_count=top_node_count)
+    bll = BLL_PROXY_GETTER(top_node_count=top_node_count)
     while True:
         last_btime = time.time()
         try:
