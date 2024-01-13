@@ -160,6 +160,8 @@ class BLL_PROXY_GETTER:
         os.remove(self.last_frame_file_name)
 
     def deal_with_link(self, link: str):
+        if link == "":
+            raise UserWarning("二维码解析结果为空...")
         if link.lower().startswith("ss"):
             print(f"节点为ss系，跳过...")
             return
