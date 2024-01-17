@@ -127,7 +127,17 @@ def gen_pic_thumbnail(video_path, frame_interval, rows, cols, height, width, sta
 
 
 def gen_video_thumbnail(
-    video_path, preset, height, fps, duration_in_seconds, frame_interval, rows, cols, max_thumb_duration, start_offset=0
+    video_path,
+    preset,
+    height,
+    fps,
+    duration_in_seconds,
+    frame_interval,
+    rows,
+    cols,
+    max_thumb_duration,
+    start_offset=0,
+    low_load_mode=False,
 ):
     video_name = os.path.splitext(os.path.basename(video_path))[0]
     output_path_video = os.path.splitext(video_path)[0] + ".tbnl"
@@ -164,7 +174,7 @@ def gen_video_thumbnail(
         gen_footage_command += f'"{output_file_path}"'
         intermediate_file_paths.append(output_file_path)
         gen_footage_commands.append(gen_footage_command)
-    with ThreadPoolExecutor(os.cpu_count()) as exe:
+    with ThreadPoolExecutor(1 if low_load_mode else os.cpu_count()) as exe:
         exe.map(lambda c: subprocess.run(c, shell=True), gen_footage_commands)
 
     # 检查中间文件是否损坏
@@ -255,12 +265,24 @@ def gen_info(video_path, rows, cols):
     return frame_interval, fps, height, width, duration_in_seconds, rows, cols
 
 
-def generate_thumbnail(video_path, rows, cols=None, preset="ultrafast", process_full_video=False, max_thumb_duration=30):
+def generate_thumbnail(
+    video_path, rows, cols=None, preset="ultrafast", process_full_video=False, low_load_mode=False, max_thumb_duration=30
+):
     def process_video(video_path, rows_calced, cols_calced, start_offset=0):
         frame_interval, fps, height, width, duration_in_seconds, _, _ = gen_info(video_path, rows_calced, cols_calced)
         gen_pic_thumbnail(video_path, frame_interval, rows_calced, cols_calced, height, width, start_offset)
         gen_video_thumbnail(
-            video_path, preset, height, fps, duration_in_seconds, frame_interval, rows_calced, cols_calced, max_thumb_duration, start_offset
+            video_path,
+            preset,
+            height,
+            fps,
+            duration_in_seconds,
+            frame_interval,
+            rows_calced,
+            cols_calced,
+            max_thumb_duration,
+            start_offset,
+            low_load_mode,
         )
 
     _, _, _, _, duration_in_seconds, rows_calced, cols_calced = gen_info(video_path, rows, cols)
@@ -293,6 +315,7 @@ if __name__ == "__main__":
         choices=["ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow"],
     )
     parser.add_argument("--full", help="是否要生成多个缩略图以覆盖视频完整时长", action="store_true")
+    parser.add_argument("-l", "--low", help="低负载模式，使用单线程进行转换", action="store_true")
     parser.add_argument("-m", "--max", help="指定生成单个视频缩略图的最大时长", type=int, default=30)
     args = parser.parse_args()
 
@@ -317,7 +340,7 @@ if __name__ == "__main__":
             ]
             for video_path in video_paths:
                 try:
-                    generate_thumbnail(video_path, rows, cols, args.preset, args.full, args.max)
+                    generate_thumbnail(video_path, rows, cols, args.preset, args.full, args.low, args.max)
                 except:
                     traceback.print_exc()
         elif str(video_path).lower().startswith("http"):
@@ -327,9 +350,9 @@ if __name__ == "__main__":
                 print(f"视频在本地不存在，开始下载: {file_name}")
                 with open(file_path, "wb") as f:
                     f.write(requests.get(video_path, proxies={"http": "http://127.0.0.1:10809", "https": "http://127.0.0.1:10809"}).content)
-            generate_thumbnail(file_path, rows, cols, args.preset, args.full, args.max)
+            generate_thumbnail(file_path, rows, cols, args.preset, args.full, args.low, args.max)
         else:
-            generate_thumbnail(video_path, rows, cols, args.preset, args.full, args.max)
+            generate_thumbnail(video_path, rows, cols, args.preset, args.full, args.low, args.max)
 
     if args.video_path is None:
         while True:
@@ -351,6 +374,7 @@ if __name__ == "__main__":
                         cols=cols,
                         preset=args.preset,
                         full=args.full,
+                        low=args.low,
                         max=args.max,
                     ),
                 ),
