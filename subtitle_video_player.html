@@ -161,15 +161,34 @@
         .blinking {
             animation: blink 0.25s ease infinite;
         }
+
+        #caption {
+            position: absolute;
+            bottom: 6%;
+            color: #FFFFFF;
+            text-align: center;
+            font-size: 30px;
+            font-family: PingFang SC, Hiragino Sans GB, Microsoft Yahei, Arial, sans-serif;
+            font-weight: 400;
+            line-height: 33px;
+            display: none;
+        }
+
+        .video_container {
+            position: relative;
+        }
     </style>
 </head>
 
 <body>
     <div id="container">
         <div id="video-player">
-            <video id="video" controls preload="auto" crossorigin="anonymous">
-                Your browser does not support HTML5 video.
-            </video>
+            <div class="video_container">
+                <video id="video" controls preload="auto" crossorigin="anonymous">
+                    Your browser does not support HTML5 video.
+                </video>
+                <span id="caption">字幕（默认不显示），播放时更新</span>
+            </div>
             <div id="horizontal-divider"></div>
             <input type="file" id="videoFile" accept=".mp4, .srt, .json" multiple />
             <label for="skipBlanks">跳过空白</label>
@@ -193,6 +212,10 @@
             <input type="text" id="videoUrl" placeholder="粘贴视频url,弹框选字幕">
             <button id="loadVideoUrl">加载</button>
             <input type="file" id="VideoUrlWithFile" accept=".srt, .json" multiple style="display:none;" />
+            <label for="toggleCaptionDisplay">显示字幕</label>
+            <input type="checkbox" id="toggleCaptionDisplay" />
+            <label for="toggleCaptionBackgroundColor">字幕黑色背景</label>
+            <input type="checkbox" id="toggleCaptionBackgroundColor" />
             <!-- 添加一个元素用来显示视频文件名 -->
             <div id="videoFileNameContainer">
                 <span id="videoFileName"></span>
@@ -614,6 +637,34 @@
 
             }
 
+            function centerCaption() {
+                var div = document.querySelector(".video_container")
+                var span = document.querySelector('#caption');
+                var divWidth = div.offsetWidth;
+                var spanWidth = span.offsetWidth;
+                var leftPosition = (divWidth - spanWidth) / 2;
+                if (leftPosition > 0) {
+                    span.style.left = leftPosition + 'px';
+                }
+            }
+
+            document.getElementById('toggleCaptionDisplay').addEventListener('change', function () {
+                var span = document.getElementById('caption');
+                if (this.checked) {
+                    span.style.display = 'inline';
+                } else {
+                    span.style.display = 'none';
+                }
+            });
+
+            document.getElementById('toggleCaptionBackgroundColor').addEventListener('change', function () {
+                var span = document.getElementById('caption');
+                if (this.checked) {
+                    span.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                } else {
+                    span.style.backgroundColor = '';
+                }
+            });
 
             // Set up event listener for video time updates
             function highlightSubtitle() {
@@ -624,7 +675,13 @@
                         $('.subtitle').removeClass('highlight');
                         var activeSubtitle = $('.subtitle[data-index=' + i + ']');
                         activeSubtitle.addClass('highlight');
-
+                        var transparentSentenceDiv = activeSubtitle.find('.transparent-sentence');
+                        if (transparentSentenceDiv.length) {
+                            $('#caption').text(transparentSentenceDiv.text());
+                        } else {
+                            $('#caption').text(activeSubtitle.text());
+                        }
+                        centerCaption()
                         // Check if active subtitle is in the viewport
                         var subtitlesBox = $('#subtitles');
                         var scrollTop = subtitlesBox.scrollTop();
@@ -653,6 +710,7 @@
                 if (!found) {
                     $('.subtitle').removeClass('highlight');
                     $('.subtitle-word').removeClass('highlight');
+                    $('#caption').text("");
                 }
 
                 var skipBlanks = $('#skipBlanks').prop('checked');
