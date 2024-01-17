@@ -5,6 +5,7 @@ import subprocess
 import time
 import traceback
 from collections import deque
+from datetime import datetime
 from typing import Optional
 
 import psutil
@@ -22,6 +23,7 @@ class ProxyNode:
         self.fail_streak = 0
         self.name = None
         self.type = self.judge_node_type(link)
+        self.birth_time = datetime.now()
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, ProxyNode):
@@ -56,6 +58,17 @@ class ProxyNode:
     def isok(self):
         return self.fail_streak == 0
 
+    @property
+    def survival_info(self):
+        datetime_format = r"%Y-%m-%d %H:%M:%S"
+        death_time = datetime.now()
+        survival_duration = death_time - self.birth_time
+        return (
+            datetime.strftime(self.birth_time, datetime_format),
+            datetime.strftime(death_time, datetime_format),
+            round(survival_duration.total_seconds() / 3600, 1),
+        )
+
 
 class BLL_PROXY_GETTER:
     def __init__(self, top_node_count=5) -> None:
@@ -66,6 +79,7 @@ class BLL_PROXY_GETTER:
         self.speed_test_output_file_name = "output.json"
         self.serialized_nodes_file_name = "proxy_nodes.pkl"
         self.temp_proxy_server_log_file_name = "temp_proxy_server.log"
+        self.proxy_node_statistics_file_name = "proxy_node_statistics.txt"
         if os.path.exists(self.result_file_name):
             os.remove(self.result_file_name)
         if os.path.exists(self.speed_test_output_file_name):
@@ -216,6 +230,7 @@ class BLL_PROXY_GETTER:
             if proxy_node.fail_streak >= 10:
                 nodes_to_remove.append(proxy_node)
         for node_to_remove in nodes_to_remove:
+            self.save_node_statistics(node_to_remove)
             self.proxy_nodes.remove(node_to_remove)
 
         top_nodes = sorted(
@@ -240,6 +255,13 @@ class BLL_PROXY_GETTER:
                 f.write(result_output_content)
 
         os.remove(self.speed_test_output_file_name)
+
+    def save_node_statistics(self, node: ProxyNode):
+        info = node.survival_info
+        with open(self.proxy_node_statistics_file_name, "a", encoding="utf-8") as f:
+            f.write(
+                f"节点名称: {node.name}\n节点类型: {node.type}\n节点速度: {node.avg_speeds}\n加入时间: {info[0]}\n剔除时间: {info[1]}\n生存时长: {info[2]}小时\n\n"
+            )
 
     def save_nodes(self):
         if self.proxy_nodes:
