@@ -230,9 +230,9 @@ class BLL_PROXY_GETTER:
             if proxy_node.fail_streak >= 10:
                 nodes_to_remove.append(proxy_node)
         for node_to_remove in nodes_to_remove:
+            self.proxy_nodes.remove(node_to_remove)
             print(f"节点{node_to_remove.name}测速失败过多，已剔除...")
             self.save_node_statistics(node_to_remove)
-            self.proxy_nodes.remove(node_to_remove)
 
         top_nodes = sorted(
             [i for i in self.proxy_nodes if i.isok and i.type == ProxyNode.TYPE_VMESS], key=lambda x: x.longterm_avg_speed, reverse=True
