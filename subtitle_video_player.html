@@ -216,6 +216,8 @@
             <input type="checkbox" id="toggleCaptionDisplay" />
             <label for="toggleCaptionBackgroundColor">字幕黑色背景</label>
             <input type="checkbox" id="toggleCaptionBackgroundColor" />
+            <label for="toggleCaptionShadow">字幕描边</label>
+            <input type="checkbox" id="toggleCaptionShadow" />
             <!-- 添加一个元素用来显示视频文件名 -->
             <div id="videoFileNameContainer">
                 <span id="videoFileName"></span>
@@ -663,6 +665,15 @@
                     span.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
                 } else {
                     span.style.backgroundColor = '';
+                }
+            });
+
+            document.getElementById('toggleCaptionShadow').addEventListener('change', function () {
+                var span = document.getElementById('caption');
+                if (this.checked) {
+                    span.style.textShadow = 'black 1px 0px 0,black -1px 0px 0,black 0px 1px 0,black 0px -1px 0,black 1px 1px 0,black -1px -1px 0,black -1px 1px 0,black 1px -1px 0';
+                } else {
+                    span.style.textShadow = '';
                 }
             });
 
