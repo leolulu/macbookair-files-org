@@ -164,6 +164,8 @@
 
         #caption {
             position: absolute;
+            left: 20px;
+            max-width: 80%;
             bottom: 6%;
             color: #FFFFFF;
             text-align: center;
@@ -639,14 +641,22 @@
 
             }
 
-            function centerCaption() {
+            function centerCaption(spanLastLeft = 0) {
                 var div = document.querySelector(".video_container")
                 var span = document.querySelector('#caption');
+
                 var divWidth = div.offsetWidth;
                 var spanWidth = span.offsetWidth;
                 var leftPosition = (divWidth - spanWidth) / 2;
-                if (leftPosition > 0) {
+                if (leftPosition > 0 && (Math.abs(parseFloat(window.getComputedStyle(span).left) - leftPosition) > 10)) {
                     span.style.left = leftPosition + 'px';
+                }
+
+                var spanLeftValue = parseFloat(window.getComputedStyle(span).left);
+                if (Math.abs(spanLeftValue - spanLastLeft) < 10) {
+                    return
+                } else {
+                    centerCaption(spanLeftValue)
                 }
             }
 
