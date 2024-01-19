@@ -127,6 +127,10 @@
             max-width: 9rem;
         }
 
+        #dufsUrl {
+            width: 13.1rem;
+        }
+
         #skipInterval {
             max-width: 2.2rem;
         }
@@ -179,6 +183,38 @@
         .video_container {
             position: relative;
         }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            z-index: 1001;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            overflow: auto;
+            max-height: 90vh;
+            max-width: 90vw;
+            text-wrap: nowrap;
+        }
+
+        #loadSelectedFiles {
+            margin-top: 15px;
+            margin-right: 20px;
+        }
     </style>
 </head>
 
@@ -220,6 +256,9 @@
             <input type="checkbox" id="toggleCaptionBackgroundColor" />
             <label for="toggleCaptionShadow">字幕描边</label>
             <input type="checkbox" id="toggleCaptionShadow" />
+            <input type="text" id="dufsUrl" placeholder='dufs目录路径(结尾不用加"?simple")'>
+            <button id="fetchDufsFiles">获取Dufs列表</button>
+
             <!-- 添加一个元素用来显示视频文件名 -->
             <div id="videoFileNameContainer">
                 <span id="videoFileName"></span>
@@ -228,6 +267,14 @@
         <div id="divider"></div>
         <div id="subtitles">
             <!-- Subtitles will be loaded here -->
+        </div>
+    </div>
+
+    <div id="modalOverlay" class="modal-overlay">
+        <div id="fileListContainer" class="modal">
+            <div id="fileList"></div>
+            <button id="loadSelectedFiles">加载选中文件</button>
+            <button id="closeFileList">关闭</button>
         </div>
     </div>
 
@@ -833,6 +880,70 @@
                 var milliseconds = parseInt(secondsParts[1], 10);
                 return hours * 3600 + minutes * 60 + seconds + milliseconds / 1000;
             }
+
+            document.getElementById('fetchDufsFiles').addEventListener('click', function () {
+                var dufsUrlElem = document.getElementById('dufsUrl');
+                var dufsUrl = dufsUrlElem.value;
+                if (!dufsUrl) {
+                    dufsUrlElem.classList.add("blinking");
+                    setTimeout(function () {
+                        dufsUrlElem.classList.remove("blinking");
+                    }, 500);
+                    return
+                }
+                fetch(dufsUrl + '?simple')
+                    .then(response => response.text())
+                    .then(data => {
+                        var files = data.split('\n');
+                        var fileListHtml = files.map(file => {
+                            if (file.endsWith('.mp4') || file.endsWith('.json') || file.endsWith('.srt')) {
+                                return `<label><input type="checkbox" name="file" value="${file}">${file}</label><br>`;
+                            }
+                        }).join('');
+                        document.getElementById('fileList').innerHTML = fileListHtml;
+                        document.getElementById('modalOverlay').style.display = 'block';
+                    });
+            });
+
+            document.getElementById('loadSelectedFiles').addEventListener('click', function () {
+                clearAllSub()
+                var selectedFiles = document.querySelectorAll('input[name="file"]:checked');
+                selectedFiles.forEach(file => {
+                    var fileUrl = formatDufsBaseUrl(document.getElementById('dufsUrl').value) + file.value;
+                    if (fileUrl.endsWith('.mp4')) {
+                        document.getElementById('video').src = fileUrl;
+                        document.title = file.value;
+                        $('#videoFileName').text(file.value);
+                    } else {
+                        fetch(fileUrl)
+                            .then(response => response.blob())
+                            .then(blob => {
+                                if (fileUrl.endsWith('.json')) {
+                                    srtLoaded = false;
+                                    loadDiarizationInfo(blob);
+                                    loadSubtitlesFromJSON(blob);
+                                } else if (fileUrl.endsWith('.srt')) {
+                                    srtLoaded = true;
+                                    loadSubtitles(blob);
+                                }
+                            });
+                    }
+                });
+                document.getElementById('modalOverlay').style.display = 'none';
+            });
+
+            function formatDufsBaseUrl(url) {
+                var baseUrl = url.split('?')[0];
+                if (baseUrl[baseUrl.length - 1] !== '/') {
+                    baseUrl += '/';
+                }
+                return baseUrl;
+            }
+
+            document.getElementById('closeFileList').addEventListener('click', function () {
+                document.getElementById('modalOverlay').style.display = 'none';
+            })
+
         });
     </script>
 </body>
