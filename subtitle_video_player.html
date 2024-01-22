@@ -445,6 +445,7 @@
 
             function processFiles(e) {
                 clearAllSub()
+                srtLoaded = false
                 var files = e.target.files;
                 for (var i = 0; i < files.length; i++) {
                     if (files[i].name.endsWith('.mp4')) {
@@ -457,9 +458,10 @@
                         srtLoaded = true
                         loadSubtitles(files[i]);
                     } else if (files[i].name.endsWith('.json')) {
-                        srtLoaded = false
+                        if (!srtLoaded) {
+                            loadSubtitlesFromJSON(files[i]);
+                        }
                         loadDiarizationInfo(files[i]);
-                        loadSubtitlesFromJSON(files[i]);
                     }
                 }
             }
@@ -580,7 +582,7 @@
                     clearAllSub()
                     loadSubtitlesFromJSONImpl()
                 } else {
-                    console.log('说话人间隔数值不合法...')
+                    console.error('说话人间隔数值不合法...')
                 }
             }
 
@@ -905,30 +907,36 @@
                     });
             });
 
-            document.getElementById('loadSelectedFiles').addEventListener('click', function () {
+            document.getElementById('loadSelectedFiles').addEventListener('click', async function () {
                 clearAllSub()
+                srtLoaded = false
                 var selectedFiles = document.querySelectorAll('input[name="file"]:checked');
-                selectedFiles.forEach(file => {
+                for (let file of selectedFiles) {
                     var fileUrl = formatDufsBaseUrl(document.getElementById('dufsUrl').value) + file.value;
                     if (fileUrl.endsWith('.mp4')) {
                         document.getElementById('video').src = fileUrl;
                         document.title = file.value;
                         $('#videoFileName').text(file.value);
                     } else {
-                        fetch(fileUrl)
-                            .then(response => response.blob())
-                            .then(blob => {
-                                if (fileUrl.endsWith('.json')) {
-                                    srtLoaded = false;
-                                    loadDiarizationInfo(blob);
+                        try {
+                            let response = await fetch(fileUrl);
+                            let blob = await response.blob();
+
+                            if (fileUrl.endsWith('.srt')) {
+                                srtLoaded = true;
+                                loadSubtitles(blob);
+                            } else if (fileUrl.endsWith('.json')) {
+                                if (!srtLoaded) {
                                     loadSubtitlesFromJSON(blob);
-                                } else if (fileUrl.endsWith('.srt')) {
-                                    srtLoaded = true;
-                                    loadSubtitles(blob);
                                 }
-                            });
+                                loadDiarizationInfo(blob);
+                            }
+
+                        } catch (error) {
+                            console.error("Fetch error: ", error);
+                        }
                     }
-                });
+                };
                 document.getElementById('modalOverlay').style.display = 'none';
             });
 
