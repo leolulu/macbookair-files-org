@@ -444,7 +444,6 @@
             }
 
             function processFiles(e) {
-                clearAllSub()
                 srtLoaded = false
                 var files = e.target.files;
                 for (var i = 0; i < files.length; i++) {
@@ -561,6 +560,7 @@
 
 
             function loadSubtitlesFromJSON(file) {
+                clearAllSub()
                 const reader = new FileReader();
                 reader.onload = function (event) {
                     var asr_data = JSON.parse(event.target.result).asr_info;
@@ -842,6 +842,7 @@
             }
 
             function loadSubtitles(file) {
+                clearAllSub()
                 var reader = new FileReader();
                 reader.onload = function (e) {
                     // Parse SRT file
@@ -908,7 +909,6 @@
             });
 
             document.getElementById('loadSelectedFiles').addEventListener('click', async function () {
-                clearAllSub()
                 srtLoaded = false
                 var selectedFiles = document.querySelectorAll('input[name="file"]:checked');
                 for (let file of selectedFiles) {
