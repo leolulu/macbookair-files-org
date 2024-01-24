@@ -34,6 +34,8 @@ def check_video_corrupted(video_file_path):
 
 
 def move_with_optional_security(source, target, backup_target=None, msg=""):
+    if target.startswith(r"\\"):
+        time.sleep(2)
     try:
         shutil.move(source, target)
     except:
