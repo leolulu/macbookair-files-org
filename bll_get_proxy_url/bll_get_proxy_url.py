@@ -141,7 +141,7 @@ class BLL_PROXY_GETTER:
 
     def get_streaming_url(self):
         self.set_proxy()
-        command = "yt-dlp -g uHue-U3ArfE | head -n 1"
+        command = "yt-dlp -g uSkT4MwpCYA | head -n 1"
         print(f"开始尝试获取直播视频地址...")
         process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, error = process.communicate()
