@@ -3,6 +3,7 @@
 
 <head>
     <title>Video Player with Subtitles</title>
+    <script src="ass2srtEntry.js"></script>
     <style>
         body {
             margin: 0;
@@ -229,7 +230,7 @@
                 <span id="caption">字幕（默认不显示），播放时更新</span>
             </div>
             <div id="horizontal-divider"></div>
-            <input type="file" id="videoFile" accept=".mp4, .srt, .json" multiple />
+            <input type="file" id="videoFile" accept=".mp4, .srt, .json, .ass" multiple />
             <label for="skipBlanks">跳过空白</label>
             <input type="checkbox" id="skipBlanks" />
             <label for="enableSkipInterval">空白cap:</label>
@@ -253,7 +254,7 @@
             <input type="number" id="mediaGain" value="1">
             <input type="text" id="videoUrl" placeholder="粘贴视频url,弹框选字幕">
             <button id="loadVideoUrl">加载</button>
-            <input type="file" id="VideoUrlWithFile" accept=".srt, .json" multiple style="display:none;" />
+            <input type="file" id="VideoUrlWithFile" accept=".srt, .json, .ass" multiple style="display:none;" />
             <label for="toggleCaptionDisplay">显示字幕</label>
             <input type="checkbox" id="toggleCaptionDisplay" />
             <label for="toggleCaptionBackgroundColor">字幕黑色背景</label>
@@ -457,6 +458,9 @@
                         document.title = files[i].name;
                         // 更新视频文件名
                         $('#videoFileName').text(files[i].name);
+                    } else if (files[i].name.endsWith('.ass')) {
+                        srtLoaded = true
+                        loadSubtitles(files[i], formatIsAss = true);
                     } else if (files[i].name.endsWith('.srt')) {
                         srtLoaded = true
                         loadSubtitles(files[i]);
@@ -870,12 +874,15 @@
                 $('#subtitles').css('width', window.innerWidth - $('#video-player').width() - $('#divider').width() + 'px');
             }
 
-            function loadSubtitles(file) {
+            function loadSubtitles(file, formatIsAss = false) {
                 clearAllSub()
                 var reader = new FileReader();
                 reader.onload = function (e) {
                     // Parse SRT file
                     var data = e.target.result;
+                    if (formatIsAss) {
+                        data = ass2srt(data)
+                    }
                     var lines = data.split('\n');
 
                     tempSubtitles = []; // Store unprocessed subtitles
@@ -954,6 +961,9 @@
                             if (fileUrl.endsWith('.srt')) {
                                 srtLoaded = true;
                                 loadSubtitles(blob);
+                            } else if (fileUrl.endsWith('.ass')) {
+                                srtLoaded = true;
+                                loadSubtitles(blob, formatIsAss = true);
                             } else if (fileUrl.endsWith('.json')) {
                                 if (!srtLoaded) {
                                     loadSubtitlesFromJSON(blob);
