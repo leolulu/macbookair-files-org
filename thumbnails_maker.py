@@ -51,7 +51,7 @@ def get_font_location(frame, content: str, fontFace: int, font_scale: float, thi
     return (start_x, start_y)
 
 
-def gen_pic_thumbnail(video_path, frame_interval, rows, cols, height, width, start_offset=0):
+def gen_pic_thumbnail(video_path, frame_interval, rows, cols, height, width, start_offset=0, alternative_output_folder_path=None):
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         raise UserWarning("无法打开视频文件!")
@@ -121,7 +121,9 @@ def gen_pic_thumbnail(video_path, frame_interval, rows, cols, height, width, sta
         target=move_with_optional_security,
         args=(
             temp_output_path_img,
-            output_path_img,
+            os.path.join(alternative_output_folder_path, os.path.basename(output_path_img))
+            if alternative_output_folder_path
+            else output_path_img,
             os.path.join(os.path.dirname(temp_output_path_img), os.path.basename(output_path_img)),
             "图片缩略图移动到目标目录完毕...",
         ),
@@ -140,6 +142,7 @@ def gen_video_thumbnail(
     max_thumb_duration,
     start_offset=0,
     low_load_mode=False,
+    alternative_output_folder_path=None,
 ):
     video_name = os.path.splitext(os.path.basename(video_path))[0]
     output_path_video = os.path.splitext(video_path)[0] + ".tbnl"
@@ -232,7 +235,9 @@ def gen_video_thumbnail(
         target=move_with_optional_security,
         args=(
             temp_output_path_video,
-            output_path_video,
+            os.path.join(alternative_output_folder_path, os.path.basename(output_path_video))
+            if alternative_output_folder_path
+            else output_path_video,
             os.path.join(os.path.dirname(temp_output_path_video), os.path.basename(output_path_video)),
             "视频缩略图移动到目标目录完毕...",
         ),
@@ -268,11 +273,18 @@ def gen_info(video_path, rows, cols):
 
 
 def generate_thumbnail(
-    video_path, rows, cols=None, preset="ultrafast", process_full_video=False, low_load_mode=False, max_thumb_duration=30
+    video_path,
+    rows,
+    cols=None,
+    preset="ultrafast",
+    process_full_video=False,
+    low_load_mode=False,
+    max_thumb_duration=30,
+    alternative_output_folder_path=None,
 ):
     def process_video(video_path, rows_calced, cols_calced, start_offset=0):
         frame_interval, fps, height, width, duration_in_seconds, _, _ = gen_info(video_path, rows_calced, cols_calced)
-        gen_pic_thumbnail(video_path, frame_interval, rows_calced, cols_calced, height, width, start_offset)
+        gen_pic_thumbnail(video_path, frame_interval, rows_calced, cols_calced, height, width, start_offset, alternative_output_folder_path)
         gen_video_thumbnail(
             video_path,
             preset,
@@ -285,6 +297,7 @@ def generate_thumbnail(
             max_thumb_duration,
             start_offset,
             low_load_mode,
+            alternative_output_folder_path,
         )
 
     _, _, _, _, duration_in_seconds, rows_calced, cols_calced = gen_info(video_path, rows, cols)
@@ -319,6 +332,7 @@ if __name__ == "__main__":
     parser.add_argument("--full", help="是否要生成多个缩略图以覆盖视频完整时长", action="store_true")
     parser.add_argument("-l", "--low", help="低负载模式，使用单线程进行转换", action="store_true")
     parser.add_argument("-m", "--max", help="指定生成单个视频缩略图的最大时长", type=int, default=30)
+    parser.add_argument("-ao", "--alternative_output_folder_path", help="指定结果文件的生成路径，而不是和源文件相同目录", type=str)
     args = parser.parse_args()
 
     def process_video(args):
@@ -342,7 +356,9 @@ if __name__ == "__main__":
             ]
             for video_path in video_paths:
                 try:
-                    generate_thumbnail(video_path, rows, cols, args.preset, args.full, args.low, args.max)
+                    generate_thumbnail(
+                        video_path, rows, cols, args.preset, args.full, args.low, args.max, args.alternative_output_folder_path
+                    )
                 except:
                     traceback.print_exc()
         elif str(video_path).lower().startswith("http"):
@@ -352,9 +368,9 @@ if __name__ == "__main__":
                 print(f"视频在本地不存在，开始下载: {file_name}")
                 with open(file_path, "wb") as f:
                     f.write(requests.get(video_path, proxies={"http": "http://127.0.0.1:10809", "https": "http://127.0.0.1:10809"}).content)
-            generate_thumbnail(file_path, rows, cols, args.preset, args.full, args.low, args.max)
+            generate_thumbnail(file_path, rows, cols, args.preset, args.full, args.low, args.max, args.alternative_output_folder_path)
         else:
-            generate_thumbnail(video_path, rows, cols, args.preset, args.full, args.low, args.max)
+            generate_thumbnail(video_path, rows, cols, args.preset, args.full, args.low, args.max, args.alternative_output_folder_path)
 
     if args.video_path is None:
         while True:
@@ -378,6 +394,7 @@ if __name__ == "__main__":
                         full=args.full,
                         low=args.low,
                         max=args.max,
+                        alternative_output_folder_path=args.alternative_output_folder_path,
                     ),
                 ),
             ).start()
