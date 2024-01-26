@@ -765,18 +765,19 @@
             function highlightSubtitle() {
                 var currentTime = accTime($('#video')[0].currentTime);
                 var found = false;
+                var first_match_sub_index = null;
+                var captions = [];
+                $('.subtitle').removeClass('highlight');
                 for (var i = 0; i < subtitles.length; i++) {
                     if (currentTime >= subtitles[i].start && currentTime < subtitles[i].end) {
-                        $('.subtitle').removeClass('highlight');
                         var activeSubtitle = $('.subtitle[data-index=' + i + ']');
                         activeSubtitle.addClass('highlight');
                         var transparentSentenceDiv = activeSubtitle.find('.transparent-sentence');
                         if (transparentSentenceDiv.length) {
-                            $('#caption').text(transparentSentenceDiv.text());
+                            captions.push(transparentSentenceDiv.text());
                         } else {
-                            $('#caption').text(activeSubtitle.text());
+                            captions.push(activeSubtitle.text());
                         }
-                        centerCaption()
                         // Check if active subtitle is in the viewport
                         var subtitlesBox = $('#subtitles');
                         var scrollTop = subtitlesBox.scrollTop();
@@ -789,9 +790,20 @@
                             subtitlesBox.scrollTop(activeSubtitleTop - 33);
                         }
                         found = true;
-                        break;
+
+                        if (first_match_sub_index !== null && i - first_match_sub_index > 10) {
+                            break;
+                        } else {
+                            first_match_sub_index = i;
+                        }
                     }
                 }
+
+                if (captions.length > 1) {
+                    captions.splice(-1, 0, '-'.repeat(Math.max(...captions.map(item => item.length))));
+                }
+                $('#caption').html(captions.join('<br>'));
+                centerCaption()
 
                 document.querySelectorAll('.subtitle-word').forEach(function (span) {
                     let start = parseFloat(span.getAttribute('data-start'));
