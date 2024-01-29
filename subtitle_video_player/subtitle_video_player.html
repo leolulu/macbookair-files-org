@@ -827,7 +827,7 @@
                 var sentenceExtension = parseFloat(document.getElementById('sentenceExtension').value);
                 var currentSubtitleIndex = subtitles.findIndex(function (subtitle) {
                     if (skipIntervalChecked) {
-                        return subtitle.start <= currentTime && (subtitle.start + skipInterval) > currentTime;
+                        return subtitle.start <= currentTime && (subtitle.end < subtitle.start + skipInterval ? subtitle.end : subtitle.start + skipInterval) > currentTime;
                     } else if (sentenceExtensionChecked) {
                         return (subtitle.start - sentenceExtension) <= currentTime && (subtitle.end + sentenceExtension) > currentTime;
                     } else {
