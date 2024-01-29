@@ -1,5 +1,6 @@
 *.txt
 *.pkl
+*.log
 
 chatpdf/*.txt
 chatpdf/*.pdf
