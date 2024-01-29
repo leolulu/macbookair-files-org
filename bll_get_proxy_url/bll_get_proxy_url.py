@@ -8,6 +8,7 @@ from collections import deque
 from datetime import datetime
 from typing import Optional
 
+import chardet
 import psutil
 import requests
 
@@ -148,12 +149,12 @@ class BLL_PROXY_GETTER:
         self.unset_proxy()
 
         if process.returncode == 0:
-            self.steaming_url = output.decode().strip()
+            self.steaming_url = output.decode(str(chardet.detect(output)["encoding"])).strip()
             if not self.steaming_url:
-                raise UserWarning(f"没有成功获取到视频地址：{error.decode().strip()}")
+                raise UserWarning(f"没有成功获取到视频地址：{error.decode(str(chardet.detect(error)['encoding'])).strip()}")
             print(f"获取到直播视频真地址：{self.steaming_url[:50]}...")
         else:
-            print("Error:", error.decode().strip())
+            print("Error:", error.decode(str(chardet.detect(error)["encoding"])).strip())
             self.steaming_url = None
 
     def get_last_frame(self):
