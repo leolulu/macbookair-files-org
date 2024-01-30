@@ -223,20 +223,31 @@
             width: 98%;
             margin-left: 1%;
             margin-right: 1%;
-            margin-bottom: 6px;
+            margin-top: 5px;
             box-sizing: border-box;
             padding: 3px;
             border: 1px solid #000;
             display: none;
         }
 
-        .progress-bar {
+        .progress-bar,
+        .progress-bar-temp,
+        .progress-bar-shade {
             position: absolute;
-            background: #000;
+            background-color: #000;
             height: 2px;
             width: 0%;
             top: 50%;
             transform: translateY(-50%);
+            z-index: 2;
+        }
+
+        #progress-bar-temp {
+            z-index: 1;
+        }
+
+        #progress-bar-shade {
+            z-index: 1;
         }
     </style>
 </head>
@@ -251,9 +262,6 @@
                 <span id="caption">字幕（默认不显示），播放时更新</span>
             </div>
             <div id="horizontal-divider"></div>
-            <div class="progress-container" id="progress-container">
-                <div class="progress-bar" id="progress-bar"></div>
-            </div>
             <input type="file" id="videoFile" accept=".mp4, .srt, .json, .ass" multiple />
             <label for="skipBlanks">跳过空白</label>
             <input type="checkbox" id="skipBlanks" />
@@ -287,6 +295,11 @@
             <input type="checkbox" id="toggleCaptionShadow" />
             <input type="text" id="dufsUrl" placeholder='dufs目录路径(结尾不用加"?simple")'>
             <button id="fetchDufsFiles">获取Dufs列表</button>
+            <div class="progress-container" id="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+                <div class="progress-bar-temp" id="progress-bar-temp"></div>
+                <div class="progress-bar-shade" id="progress-bar-shade"></div>
+            </div>
 
             <!-- 添加一个元素用来显示视频文件名 -->
             <div id="videoFileNameContainer">
@@ -789,6 +802,7 @@
                 });
             })();
 
+            var hideProgressBarTempTimer = null;
             // Set up event listener for video time updates
             function highlightSubtitle() {
                 var currentTime = accTime($('#video')[0].currentTime);
@@ -878,10 +892,43 @@
                     }
                 }
 
+                // 控制简易进度条
                 let video = document.getElementById('video');
                 let progressBar = document.getElementById('progress-bar');
+                let progressBarTemp = document.getElementById('progress-bar-temp');
+                let progressBarShade = document.getElementById('progress-bar-shade');
                 let percentage = (video.currentTime / video.duration) * 100;
+
+                let lastProgressBarWidth = parseFloat(window.getComputedStyle(progressBar).width);
                 progressBar.style.width = percentage + '%';
+                let currentProgressBarWidth = parseFloat(window.getComputedStyle(progressBar).width);
+
+                function delayHideProgressBarTemp() {
+                    if (hideProgressBarTempTimer) {
+                        clearTimeout(hideProgressBarTempTimer)
+                    }
+                    hideProgressBarTempTimer = setTimeout(() => {
+                        progressBarTemp.style.display = 'none';
+                        progressBarShade.style.display = 'none';
+                    }, 5000);
+                }
+
+                if (currentProgressBarWidth - lastProgressBarWidth > 20) {
+                    progressBarTemp.style.display = 'block';
+                    progressBarTemp.style.width = currentProgressBarWidth + 'px';
+                    progressBarTemp.style.backgroundColor = 'red';
+                    progressBarTemp.style.zIndex = 3;
+                    progressBarShade.style.display = 'block';
+                    progressBarShade.style.width = lastProgressBarWidth + 'px';
+                    progressBarShade.style.zIndex = 4;
+                    delayHideProgressBarTemp()
+                } else if (lastProgressBarWidth - currentProgressBarWidth > 20) {
+                    progressBarTemp.style.display = 'block';
+                    progressBarTemp.style.width = lastProgressBarWidth + 'px';
+                    progressBarTemp.style.backgroundColor = 'greenyellow';
+                    progressBarTemp.style.zIndex = 1;
+                    delayHideProgressBarTemp()
+                }
             }
 
             // Listen for timeupdate event to highlight the subtitle
