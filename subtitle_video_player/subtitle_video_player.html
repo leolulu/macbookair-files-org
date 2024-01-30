@@ -217,6 +217,27 @@
             margin-top: 15px;
             margin-right: 20px;
         }
+
+        .progress-container {
+            position: relative;
+            width: 96%;
+            margin-left: 2%;
+            margin-right: 2%;
+            margin-bottom: 5px;
+            box-sizing: border-box;
+            padding: 3px;
+            border: 1px solid #000;
+            display: none;
+        }
+
+        .progress-bar {
+            position: absolute;
+            background: #000;
+            height: 2px;
+            width: 0%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
     </style>
 </head>
 
@@ -230,6 +251,9 @@
                 <span id="caption">字幕（默认不显示），播放时更新</span>
             </div>
             <div id="horizontal-divider"></div>
+            <div class="progress-container" id="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
             <input type="file" id="videoFile" accept=".mp4, .srt, .json, .ass" multiple />
             <label for="skipBlanks">跳过空白</label>
             <input type="checkbox" id="skipBlanks" />
@@ -338,6 +362,10 @@
                 if (video.prop('readyState') == 4) {
                     document.head.appendChild(hideControlsStyle);
                 }
+            });
+
+            $('#hideControl').change(function () {
+                $('#progress-container').toggle(this.checked);
             });
 
             var horizontalDivider = $('#horizontal-divider');
@@ -849,6 +877,11 @@
                         }, 1000);
                     }
                 }
+
+                let video = document.getElementById('video');
+                let progressBar = document.getElementById('progress-bar');
+                let percentage = (video.currentTime / video.duration) * 100;
+                progressBar.style.width = percentage + '%';
             }
 
             // Listen for timeupdate event to highlight the subtitle
