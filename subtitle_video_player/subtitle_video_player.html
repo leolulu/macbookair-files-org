@@ -300,7 +300,6 @@
                 <div class="progress-bar-temp" id="progress-bar-temp"></div>
                 <div class="progress-bar-shade" id="progress-bar-shade"></div>
             </div>
-
             <!-- 添加一个元素用来显示视频文件名 -->
             <div id="videoFileNameContainer">
                 <span id="videoFileName"></span>
@@ -1027,7 +1026,7 @@
                     .then(data => {
                         var files = data.split('\n');
                         var fileListHtml = files.map(file => {
-                            if (file.endsWith('.mp4') || file.endsWith('.json') || file.endsWith('.srt')) {
+                            if (file.endsWith('.mp4') || file.endsWith('.json') || file.endsWith('.srt') || file.endsWith('.ass')) {
                                 return `<label><input type="checkbox" name="file" value="${file}">${file}</label><br>`;
                             }
                         }).join('');
