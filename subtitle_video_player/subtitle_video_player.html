@@ -265,11 +265,6 @@
             background-color: white;
         }
 
-        .ui-resizable-border {
-            border: 1px dotted white;
-            box-sizing: border-box;
-        }
-
         .ui-resizable-se-adjust-position {
             width: 9px;
             height: 9px;
@@ -1124,10 +1119,7 @@
             $("#resizable-shade").resizable({
                 handles: "all",
                 classes: {
-                    "ui-resizable-se": "ui-resizable-border ui-resizable-se-adjust-position",
-                    "ui-resizable-sw": "ui-resizable-border",
-                    "ui-resizable-ne": "ui-resizable-border",
-                    "ui-resizable-nw": "ui-resizable-border"
+                    "ui-resizable-se": "ui-resizable-se-adjust-position",
                 },
                 containment: ".video_container"
             });
