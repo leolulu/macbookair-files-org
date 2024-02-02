@@ -107,6 +107,10 @@
             margin: 10px;
         }
 
+        .videoFileNameContainer-alternative-margin {
+            margin: 7px 10px 10px 10px !important;
+        }
+
         #videoFileName {
 
             font-weight: 800;
@@ -223,7 +227,7 @@
             width: 98%;
             margin-left: 1%;
             margin-right: 1%;
-            margin-top: 5px;
+            margin-top: 7px;
             box-sizing: border-box;
             padding: 3px 0 4px 0;
             border: 1px solid #000;
@@ -378,6 +382,11 @@
 
             $('#hideControl').change(function () {
                 $('#progress-container').toggle(this.checked);
+                if (this.checked) {
+                    $('#videoFileNameContainer').addClass('videoFileNameContainer-alternative-margin')
+                } else {
+                    $('#videoFileNameContainer').removeClass('videoFileNameContainer-alternative-margin')
+                }
             });
 
             var horizontalDivider = $('#horizontal-divider');
