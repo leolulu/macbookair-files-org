@@ -4,6 +4,7 @@
 <head>
     <title>Video Player with Subtitles</title>
     <script src="ass2srtEntry.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <style>
         body {
             margin: 0;
@@ -253,6 +254,28 @@
         #progress-bar-shade {
             z-index: 1;
         }
+
+        #resizable-shade {
+            width: 600px;
+            height: 40px;
+            display: none;
+            position: absolute;
+            top: 70%;
+            left: 25%;
+            background-color: white;
+        }
+
+        .ui-resizable-border {
+            border: 1px dotted white;
+            box-sizing: border-box;
+        }
+
+        .ui-resizable-se-adjust-position {
+            width: 9px;
+            height: 9px;
+            right: -5px;
+            bottom: -5px;
+        }
     </style>
 </head>
 
@@ -264,6 +287,7 @@
                     Your browser does not support HTML5 video.
                 </video>
                 <span id="caption">字幕（默认不显示），播放时更新</span>
+                <div id="resizable-shade"></div>
             </div>
             <div id="horizontal-divider"></div>
             <input type="file" id="videoFile" accept=".mp4, .srt, .json, .ass" multiple />
@@ -299,6 +323,8 @@
             <input type="checkbox" id="toggleCaptionShadow" />
             <input type="text" id="dufsUrl" placeholder='dufs目录路径(结尾不用加"?simple")'>
             <button id="fetchDufsFiles">获取Dufs列表</button>
+            <label for="toggleSubtileShade">字幕遮罩器</label>
+            <input type="checkbox" id="toggleSubtileShade" />
             <div class="progress-container" id="progress-container">
                 <div class="progress-bar" id="progress-bar"></div>
                 <div class="progress-bar-temp" id="progress-bar-temp"></div>
@@ -324,8 +350,8 @@
     </div>
 
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
     <script>
         var isResizing = false;
         var isResizingVertically = false;
@@ -387,6 +413,10 @@
                 } else {
                     $('#videoFileNameContainer').removeClass('videoFileNameContainer-alternative-margin')
                 }
+            });
+
+            $('#toggleSubtileShade').change(function () {
+                $('#resizable-shade').toggle(this.checked);
             });
 
             var horizontalDivider = $('#horizontal-divider');
@@ -1090,6 +1120,18 @@
             document.getElementById('closeFileList').addEventListener('click', function () {
                 document.getElementById('modalOverlay').style.display = 'none';
             })
+
+            $("#resizable-shade").resizable({
+                handles: "all",
+                classes: {
+                    "ui-resizable-se": "ui-resizable-border ui-resizable-se-adjust-position",
+                    "ui-resizable-sw": "ui-resizable-border",
+                    "ui-resizable-ne": "ui-resizable-border",
+                    "ui-resizable-nw": "ui-resizable-border"
+                },
+                containment: ".video_container"
+            });
+            $("#resizable-shade").draggable();
 
         });
     </script>
