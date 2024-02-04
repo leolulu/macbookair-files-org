@@ -271,6 +271,10 @@
             right: -5px;
             bottom: -5px;
         }
+
+        #videoFocusStatus {
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -286,6 +290,7 @@
             </div>
             <div id="horizontal-divider"></div>
             <input type="file" id="videoFile" accept=".mp4, .srt, .json, .ass" multiple />
+            <span id='videoFocusStatus'>❌<span style="color: red;">失焦</span></span>
             <label for="skipBlanks">跳过空白</label>
             <input type="checkbox" id="skipBlanks" />
             <label for="enableSkipInterval">空白cap:</label>
@@ -1124,6 +1129,27 @@
                 containment: ".video_container"
             });
             $("#resizable-shade").draggable();
+
+            var focusVideoTimer = null;
+            (function () {
+                let video = document.getElementById('video');
+                let statusIcon = document.getElementById('videoFocusStatus');
+                video.onblur = function () {
+                    statusIcon.innerHTML = '❌<span style="color: red;">失焦</span>';
+                    if (focusVideoTimer) {
+                        clearTimeout(focusVideoTimer)
+                    }
+                    focusVideoTimer = setTimeout(function () {
+                        video.focus();
+                    }, 10000);
+                };
+                video.onfocus = function () {
+                    if (focusVideoTimer) {
+                        clearTimeout(focusVideoTimer)
+                    }
+                    statusIcon.innerHTML = '✅<span style="color: #00D26A;">聚焦</span>';
+                }
+            })();
 
         });
     </script>
