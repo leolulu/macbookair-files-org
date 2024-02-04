@@ -527,7 +527,7 @@
                 return parseFloat(num.toFixed(3));
             }
 
-            function processFiles(e) {
+            async function processFiles(e) {
                 srtLoaded = false
                 var files = e.target.files;
                 for (var i = 0; i < files.length; i++) {
@@ -539,13 +539,13 @@
                         $('#videoFileName').text(files[i].name);
                     } else if (files[i].name.endsWith('.ass')) {
                         srtLoaded = true
-                        loadSubtitles(files[i], formatIsAss = true);
+                        await loadSubtitles(files[i], formatIsAss = true);
                     } else if (files[i].name.endsWith('.srt')) {
                         srtLoaded = true
-                        loadSubtitles(files[i]);
+                        await loadSubtitles(files[i]);
                     } else if (files[i].name.endsWith('.json')) {
                         if (!srtLoaded) {
-                            loadSubtitlesFromJSON(files[i]);
+                            await loadSubtitlesFromJSON(files[i]);
                         }
                         loadDiarizationInfo(files[i]);
                     }
@@ -647,20 +647,24 @@
 
 
             function loadSubtitlesFromJSON(file) {
-                clearAllSub()
-                const reader = new FileReader();
-                reader.onload = function (event) {
-                    var asr_data = JSON.parse(event.target.result).asr_info;
+                return new Promise((resolve, reject) => {
+                    clearAllSub()
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        var asr_data = JSON.parse(event.target.result).asr_info;
 
-                    tempSubtitles = [];
+                        tempSubtitles = [];
 
-                    asr_data.forEach(function (sentence) {
-                        tempSubtitles.push({ start: accTime(sentence.start), end: accTime(sentence.end), text: sentence.text.trim(), words: sentence.words });
-                    });
+                        asr_data.forEach(function (sentence) {
+                            tempSubtitles.push({ start: accTime(sentence.start), end: accTime(sentence.end), text: sentence.text.trim(), words: sentence.words });
+                        });
 
-                    loadSubtitlesFromJSONImpl();
-                };
-                reader.readAsText(file);
+                        loadSubtitlesFromJSONImpl();
+                        resolve()
+                    };
+                    reader.onerror = reject;
+                    reader.readAsText(file);
+                });
             }
 
             function callLoadSubtitlesFromJSONImpl() {
@@ -1005,38 +1009,42 @@
             }
 
             function loadSubtitles(file, formatIsAss = false) {
-                clearAllSub()
-                var reader = new FileReader();
-                reader.onload = function (e) {
-                    // Parse SRT file
-                    var data = e.target.result;
-                    if (formatIsAss) {
-                        data = ass2srt(data)
-                    }
-                    var lines = data.split('\n');
-
-                    tempSubtitles = []; // Store unprocessed subtitles
-
-                    for (var i = 0; i < lines.length; i++) {
-                        if (lines[i].indexOf('-->') !== -1) {
-                            var times = lines[i].split(' --> ');
-                            var start = hmsToSeconds(times[0].trim());
-                            var end = hmsToSeconds(times[1].trim());
-                            var text = "";
-                            for (var j = i + 1; j < lines.length; j++) {
-                                if (lines[j].trim() === "") {
-                                    i = j;
-                                    break;
-                                }
-                                text += lines[j] + "\n";
-                            }
-                            tempSubtitles.push({ start: accTime(start), end: accTime(end), text: text.trim() });
+                return new Promise((resolve, reject) => {
+                    clearAllSub()
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        // Parse SRT file
+                        var data = e.target.result;
+                        if (formatIsAss) {
+                            data = ass2srt(data)
                         }
-                    }
+                        var lines = data.split('\n');
 
-                    loadSubtitlesImpl()
-                };
-                reader.readAsText(file);
+                        tempSubtitles = []; // Store unprocessed subtitles
+
+                        for (var i = 0; i < lines.length; i++) {
+                            if (lines[i].indexOf('-->') !== -1) {
+                                var times = lines[i].split(' --> ');
+                                var start = hmsToSeconds(times[0].trim());
+                                var end = hmsToSeconds(times[1].trim());
+                                var text = "";
+                                for (var j = i + 1; j < lines.length; j++) {
+                                    if (lines[j].trim() === "") {
+                                        i = j;
+                                        break;
+                                    }
+                                    text += lines[j] + "\n";
+                                }
+                                tempSubtitles.push({ start: accTime(start), end: accTime(end), text: text.trim() });
+                            }
+                        }
+
+                        loadSubtitlesImpl()
+                        resolve();
+                    };
+                    reader.onerror = reject;
+                    reader.readAsText(file);
+                });
             }
 
             function hmsToSeconds(time) {
@@ -1090,13 +1098,13 @@
 
                             if (fileUrl.endsWith('.srt')) {
                                 srtLoaded = true;
-                                loadSubtitles(blob);
+                                await loadSubtitles(blob);
                             } else if (fileUrl.endsWith('.ass')) {
                                 srtLoaded = true;
-                                loadSubtitles(blob, formatIsAss = true);
+                                await loadSubtitles(blob, formatIsAss = true);
                             } else if (fileUrl.endsWith('.json')) {
                                 if (!srtLoaded) {
-                                    loadSubtitlesFromJSON(blob);
+                                    await loadSubtitlesFromJSON(blob);
                                 }
                                 loadDiarizationInfo(blob);
                             }
