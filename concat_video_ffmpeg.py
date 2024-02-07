@@ -11,15 +11,19 @@ def concat_video(folder_path, *keywords):
         keywords = [None]
     for keyword in keywords:
         print(f"当前keyword：{keyword}")
-        if os.path.exists('filelist.txt'):
-            os.remove('filelist.txt')
-        with open('filelist.txt', 'a', encoding='utf-8') as f:
-            for i in os.listdir('.'):
-                if i == 'filelist.txt':
+        if os.path.exists("filelist.txt"):
+            os.remove("filelist.txt")
+        with open("filelist.txt", "a", encoding="utf-8") as f:
+            for i in os.listdir("."):
+                if i == "filelist.txt":
                     continue
                 if (keyword != None) and (not re.search(r".*?" + keyword.strip() + r".*?", i)):
                     continue
                 print(f"Add: {i}")
+                if "'" in i:
+                    i_escaped = i.replace("'", r"'\''")
+                    print(f"文件名中有单引号: {i} => {i_escaped}")
+                    i = i_escaped
                 f.write(f"file '{i}'\n")
         file_name = f"{os.path.basename(folder_path)}_{keyword}" if keyword != None else os.path.basename(folder_path)
         command = f'ffmpeg -f concat -safe 0 -i filelist.txt -c copy -y "{file_name}.mp4"'
@@ -46,7 +50,7 @@ def concat_video(folder_path, *keywords):
 #             unspecify_run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     if len(sys.argv) == 2:
         concat_video(sys.argv[1])
     elif len(sys.argv) >= 3:
