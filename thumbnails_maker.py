@@ -121,9 +121,11 @@ def gen_pic_thumbnail(video_path, frame_interval, rows, cols, height, width, sta
         target=move_with_optional_security,
         args=(
             temp_output_path_img,
-            os.path.join(alternative_output_folder_path, os.path.basename(output_path_img))
-            if alternative_output_folder_path
-            else output_path_img,
+            (
+                os.path.join(alternative_output_folder_path, os.path.basename(output_path_img))
+                if alternative_output_folder_path
+                else output_path_img
+            ),
             os.path.join(os.path.dirname(temp_output_path_img), os.path.basename(output_path_img)),
             "图片缩略图移动到目标目录完毕...",
         ),
@@ -235,9 +237,11 @@ def gen_video_thumbnail(
         target=move_with_optional_security,
         args=(
             temp_output_path_video,
-            os.path.join(alternative_output_folder_path, os.path.basename(output_path_video))
-            if alternative_output_folder_path
-            else output_path_video,
+            (
+                os.path.join(alternative_output_folder_path, os.path.basename(output_path_video))
+                if alternative_output_folder_path
+                else output_path_video
+            ),
             os.path.join(os.path.dirname(temp_output_path_video), os.path.basename(output_path_video)),
             "视频缩略图移动到目标目录完毕...",
         ),
@@ -333,6 +337,9 @@ if __name__ == "__main__":
     parser.add_argument("-l", "--low", help="低负载模式，使用单线程进行转换", action="store_true")
     parser.add_argument("-m", "--max", help="指定生成单个视频缩略图的最大时长", type=int, default=30)
     parser.add_argument("-ao", "--alternative_output_folder_path", help="指定结果文件的生成路径，而不是和源文件相同目录", type=str)
+    parser.add_argument(
+        "-pp", "--parallel_processing_directory", help="当输入路径为文件夹时，使用指定数量的进程并发处理其中的文件", type=int, default=1
+    )
     args = parser.parse_args()
 
     def process_video(args):
@@ -354,13 +361,27 @@ if __name__ == "__main__":
                 if os.path.splitext(f)[-1].lower()
                 in [".mp4", ".flv", ".avi", ".mpg", ".wmv", ".mpeg", ".mov", ".mkv", ".ts", ".rmvb", ".rm", ".webm"]
             ]
-            for video_path in video_paths:
-                try:
-                    generate_thumbnail(
-                        video_path, rows, cols, args.preset, args.full, args.low, args.max, args.alternative_output_folder_path
+            if args.parallel_processing_directory > 1:
+                with ThreadPoolExecutor(args.parallel_processing_directory) as exe:
+                    exe.submit(
+                        generate_thumbnail,
+                        video_path,
+                        rows,
+                        cols,
+                        args.preset,
+                        args.full,
+                        args.low,
+                        args.max,
+                        args.alternative_output_folder_path,
                     )
-                except:
-                    traceback.print_exc()
+            else:
+                for video_path in video_paths:
+                    try:
+                        generate_thumbnail(
+                            video_path, rows, cols, args.preset, args.full, args.low, args.max, args.alternative_output_folder_path
+                        )
+                    except:
+                        traceback.print_exc()
         elif str(video_path).lower().startswith("http"):
             file_name = os.path.basename(video_path)
             file_path = os.path.join(str(Path.home() / "Downloads"), file_name)
@@ -395,6 +416,7 @@ if __name__ == "__main__":
                         low=args.low,
                         max=args.max,
                         alternative_output_folder_path=args.alternative_output_folder_path,
+                        parallel_processing_directory=args.parallel_processing_directory,
                     ),
                 ),
             ).start()
