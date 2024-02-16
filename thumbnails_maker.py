@@ -338,7 +338,7 @@ if __name__ == "__main__":
     parser.add_argument("-m", "--max", help="指定生成单个视频缩略图的最大时长", type=int, default=30)
     parser.add_argument("-ao", "--alternative_output_folder_path", help="指定结果文件的生成路径，而不是和源文件相同目录", type=str)
     parser.add_argument(
-        "-pp", "--parallel_processing_directory", help="当输入路径为文件夹时，使用指定数量的进程并发处理其中的文件", type=int, default=1
+        "-pp", "--parallel_processing_directory", help="当输入路径为文件夹时，使用指定数量的进程并发处理其中文件", type=int, default=1
     )
     args = parser.parse_args()
 
