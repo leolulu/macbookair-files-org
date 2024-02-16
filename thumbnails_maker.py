@@ -363,17 +363,18 @@ if __name__ == "__main__":
             ]
             if args.parallel_processing_directory > 1:
                 with ThreadPoolExecutor(args.parallel_processing_directory) as exe:
-                    exe.submit(
-                        generate_thumbnail,
-                        video_path,
-                        rows,
-                        cols,
-                        args.preset,
-                        args.full,
-                        args.low,
-                        args.max,
-                        args.alternative_output_folder_path,
-                    )
+                    for video_path in video_paths:
+                        exe.submit(
+                            generate_thumbnail,
+                            video_path,
+                            rows,
+                            cols,
+                            args.preset,
+                            args.full,
+                            args.low,
+                            args.max,
+                            args.alternative_output_folder_path,
+                        )
             else:
                 for video_path in video_paths:
                     try:
