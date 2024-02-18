@@ -11,7 +11,7 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Tuple
+from typing import Tuple, Union
 
 import cv2
 import numpy as np
@@ -250,6 +250,26 @@ def gen_video_thumbnail(
         os.remove(f)
 
 
+def get_max_screen_to_body_ratio_col(frame_height: int, frame_width: int, rows: int, cols_precise: Union[float, int]) -> int:
+    base_cols = round(cols_precise)
+    print(f"开始进行最大屏占比列数计算，基准列数: {base_cols}")
+    candidate_cols = [base_cols - 2, base_cols - 1, base_cols, base_cols + 1, base_cols + 2]
+    candidate_cols = [i for i in candidate_cols if i > 0]
+    print(f"候选列数: {candidate_cols}")
+
+    ratio_16_9 = 16 / 9
+    candidate_cols_ratio = [(frame_width * cols) / (frame_height * rows) for cols in candidate_cols]
+    candidate_cols_screen_to_body_ratio = [
+        (ratio / ratio_16_9 if ratio <= ratio_16_9 else ratio_16_9 / ratio) for ratio in candidate_cols_ratio
+    ]
+
+    result = list(zip(candidate_cols, candidate_cols_screen_to_body_ratio))
+    print(f"计算结果: {[(i[0],str(round(i[1]*100,1))+'%') for i in result]}")
+    max_result = max(result, key=lambda x: x[1])
+    print(f"最大屏占比列数结果: {max_result}")
+    return max_result[0]
+
+
 def gen_info(video_path, rows, cols):
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
@@ -257,13 +277,9 @@ def gen_info(video_path, rows, cols):
 
     height, width, _ = cap.read()[1].shape
     if cols is None:
-        # rows = math.ceil(((width / height) / (16 / 9 * 2) + 1 / 2) * rows)
         cols_precise = 16 * height * rows / 9 / width
         print(f"原始列数计算结果：{cols_precise}")
-        if abs(round(cols_precise) - cols_precise) < 0.1:
-            cols = round(cols_precise)
-        else:
-            cols = int(cols_precise)
+        cols = get_max_screen_to_body_ratio_col(height, width, rows, cols_precise)
 
     # 获取视频的总帧数和帧率
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
