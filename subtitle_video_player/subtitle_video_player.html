@@ -531,19 +531,19 @@
                 srtLoaded = false
                 var files = e.target.files;
                 for (var i = 0; i < files.length; i++) {
-                    if (files[i].name.endsWith('.mp4')) {
+                    if (files[i].name.toLowerCase().endsWith('.mp4')) {
                         var url = URL.createObjectURL(files[i]);
                         $('#video').attr('src', url);
                         document.title = files[i].name;
                         // 更新视频文件名
                         $('#videoFileName').text(files[i].name);
-                    } else if (files[i].name.endsWith('.ass')) {
+                    } else if (files[i].name.toLowerCase().endsWith('.ass')) {
                         srtLoaded = true
                         await loadSubtitles(files[i], formatIsAss = true);
-                    } else if (files[i].name.endsWith('.srt')) {
+                    } else if (files[i].name.toLowerCase().endsWith('.srt')) {
                         srtLoaded = true
                         await loadSubtitles(files[i]);
-                    } else if (files[i].name.endsWith('.json')) {
+                    } else if (files[i].name.toLowerCase().endsWith('.json')) {
                         if (!srtLoaded) {
                             await loadSubtitlesFromJSON(files[i]);
                         }
@@ -1073,7 +1073,7 @@
                     .then(data => {
                         var files = data.split('\n');
                         var fileListHtml = files.map(file => {
-                            if (file.endsWith('.mp4') || file.endsWith('.json') || file.endsWith('.srt') || file.endsWith('.ass')) {
+                            if (file.toLowerCase().endsWith('.mp4') || file.toLowerCase().endsWith('.json') || file.toLowerCase().endsWith('.srt') || file.toLowerCase().endsWith('.ass')) {
                                 return `<label><input type="checkbox" name="file" value="${file}">${file}</label><br>`;
                             }
                         }).join('');
@@ -1087,7 +1087,7 @@
                 var selectedFiles = document.querySelectorAll('input[name="file"]:checked');
                 for (let file of selectedFiles) {
                     var fileUrl = formatDufsBaseUrl(document.getElementById('dufsUrl').value) + file.value;
-                    if (fileUrl.endsWith('.mp4')) {
+                    if (fileUrl.toLowerCase().endsWith('.mp4')) {
                         document.getElementById('video').src = fileUrl;
                         document.title = file.value;
                         $('#videoFileName').text(file.value);
@@ -1096,13 +1096,13 @@
                             let response = await fetch(fileUrl);
                             let blob = await response.blob();
 
-                            if (fileUrl.endsWith('.srt')) {
+                            if (fileUrl.toLowerCase().endsWith('.srt')) {
                                 srtLoaded = true;
                                 await loadSubtitles(blob);
-                            } else if (fileUrl.endsWith('.ass')) {
+                            } else if (fileUrl.toLowerCase().endsWith('.ass')) {
                                 srtLoaded = true;
                                 await loadSubtitles(blob, formatIsAss = true);
-                            } else if (fileUrl.endsWith('.json')) {
+                            } else if (fileUrl.toLowerCase().endsWith('.json')) {
                                 if (!srtLoaded) {
                                     await loadSubtitlesFromJSON(blob);
                                 }
