@@ -4,7 +4,7 @@ import os
 
 
 def censor_zh_char(text):
-    result = re.sub(r"([\u4e00-\u9fa5]+(?:[\s-]+[\u4e00-\u9fa5]+)*)", r'<span class="censored">\1</span>', text)
+    result = re.sub(r'([\u4e00-\u9fa5]+(?:[\s\-·\?!？！,\.，。0-9"“”]+[\u4e00-\u9fa5]+)*)', r'<span class="censored">\1</span>', text)
     return result
 
 
