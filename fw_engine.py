@@ -230,8 +230,8 @@ class FasterWhisper:
                     f'ffmpeg -i "{media_path}" -ss {start_time} -to {end_time} -c copy -loglevel warning "{sub_media_file_path}"',
                     shell=True,
                 )
-                lang_result = self.detect_language(sub_media_file_path)
                 with detect_language_lock:
+                    lang_result = self.detect_language(sub_media_file_path)
                     lang_results[lang_result] += 1
                 print(f"语言检测结果：【{lang_result}】，时间：{start_time} - {end_time}")
                 print(f"当前所有结果：{lang_results}")
