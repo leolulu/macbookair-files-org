@@ -180,7 +180,7 @@ class FasterWhisper:
         audio_path, temp_dir_for_mp3 = self.media_to_mp3(media_path)
         if not self.pyannote_pipeline:
             self.pyannote_pipeline = Pipeline.from_pretrained(
-                "pyannote/speaker-diarization", use_auth_token="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"
+                "pyannote/speaker-diarization-3.1", use_auth_token="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"
             ).to(torch.device("cuda"))
         with ProgressHook() as hook:
             diarization = self.pyannote_pipeline(audio_path, hook=hook)
