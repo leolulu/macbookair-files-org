@@ -271,7 +271,7 @@ class BLL_PROXY_GETTER:
                 file.write(serialized_obj)
 
     def send_result_file_to_dufs(self):
-        url = f"http://42.193.43.79:1127/Saladict/{self.result_file_name}"
+        url = f"http://t.bad-sql.top:1127/Saladict/{self.result_file_name}"
         with open(self.result_file_name, "rb") as f:
             response = requests.put(url, data=f)
             response.raise_for_status()
