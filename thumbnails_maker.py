@@ -303,22 +303,27 @@ def generate_thumbnail(
     alternative_output_folder_path=None,
 ):
     def process_video(video_path, rows_calced, cols_calced, start_offset=0):
-        frame_interval, fps, height, width, duration_in_seconds, _, _ = gen_info(video_path, rows_calced, cols_calced)
-        gen_pic_thumbnail(video_path, frame_interval, rows_calced, cols_calced, height, width, start_offset, alternative_output_folder_path)
-        gen_video_thumbnail(
-            video_path,
-            preset,
-            height,
-            fps,
-            duration_in_seconds,
-            frame_interval,
-            rows_calced,
-            cols_calced,
-            max_thumb_duration,
-            start_offset,
-            low_load_mode,
-            alternative_output_folder_path,
-        )
+        try:
+            frame_interval, fps, height, width, duration_in_seconds, _, _ = gen_info(video_path, rows_calced, cols_calced)
+            gen_pic_thumbnail(
+                video_path, frame_interval, rows_calced, cols_calced, height, width, start_offset, alternative_output_folder_path
+            )
+            gen_video_thumbnail(
+                video_path,
+                preset,
+                height,
+                fps,
+                duration_in_seconds,
+                frame_interval,
+                rows_calced,
+                cols_calced,
+                max_thumb_duration,
+                start_offset,
+                low_load_mode,
+                alternative_output_folder_path,
+            )
+        except:
+            traceback.print_exc()
 
     _, _, _, _, duration_in_seconds, rows_calced, cols_calced = gen_info(video_path, rows, cols)
     print(f"开始生成视频缩略图，视频路径：{video_path}，行列数：{rows_calced}x{cols_calced}")
