@@ -12,6 +12,8 @@ import chardet
 import psutil
 import requests
 
+from utils import establish_temp_proxy_server, kill_subprocess_recursively, test_by_youtube
+
 
 class ProxyNode:
     TYPE_VMESS = "vmess"
@@ -102,24 +104,9 @@ class BLL_PROXY_GETTER:
         os.environ.pop("http_proxy", None)
         os.environ.pop("https_proxy", None)
 
-    def kill_subprocess_recursively(self, p: subprocess.Popen):
-        process = psutil.Process(p.pid)
-        for proc in process.children(recursive=True):
-            proc.kill()
-        process.kill()
-
     def check_proxy_availability(self):
         alternative_proxy_port = 27653
         alternative_proxy = f"http://127.0.0.1:{alternative_proxy_port}"
-
-        def test_by_youtube(proxy_str):
-            try:
-                proxies = {"http": proxy_str, "https": proxy_str}
-                response = requests.get("https://www.youtube.com/", proxies=proxies, timeout=10)
-                response.raise_for_status()
-                return True
-            except:
-                return False
 
         print(f"开始测试proxy可用性...")
         if test_by_youtube(self.active_proxy):
@@ -129,14 +116,13 @@ class BLL_PROXY_GETTER:
             print(f"默认proxy不可用，尝试使用存量节点构建临时proxy...")
             for link in [i.link for i in self.proxy_nodes if i.isok]:
                 print(f"尝试节点: {link[:50]}...")
-                command = f'lite-windows-amd64.exe -p {alternative_proxy_port} "{link}"  >> "{self.temp_proxy_server_log_file_name}" 2>&1'
-                p = subprocess.Popen(command, shell=True)
+                p = establish_temp_proxy_server(link, alternative_proxy_port, True, self.temp_proxy_server_log_file_name)
                 if test_by_youtube(alternative_proxy):
                     print(f"替代节点测试成功，替换proxy...")
                     self.active_proxy = alternative_proxy
                     return p
                 else:
-                    self.kill_subprocess_recursively(p)
+                    kill_subprocess_recursively(p)
 
         raise UserWarning("没有可用的代理服务器(默认的与存量proxy节点)，跳过本轮环节...")
 
@@ -262,7 +248,9 @@ class BLL_PROXY_GETTER:
         info = node.survival_info
         with open(self.proxy_node_statistics_file_name, "a", encoding="utf-8") as f:
             avg_speed = f"{round(sum(node.avg_speeds)/len(node.avg_speeds)/1024/1024,1)}MB/s"
-            f.write(f"节点名称: {node.name}\n节点类型: {node.type}\n平均测速: {avg_speed}\n加入时间: {info[0]}\n剔除时间: {info[1]}\n生存时长: {info[2]}小时\n\n")
+            f.write(
+                f"节点名称: {node.name}\n节点类型: {node.type}\n平均测速: {avg_speed}\n加入时间: {info[0]}\n剔除时间: {info[1]}\n生存时长: {info[2]}小时\n\n"
+            )
 
     def save_nodes(self):
         if self.proxy_nodes:
@@ -279,7 +267,7 @@ class BLL_PROXY_GETTER:
 
     def reset_proxy_if_necessary(self, p: Optional[subprocess.Popen]):
         if p:
-            self.kill_subprocess_recursively(p)
+            kill_subprocess_recursively(p)
             self.active_proxy = self.default_proxy
             print(f"替代proxy下线，恢复默认proxy，关闭temp proxy server...")
 
