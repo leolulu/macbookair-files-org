@@ -969,10 +969,11 @@
                         return subtitle.start > currentTime;
                     });
                     if (nextSubtitle) {
+                        var nextSubtitleStartTime = sentenceExtensionChecked ? nextSubtitle.start - sentenceExtension : nextSubtitle.start;
                         if (enableFFMode) {
-                            fastForwardUntilDetach(nextSubtitle.start);
+                            fastForwardUntilDetach(nextSubtitleStartTime);
                         } else {
-                            $('#video')[0].currentTime = nextSubtitle.start;
+                            $('#video')[0].currentTime = nextSubtitleStartTime;
                         }
                     } else {
                         if (enableFFMode) {
