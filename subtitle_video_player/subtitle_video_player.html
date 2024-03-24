@@ -275,6 +275,21 @@
         #videoFocusStatus {
             font-weight: bold;
         }
+
+        #ff-sign {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            font-size: 30px;
+        }
+
+        .hide-element {
+            display: none;
+        }
+
+        .hide-element-potently {
+            display: none !important;
+        }
     </style>
 </head>
 
@@ -286,6 +301,7 @@
                     Your browser does not support HTML5 video.
                 </video>
                 <span id="caption">字幕（默认不显示），播放时更新</span>
+                <div id="ff-sign" class="hide-element">⏩</div>
                 <div id="resizable-shade"></div>
             </div>
             <div id="horizontal-divider"></div>
@@ -293,6 +309,8 @@
             <span id='videoFocusStatus'>❌<span style="color: red;">失焦</span></span>
             <label for="skipBlanks">跳过空白</label>
             <input type="checkbox" id="skipBlanks" />
+            <label for="enableFFMode">快进式跳跃</label>
+            <input type="checkbox" id="enableFFMode" />
             <label for="enableSkipInterval">空白cap:</label>
             <input type="number" id="skipInterval" value="0.5" step="0.1">
             <input type="checkbox" id="enableSkipInterval" />
@@ -844,9 +862,36 @@
                 });
             })();
 
+            var hideVideoSpeedControllerTimer = null;
+            function hideVideoSpeedControllerTemporarily() {
+                $('div.vsc-controller').addClass('hide-element-potently');
+                if (hideVideoSpeedControllerTimer) {
+                    clearTimeout(hideVideoSpeedControllerTimer)
+                }
+                hideVideoSpeedControllerTimer = setTimeout(() => {
+                    $('div.vsc-controller').removeClass('hide-element-potently');
+                }, 1000);
+            }
+
+            var previousSpeed = 1;
+            var fastForwardSpeed = 8;
+            function fastForwardUntilDetach(detach_time) {
+                $('#video').off('timeupdate', highlightSubtitle)
+                setTimeout(() => {
+                    hideVideoSpeedControllerTemporarily();
+                    $('#video')[0].playbackRate = previousSpeed;
+                    $('#video').on('timeupdate', highlightSubtitle);
+                    $('#ff-sign').addClass('hide-element')
+                }, (detach_time - $('#video')[0].currentTime) / fastForwardSpeed * 1000);
+                hideVideoSpeedControllerTemporarily();
+                $('#video')[0].playbackRate = fastForwardSpeed;
+                $('#ff-sign').removeClass('hide-element')
+            }
+
             var hideProgressBarTempTimer = null;
             // Set up event listener for video time updates
             function highlightSubtitle() {
+                previousSpeed = $('#video')[0].playbackRate;
                 var currentTime = accTime($('#video')[0].currentTime);
                 var found = false;
                 var first_match_sub_index = null;
@@ -905,6 +950,7 @@
                 }
 
                 var skipBlanks = $('#skipBlanks').prop('checked');
+                var enableFFMode = $('#enableFFMode').prop('checked');
                 var skipIntervalChecked = $('#enableSkipInterval').prop('checked');
                 var skipInterval = parseFloat(document.getElementById('skipInterval').value);
                 var sentenceExtensionChecked = $('#enableSentenceExtension').prop('checked');
@@ -923,14 +969,22 @@
                         return subtitle.start > currentTime;
                     });
                     if (nextSubtitle) {
-                        $('#video')[0].currentTime = nextSubtitle.start;
+                        if (enableFFMode) {
+                            fastForwardUntilDetach(nextSubtitle.start);
+                        } else {
+                            $('#video')[0].currentTime = nextSubtitle.start;
+                        }
                     } else {
-                        $('#video')[0].currentTime = $('#video')[0].duration;
-                        $('#video')[0].pause();
-                        $('#skipBlanks').trigger('click');
-                        setTimeout(() => {
+                        if (enableFFMode) {
+                            fastForwardUntilDetach($('#video')[0].duration);
+                        } else {
+                            $('#video')[0].currentTime = $('#video')[0].duration;
+                            $('#video')[0].pause();
                             $('#skipBlanks').trigger('click');
-                        }, 1000);
+                            setTimeout(() => {
+                                $('#skipBlanks').trigger('click');
+                            }, 1000);
+                        }
                     }
                 }
 
