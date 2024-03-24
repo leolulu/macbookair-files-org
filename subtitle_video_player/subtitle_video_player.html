@@ -975,7 +975,7 @@
                         var nextSubtitleStartTime = sentenceExtensionChecked ? nextSubtitle.start - sentenceExtension : nextSubtitle.start;
                         if (enableFFMode) {
                             if (nextSubtitleStartTime - currentTime > 1) {
-                                fastForwardUntilDetach(nextSubtitleStartTime, nextSubtitleStartTime - currentTime > 4);
+                                fastForwardUntilDetach(nextSubtitleStartTime, nextSubtitleStartTime - currentTime > 3);
                             }
                         } else {
                             $('#video')[0].currentTime = nextSubtitleStartTime;
