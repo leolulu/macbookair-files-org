@@ -874,8 +874,7 @@
             }
 
             var previousSpeed = 1;
-            var fastForwardSpeed = 8;
-            function fastForwardUntilDetach(detach_time, need_calibration = false) {
+            function fastForwardUntilDetach(detach_time, need_calibration = false, fastForwardSpeed = 8) {
                 $('#video').off('timeupdate', highlightSubtitle)
                 setTimeout(() => {
                     hideVideoSpeedControllerTemporarily();
@@ -974,8 +973,16 @@
                     if (nextSubtitle) {
                         var nextSubtitleStartTime = sentenceExtensionChecked ? nextSubtitle.start - sentenceExtension : nextSubtitle.start;
                         if (enableFFMode) {
-                            if (nextSubtitleStartTime - currentTime > 1) {
-                                fastForwardUntilDetach(nextSubtitleStartTime, nextSubtitleStartTime - currentTime > 3);
+                            let duration = nextSubtitleStartTime - currentTime;
+                            if (duration > 1) {
+                                let fastForwardSpeed = 8;
+                                for (let s = 2; s < 8; s++) {
+                                    if (duration <= s * 2) {
+                                        fastForwardSpeed = s;
+                                        break;
+                                    }
+                                }
+                                fastForwardUntilDetach(nextSubtitleStartTime, duration > 3, fastForwardSpeed);
                             }
                         } else {
                             $('#video')[0].currentTime = nextSubtitleStartTime;
