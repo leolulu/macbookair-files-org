@@ -743,7 +743,9 @@
                 const container = document.createElement('div');
                 container.id = 'speaker-container';  // Assigning an ID to the container for easy reference
                 container.style.border = '1px solid #aaa';
-                container.style.height = (Object.keys(labelHeights).length * 40) + 'px'; // Adjust height based on number of speakers
+                let speakerCount = Object.keys(labelHeights).length;
+                let speakerDivHeight = speakerCount <= 4 ? 40 : (speakerCount <= 8 ? 30 : 20);
+                container.style.height = (speakerCount * speakerDivHeight) + 'px'; // Adjust height based on number of speakers
                 container.style.position = 'relative';
                 container.style.marginTop = '10px';
                 container.style.overflow = 'hidden';
