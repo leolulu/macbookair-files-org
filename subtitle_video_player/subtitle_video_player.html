@@ -984,6 +984,9 @@
                                         break;
                                     }
                                 }
+                                if (previousSpeed > 1) {
+                                    fastForwardSpeed *= previousSpeed;
+                                }
                                 fastForwardUntilDetach(nextSubtitleStartTime, duration > 3, fastForwardSpeed);
                             }
                         } else {
