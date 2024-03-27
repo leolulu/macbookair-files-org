@@ -1008,7 +1008,7 @@
                                 if (previousSpeed > 1) {
                                     fastForwardSpeed *= previousSpeed;
                                 }
-                                fastForwardUntilDetach(nextSubtitleStartTime, duration > 3, fastForwardSpeed);
+                                fastForwardUntilDetach(nextSubtitleStartTime, $('#FFWithoutCalibration').prop('checked') ? false : duration > 3, fastForwardSpeed);
                             }
                         } else {
                             $('#video')[0].currentTime = nextSubtitleStartTime;
