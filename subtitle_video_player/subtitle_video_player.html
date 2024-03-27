@@ -297,6 +297,10 @@
             padding: 0 0 0 5px;
             display: inline-block;
         }
+
+        .options-container label {
+            white-space: nowrap;
+        }
     </style>
 </head>
 
@@ -312,52 +316,54 @@
                 <div id="resizable-shade"></div>
             </div>
             <div id="horizontal-divider"></div>
-            <input type="file" id="videoFile" accept=".mp4, .webm, .srt, .json, .ass" multiple />
-            <span id='videoFocusStatus'>❌<span style="color: red;">失焦</span></span>
-            <label for="skipBlanks">跳过空白</label>
-            <input type="checkbox" id="skipBlanks" />
-            <div class="inline-options-container">
-                <label for="enableFFMode">快进式跳跃</label>
-                <input type="checkbox" id="enableFFMode" />
-                <label for="FFWithoutCalibration">无校准(危险)</label>
-                <input type="checkbox" id="FFWithoutCalibration" />
+            <div class="options-container">
+                <input type="file" id="videoFile" accept=".mp4, .webm, .srt, .json, .ass" multiple />
+                <span id='videoFocusStatus'>❌<span style="color: red;">失焦</span></span>
+                <label for="skipBlanks">跳过空白</label>
+                <input type="checkbox" id="skipBlanks" />
+                <div class="inline-options-container">
+                    <label for="enableFFMode">快进式跳跃</label>
+                    <input type="checkbox" id="enableFFMode" />
+                    <label for="FFWithoutCalibration">无校准(危险)</label>
+                    <input type="checkbox" id="FFWithoutCalibration" />
+                </div>
+                <label for="enableSkipInterval">空白cap:</label>
+                <input type="number" id="skipInterval" value="0.5" step="0.1">
+                <input type="checkbox" id="enableSkipInterval" />
+                <label for="enableSentenceExtension">延展句长:</label>
+                <input type="number" id="sentenceExtension" value="1.0" step="0.1">
+                <input type="checkbox" id="enableSentenceExtension" />
+                <label for="clickToPlay">点击字幕播放</label>
+                <input type="checkbox" id="clickToPlay" />
+                <div class="inline-options-container">
+                    <label for="textLength">句长:</label>
+                    <input type="number" id="textLength" value="1">
+                    <label for="enableTimeConcat">合并句间隔:</label>
+                    <input type="number" id="timeConcat" value="0.001" step="0.1">
+                    <input type="checkbox" id="enableTimeConcat" />
+                </div>
+                <label for="hideControl">隐藏播放器控件</label>
+                <input type="checkbox" id="hideControl" />
+                <label for="toggleLayout">反转布局</label>
+                <input type="checkbox" id="toggleLayout" />
+                <label for="mediaGain">强制放大音量:</label>
+                <input type="number" id="mediaGain" value="1">
+                <input type="text" id="videoUrl" placeholder="粘贴视频url,弹框选字幕">
+                <button id="loadVideoUrl">加载</button>
+                <input type="file" id="VideoUrlWithFile" accept=".srt, .json, .ass" multiple style="display:none;" />
+                <div class="inline-options-container">
+                    <label for="toggleCaptionDisplay">显示字幕</label>
+                    <input type="checkbox" id="toggleCaptionDisplay" />
+                    <label for="toggleCaptionBackgroundColor">字幕黑色背景</label>
+                    <input type="checkbox" id="toggleCaptionBackgroundColor" />
+                    <label for="toggleCaptionShadow">字幕描边</label>
+                    <input type="checkbox" id="toggleCaptionShadow" />
+                </div>
+                <input type="text" id="dufsUrl" placeholder='dufs目录路径(结尾不用加"?simple")'>
+                <button id="fetchDufsFiles">获取Dufs列表</button>
+                <label for="toggleSubtileShade">字幕遮罩器</label>
+                <input type="checkbox" id="toggleSubtileShade" />
             </div>
-            <label for="enableSkipInterval">空白cap:</label>
-            <input type="number" id="skipInterval" value="0.5" step="0.1">
-            <input type="checkbox" id="enableSkipInterval" />
-            <label for="enableSentenceExtension">延展句长:</label>
-            <input type="number" id="sentenceExtension" value="1.0" step="0.1">
-            <input type="checkbox" id="enableSentenceExtension" />
-            <label for="clickToPlay">点击字幕播放</label>
-            <input type="checkbox" id="clickToPlay" />
-            <div class="inline-options-container">
-                <label for="textLength">句长:</label>
-                <input type="number" id="textLength" value="1">
-                <label for="enableTimeConcat">合并句间隔:</label>
-                <input type="number" id="timeConcat" value="0.001" step="0.1">
-                <input type="checkbox" id="enableTimeConcat" />
-            </div>
-            <label for="hideControl">隐藏播放器控件</label>
-            <input type="checkbox" id="hideControl" />
-            <label for="toggleLayout">反转布局</label>
-            <input type="checkbox" id="toggleLayout" />
-            <label for="mediaGain">强制放大音量:</label>
-            <input type="number" id="mediaGain" value="1">
-            <input type="text" id="videoUrl" placeholder="粘贴视频url,弹框选字幕">
-            <button id="loadVideoUrl">加载</button>
-            <input type="file" id="VideoUrlWithFile" accept=".srt, .json, .ass" multiple style="display:none;" />
-            <div class="inline-options-container">
-                <label for="toggleCaptionDisplay">显示字幕</label>
-                <input type="checkbox" id="toggleCaptionDisplay" />
-                <label for="toggleCaptionBackgroundColor">字幕黑色背景</label>
-                <input type="checkbox" id="toggleCaptionBackgroundColor" />
-                <label for="toggleCaptionShadow">字幕描边</label>
-                <input type="checkbox" id="toggleCaptionShadow" />
-            </div>
-            <input type="text" id="dufsUrl" placeholder='dufs目录路径(结尾不用加"?simple")'>
-            <button id="fetchDufsFiles">获取Dufs列表</button>
-            <label for="toggleSubtileShade">字幕遮罩器</label>
-            <input type="checkbox" id="toggleSubtileShade" />
             <div class="progress-container" id="progress-container">
                 <div class="progress-bar" id="progress-bar"></div>
                 <div class="progress-bar-temp" id="progress-bar-temp"></div>
