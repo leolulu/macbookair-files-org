@@ -2,6 +2,8 @@
 *.pkl
 *.log
 
+subtitle_video_player/sup/
+
 chatpdf/*.txt
 chatpdf/*.pdf
 # Byte-compiled / optimized / DLL files
