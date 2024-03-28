@@ -310,6 +310,10 @@
         #subtitles .sup-subtitle-image {
             max-height: 28px;
         }
+
+        .inline-block-element {
+            display: inline-block;
+        }
     </style>
 </head>
 
@@ -336,14 +340,20 @@
                     <label for="FFWithoutCalibration">无校准<span class='warning-sign'>⚠️</span></label>
                     <input type="checkbox" id="FFWithoutCalibration" />
                 </div>
-                <label for="enableSkipInterval">空白cap:</label>
-                <input type="number" id="skipInterval" value="0.5" step="0.1">
-                <input type="checkbox" id="enableSkipInterval" />
-                <label for="enableSentenceExtension">延展句长:</label>
-                <input type="number" id="sentenceExtension" value="1.0" step="0.1">
-                <input type="checkbox" id="enableSentenceExtension" />
-                <label for="clickToPlay">点击字幕播放</label>
-                <input type="checkbox" id="clickToPlay" />
+                <div class="inline-block-element">
+                    <label for="enableSkipInterval">空白cap:</label>
+                    <input type="number" id="skipInterval" value="0.5" step="0.1">
+                    <input type="checkbox" id="enableSkipInterval" />
+                </div>
+                <div class="inline-block-element">
+                    <label for="enableSentenceExtension">延展句长:</label>
+                    <input type="number" id="sentenceExtension" value="1.0" step="0.1">
+                    <input type="checkbox" id="enableSentenceExtension" />
+                </div>
+                <div class="inline-block-element">
+                    <label for="clickToPlay">点击字幕播放</label>
+                    <input type="checkbox" id="clickToPlay" />
+                </div>
                 <div class="inline-options-container">
                     <label for="textLength">句长:</label>
                     <input type="number" id="textLength" value="1">
@@ -351,14 +361,22 @@
                     <input type="number" id="timeConcat" value="0.001" step="0.1">
                     <input type="checkbox" id="enableTimeConcat" />
                 </div>
-                <label for="hideControl">隐藏播放器控件</label>
-                <input type="checkbox" id="hideControl" />
-                <label for="toggleLayout">反转布局</label>
-                <input type="checkbox" id="toggleLayout" />
-                <label for="mediaGain">强制放大音量:</label>
-                <input type="number" id="mediaGain" value="1">
-                <input type="text" id="videoUrl" placeholder="粘贴视频url,弹框选字幕">
-                <button id="loadVideoUrl">加载</button>
+                <div class="inline-block-element">
+                    <label for="hideControl">隐藏播放器控件</label>
+                    <input type="checkbox" id="hideControl" />
+                </div>
+                <div class="inline-block-element">
+                    <label for="toggleLayout">反转布局</label>
+                    <input type="checkbox" id="toggleLayout" />
+                </div>
+                <div class="inline-block-element">
+                    <label for="mediaGain">强制放大音量:</label>
+                    <input type="number" id="mediaGain" value="1">
+                </div>
+                <div class="inline-block-element">
+                    <input type="text" id="videoUrl" placeholder="粘贴视频url,弹框选字幕">
+                    <button id="loadVideoUrl">加载</button>
+                </div>
                 <input type="file" id="VideoUrlWithFile" accept=".srt, .json, .ass" multiple style="display:none;" />
                 <div class="inline-options-container">
                     <label for="toggleCaptionDisplay">显示字幕</label>
@@ -368,10 +386,14 @@
                     <label for="toggleCaptionShadow">字幕描边</label>
                     <input type="checkbox" id="toggleCaptionShadow" />
                 </div>
-                <input type="text" id="dufsUrl" placeholder='dufs目录路径(结尾不用加"?simple")'>
-                <button id="fetchDufsFiles">获取Dufs列表</button>
-                <label for="toggleSubtileShade">字幕遮罩器</label>
-                <input type="checkbox" id="toggleSubtileShade" />
+                <div class="inline-block-element">
+                    <input type="text" id="dufsUrl" placeholder='dufs目录路径(结尾不用加"?simple")'>
+                    <button id="fetchDufsFiles">获取Dufs列表</button>
+                </div>
+                <div class="inline-block-element">
+                    <label for="toggleSubtileShade">字幕遮罩器</label>
+                    <input type="checkbox" id="toggleSubtileShade" />
+                </div>
             </div>
             <div class="progress-container" id="progress-container">
                 <div class="progress-bar" id="progress-bar"></div>
