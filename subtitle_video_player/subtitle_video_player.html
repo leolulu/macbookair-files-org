@@ -138,7 +138,8 @@
         }
 
         #skipInterval,
-        #sentenceExtension {
+        #sentenceExtension,
+        #scaleSupCaption {
             max-width: 2.2rem;
         }
 
@@ -314,10 +315,6 @@
         .inline-block-element {
             display: inline-block;
         }
-
-        #caption img.sup-subtitle-image {
-            max-height: 31px;
-        }
     </style>
 </head>
 
@@ -389,6 +386,8 @@
                     <input type="checkbox" id="toggleCaptionBackgroundColor" />
                     <label for="toggleCaptionShadow">字幕描边</label>
                     <input type="checkbox" id="toggleCaptionShadow" />
+                    <label for="scaleSupCaption">sup缩放:</label>
+                    <input type="number" id="scaleSupCaption" value="1.0" step="0.1">
                 </div>
                 <div class="inline-block-element">
                     <input type="text" id="dufsUrl" placeholder='dufs目录路径(结尾不用加"?simple")'>
@@ -1040,6 +1039,17 @@
                     captions.splice(-1, 0, '-'.repeat(Math.max(...captions.map(item => item.length))));
                 }
                 $('#caption').html(captions.join('<br>'));
+
+                let captionSup = document.querySelector("#caption img.sup-subtitle-image");
+                if (captionSup && !captionSup.getAttribute('data-resized')) {
+                    let originalWidth = captionSup.width;
+                    let originalHeight = captionSup.height;
+                    let ratio = parseFloat(document.getElementById('scaleSupCaption').value)
+                    captionSup.style.width = originalWidth * ratio + 'px';
+                    captionSup.style.height = originalHeight * ratio + 'px';
+                    captionSup.setAttribute("data-resized", true);
+                }
+
                 centerCaption()
 
                 document.querySelectorAll('.subtitle-word').forEach(function (span) {
@@ -1151,6 +1161,8 @@
 
             // Listen for timeupdate event to highlight the subtitle
             $('#video').on('timeupdate', highlightSubtitle);
+
+
 
             function loadSubtitlesImpl() {
                 subtitles = [];
