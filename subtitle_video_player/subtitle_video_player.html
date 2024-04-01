@@ -1088,7 +1088,7 @@
                         return subtitle.start > currentTime;
                     });
                     if (nextSubtitle) {
-                        var nextSubtitleStartTime = sentenceExtensionChecked ? nextSubtitle.start - sentenceExtension : nextSubtitle.start;
+                        var nextSubtitleStartTime = sentenceExtensionChecked ? accTime(nextSubtitle.start - sentenceExtension) : nextSubtitle.start;
                         if (enableFFMode) {
                             let duration = nextSubtitleStartTime - currentTime;
                             if (duration > 1) {
