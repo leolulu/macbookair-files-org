@@ -1078,7 +1078,7 @@
                     if (skipIntervalChecked) {
                         return subtitle.start <= currentTime && (subtitle.end < subtitle.start + skipInterval ? subtitle.end : subtitle.start + skipInterval) > currentTime;
                     } else if (sentenceExtensionChecked) {
-                        return (subtitle.start - sentenceExtension) <= currentTime && (subtitle.end + sentenceExtension) > currentTime;
+                        return accTime(subtitle.start - sentenceExtension) <= currentTime && accTime(subtitle.end + sentenceExtension) > currentTime;
                     } else {
                         return subtitle.start <= currentTime && subtitle.end > currentTime;
                     }
