@@ -250,17 +250,22 @@ def gen_video_thumbnail(
         os.remove(f)
 
 
-def get_max_screen_to_body_ratio_col(frame_height: int, frame_width: int, rows: int, cols_precise: Union[float, int]) -> int:
+def get_max_screen_to_body_ratio_col(
+    frame_height: int,
+    frame_width: int,
+    rows: int,
+    cols_precise: Union[float, int],
+    screen_ratio: float,
+) -> int:
     base_cols = round(cols_precise)
     print(f"开始进行最大屏占比列数计算，基准列数: {base_cols}")
     candidate_cols = [base_cols - 2, base_cols - 1, base_cols, base_cols + 1, base_cols + 2]
     candidate_cols = [i for i in candidate_cols if i > 0]
     print(f"候选列数: {candidate_cols}")
 
-    ratio_16_9 = 16 / 9
     candidate_cols_ratio = [(frame_width * cols) / (frame_height * rows) for cols in candidate_cols]
     candidate_cols_screen_to_body_ratio = [
-        (ratio / ratio_16_9 if ratio <= ratio_16_9 else ratio_16_9 / ratio) for ratio in candidate_cols_ratio
+        (ratio / screen_ratio if ratio <= screen_ratio else screen_ratio / ratio) for ratio in candidate_cols_ratio
     ]
 
     result = list(zip(candidate_cols, candidate_cols_screen_to_body_ratio))
@@ -270,16 +275,16 @@ def get_max_screen_to_body_ratio_col(frame_height: int, frame_width: int, rows: 
     return max_result[0]
 
 
-def gen_info(video_path, rows, cols):
+def gen_info(video_path, rows, cols, screen_ratio):
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         raise UserWarning("无法打开视频文件!")
 
     height, width, _ = cap.read()[1].shape
     if cols is None:
-        cols_precise = 16 * height * rows / 9 / width
+        cols_precise = screen_ratio * height * rows / width
         print(f"原始列数计算结果：{cols_precise}")
-        cols = get_max_screen_to_body_ratio_col(height, width, rows, cols_precise)
+        cols = get_max_screen_to_body_ratio_col(height, width, rows, cols_precise, screen_ratio)
 
     # 获取视频的总帧数和帧率
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -301,10 +306,16 @@ def generate_thumbnail(
     low_load_mode=False,
     max_thumb_duration=30,
     alternative_output_folder_path=None,
+    screen_ratio_raw: str = "16/9",
 ):
+    if "/" in screen_ratio_raw:
+        screen_ratio = int(screen_ratio_raw.split("/")[0]) / int(screen_ratio_raw.split("/")[-1])
+    else:
+        screen_ratio = float(screen_ratio_raw)
+
     def process_video(video_path, rows_calced, cols_calced, start_offset=0):
         try:
-            frame_interval, fps, height, width, duration_in_seconds, _, _ = gen_info(video_path, rows_calced, cols_calced)
+            frame_interval, fps, height, width, duration_in_seconds, _, _ = gen_info(video_path, rows_calced, cols_calced, screen_ratio)
             gen_pic_thumbnail(
                 video_path, frame_interval, rows_calced, cols_calced, height, width, start_offset, alternative_output_folder_path
             )
@@ -325,7 +336,7 @@ def generate_thumbnail(
         except:
             traceback.print_exc()
 
-    _, _, _, _, duration_in_seconds, rows_calced, cols_calced = gen_info(video_path, rows, cols)
+    _, _, _, _, duration_in_seconds, rows_calced, cols_calced = gen_info(video_path, rows, cols, screen_ratio)
     print(f"开始生成视频缩略图，视频路径：{video_path}，行列数：{rows_calced}x{cols_calced}")
     if process_full_video and rows_calced * cols_calced * max_thumb_duration < duration_in_seconds:
         n = 1
@@ -361,6 +372,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "-pp", "--parallel_processing_directory", help="当输入路径为文件夹时，使用指定数量的进程并发处理其中文件", type=int, default=1
     )
+    parser.add_argument(
+        "-sr", "--screen_ratio", help="指定屏幕长宽比，可输入'width/height'格式，也可直接输入小数", type=str, default="16/9"
+    )
     args = parser.parse_args()
 
     def process_video(args):
@@ -395,12 +409,21 @@ if __name__ == "__main__":
                             args.low,
                             args.max,
                             args.alternative_output_folder_path,
+                            args.screen_ratio,
                         )
             else:
                 for video_path in video_paths:
                     try:
                         generate_thumbnail(
-                            video_path, rows, cols, args.preset, args.full, args.low, args.max, args.alternative_output_folder_path
+                            video_path,
+                            rows,
+                            cols,
+                            args.preset,
+                            args.full,
+                            args.low,
+                            args.max,
+                            args.alternative_output_folder_path,
+                            args.screen_ratio,
                         )
                     except:
                         traceback.print_exc()
@@ -411,9 +434,13 @@ if __name__ == "__main__":
                 print(f"视频在本地不存在，开始下载: {file_name}")
                 with open(file_path, "wb") as f:
                     f.write(requests.get(video_path, proxies={"http": "http://127.0.0.1:10809", "https": "http://127.0.0.1:10809"}).content)
-            generate_thumbnail(file_path, rows, cols, args.preset, args.full, args.low, args.max, args.alternative_output_folder_path)
+            generate_thumbnail(
+                file_path, rows, cols, args.preset, args.full, args.low, args.max, args.alternative_output_folder_path, args.screen_ratio
+            )
         else:
-            generate_thumbnail(video_path, rows, cols, args.preset, args.full, args.low, args.max, args.alternative_output_folder_path)
+            generate_thumbnail(
+                video_path, rows, cols, args.preset, args.full, args.low, args.max, args.alternative_output_folder_path, args.screen_ratio
+            )
 
     if args.video_path is None:
         while True:
@@ -439,6 +466,7 @@ if __name__ == "__main__":
                         max=args.max,
                         alternative_output_folder_path=args.alternative_output_folder_path,
                         parallel_processing_directory=args.parallel_processing_directory,
+                        screen_ratio=args.screen_ratio,
                     ),
                 ),
             ).start()
