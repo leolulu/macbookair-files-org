@@ -843,7 +843,7 @@
                 container.id = 'speaker-container';  // Assigning an ID to the container for easy reference
                 container.style.border = '1px solid #aaa';
                 let speakerCount = Object.keys(labelHeights).length;
-                let speakerDivHeight = speakerCount <= 4 ? 40 : (speakerCount <= 8 ? 30 : 20);
+                let speakerDivHeight = speakerCount <= 4 ? 40 : (speakerCount <= 8 ? 30 : (speakerCount <= 16 ? 20 : 10));
                 container.style.height = (speakerCount * speakerDivHeight) + 'px'; // Adjust height based on number of speakers
                 container.style.position = 'relative';
                 container.style.marginTop = '10px';
