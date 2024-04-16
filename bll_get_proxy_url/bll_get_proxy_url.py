@@ -271,6 +271,8 @@ class BLL_PROXY_GETTER:
                 file.write(serialized_obj)
 
     def send_result_file_to_dufs(self):
+        if not os.path.exists(self.result_file_name_links):
+            return
         # 结果列表文件
         url = f"http://t.bad-sql.top:1127/Saladict/{self.result_file_name_links}"
         with open(self.result_file_name_links, "rb") as f:
