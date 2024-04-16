@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import pickle
@@ -11,7 +12,6 @@ from typing import Optional
 import chardet
 import psutil
 import requests
-
 from utils import establish_temp_proxy_server, kill_subprocess_recursively, test_by_youtube
 
 
@@ -78,23 +78,35 @@ class BLL_PROXY_GETTER:
         self.default_proxy = "http://127.0.0.1:10809"
         self.active_proxy = self.default_proxy
         self.last_frame_file_name = "last.jpg"
-        self.result_file_name = "filtered_node.txt"
+        self.result_file_name_links = "filtered_node.txt"
+        self.result_file_name_subscription = "filtered_node_subscription.txt"
         self.speed_test_output_file_name = "output.json"
         self.serialized_nodes_file_name = "proxy_nodes.pkl"
         self.temp_proxy_server_log_file_name = "temp_proxy_server.log"
         self.proxy_node_statistics_file_name = "proxy_node_statistics.txt"
-        if os.path.exists(self.result_file_name):
-            os.remove(self.result_file_name)
-        if os.path.exists(self.speed_test_output_file_name):
-            os.remove(self.speed_test_output_file_name)
-        if os.path.exists(self.temp_proxy_server_log_file_name):
-            os.remove(self.temp_proxy_server_log_file_name)
+
+        self.remove_useless_files(
+            [
+                self.result_file_name_links,
+                self.speed_test_output_file_name,
+                self.temp_proxy_server_log_file_name,
+                self.result_file_name_subscription,
+            ]
+        )
+        self.load_existing_nodes()
+        self.top_node_count = top_node_count
+
+    def load_existing_nodes(self):
         if os.path.exists(self.serialized_nodes_file_name):
             with open(self.serialized_nodes_file_name, "rb") as f:
                 self.proxy_nodes = pickle.loads(f.read())
         else:
             self.proxy_nodes = set()
-        self.top_node_count = top_node_count
+
+    def remove_useless_files(self, file_paths):
+        for file_path in file_paths:
+            if os.path.exists(file_path):
+                os.remove(file_path)
 
     def set_proxy(self):
         os.environ["http_proxy"] = self.active_proxy
@@ -239,7 +251,7 @@ class BLL_PROXY_GETTER:
                 "\n".join([f"{round(i.longterm_avg_speed/1024/1024,2)}MB/S - {i.name}" for i in top_nodes]),
                 time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
             )
-            with open(self.result_file_name, "w", encoding="utf-8") as f:
+            with open(self.result_file_name_links, "w", encoding="utf-8") as f:
                 f.write(result_output_content)
 
         os.remove(self.speed_test_output_file_name)
@@ -259,8 +271,18 @@ class BLL_PROXY_GETTER:
                 file.write(serialized_obj)
 
     def send_result_file_to_dufs(self):
-        url = f"http://t.bad-sql.top:1127/Saladict/{self.result_file_name}"
-        with open(self.result_file_name, "rb") as f:
+        # 结果列表文件
+        url = f"http://t.bad-sql.top:1127/Saladict/{self.result_file_name_links}"
+        with open(self.result_file_name_links, "rb") as f:
+            response = requests.put(url, data=f)
+            response.raise_for_status()
+        # 订阅文件
+        url = f"http://t.bad-sql.top:1127/Saladict/{self.result_file_name_subscription}"
+        with open(self.result_file_name_links, "r", encoding="utf-8") as f:
+            result = f.read()
+        with open(self.result_file_name_subscription, "w", encoding="utf-8") as f:
+            f.write(base64.b64encode(result.encode("utf-8")).decode("utf-8"))
+        with open(self.result_file_name_subscription, "rb") as f:
             response = requests.put(url, data=f)
             response.raise_for_status()
         print(f"测速完毕，结果已保存...\n")
