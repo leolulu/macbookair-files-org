@@ -15,7 +15,7 @@ def kill_subprocess_recursively(p: subprocess.Popen):
 
 
 def establish_temp_proxy_server(
-    link,
+    link: str,
     temp_proxy_server_port=default_temp_proxy_server_port,
     log_to_file=False,
     log_file_name="temp_proxy_server_for_local_proxy.log",
