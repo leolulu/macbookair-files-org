@@ -1,3 +1,4 @@
+import os
 import subprocess
 from time import sleep
 from typing import List, Optional
@@ -38,11 +39,28 @@ class ProxyServerEstablisher:
         self.p: Optional[subprocess.Popen] = None
         self.links: Links = Links()
         self.test_website_url = "https://www.youtube.com"
+        self.v2ray_config_template_file_name = "v2ray_config.template"
+        self.v2ray_config_file_name = "v2ray_config.json"
+        self.log_file_name = "temp_proxy_server_for_local_proxy.log"
+        self.init_local_files()
+
+    def init_local_files(self):
+        if os.path.exists(self.v2ray_config_file_name):
+            os.remove(self.v2ray_config_file_name)
+        if os.path.exists(self.log_file_name):
+            os.remove(self.log_file_name)
 
     def run(self):
         while True:
             link = self.links.get_one()
-            p = establish_temp_proxy_server(link.link, print_command=False, log_to_file=True)
+            p = establish_temp_proxy_server(
+                link.link,
+                self.v2ray_config_template_file_name,
+                self.v2ray_config_file_name,
+                self.log_file_name,
+                print_command=False,
+                log_to_file=True,
+            )
             print(f"新建server，当前links的fail情况为: {[l.fail_times for l in self.links.links]}")
             if test_by_website_with_retry(self.test_website_url, 5, 1):
                 print(f"节点初始测试成功...")

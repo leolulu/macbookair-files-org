@@ -1,10 +1,10 @@
+import base64
+import json
 import subprocess
 from time import sleep
 
 import psutil
 import requests
-
-default_temp_proxy_server_port = 10808
 
 
 def kill_subprocess_recursively(p: subprocess.Popen):
@@ -16,12 +16,38 @@ def kill_subprocess_recursively(p: subprocess.Popen):
 
 def establish_temp_proxy_server(
     link: str,
-    temp_proxy_server_port=default_temp_proxy_server_port,
+    v2ray_config_template_file_name,
+    v2ray_config_file_name,
+    log_file_name,
     log_to_file=False,
-    log_file_name="temp_proxy_server_for_local_proxy.log",
     print_command=False,
 ):
-    command = f'lite-windows-amd64.exe -p {temp_proxy_server_port} "{link}"'
+    link_info = json.loads(base64.b64decode(link.replace("vmess://", "")).decode("utf-8"))
+    if link_info["type"] != "none" or link_info["tls"] != "":
+        print(link_info)
+        raise UserWarning("遇到不支持解析的config...")
+    with open(v2ray_config_template_file_name, "r", encoding="utf-8") as f:
+        v2ray_config = json.loads(f.read().strip())
+    outbound_info = v2ray_config["outbounds"][0]
+    outbound_info["settings"]["vnext"] = [
+        {
+            "address": link_info["add"],
+            "port": int(link_info["port"]),
+            "users": [
+                {
+                    "id": link_info["id"],
+                    "alterId": int(link_info["aid"]),
+                    "security": "auto",
+                }
+            ],
+        }
+    ]
+    outbound_info["streamSettings"]["network"] = link_info["net"]
+    v2ray_config["outbounds"] = [outbound_info]
+    with open(v2ray_config_file_name, "w", encoding="utf-8") as f:
+        f.write(json.dumps(v2ray_config, indent=2))
+
+    command = f"v2ray.exe -config {v2ray_config_file_name} "
     if log_to_file:
         command += f' >> "{log_file_name}" 2>&1'
     if print_command:
@@ -31,7 +57,7 @@ def establish_temp_proxy_server(
 
 def test_by_website(
     test_website_url,
-    proxy_str=f"http://127.0.0.1:{default_temp_proxy_server_port}",
+    proxy_str=f"http://127.0.0.1:10809",
     print_exception=False,
 ):
     try:
