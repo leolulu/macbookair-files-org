@@ -5,7 +5,13 @@ from typing import List, Optional
 
 import requests
 
-from utils import establish_temp_proxy_server, kill_subprocess_recursively, test_by_website, test_by_website_with_retry
+from utils import (
+    establish_temp_proxy_server,
+    kill_subprocess_recursively,
+    test_by_website,
+    test_by_website_with_retry,
+    establish_temp_proxy_server_with_multiple_links,
+)
 
 
 class Link:
@@ -25,6 +31,7 @@ class Links:
         url = "http://43.139.10.228:1127/Saladict/filtered_node.txt"
         links = requests.get(url).text.split("\n")
         links = [i.strip() for i in links if i.startswith("vmess")]
+        self.raw_links: List[str] = links
         self.links: List[Link] = [Link(l) for l in links]
         print(f"已获取新节点，共有【{len(self.links)}】个...")
 
@@ -32,6 +39,9 @@ class Links:
         if min(self.links, key=lambda x: x.fail_times).fail_times >= 5:
             self.init_links()
         return min(self.links, key=lambda x: x.fail_times)
+
+    def get_all(self):
+        return self.raw_links
 
 
 class ProxyServerEstablisher:
@@ -81,7 +91,17 @@ class ProxyServerEstablisher:
                 kill_subprocess_recursively(p)
                 link.fail()
 
+    def run_with_all_links(self):
+        establish_temp_proxy_server_with_multiple_links(
+            self.links.get_all(),
+            self.v2ray_config_template_file_name,
+            self.v2ray_config_file_name,
+            self.log_file_name,
+            print_command=True,
+            log_to_file=False,
+        )
+
 
 if __name__ == "__main__":
     pse = ProxyServerEstablisher()
-    pse.run()
+    pse.run_with_all_links()
