@@ -10,8 +10,8 @@ from datetime import datetime
 from typing import Optional
 
 import chardet
-import psutil
 import requests
+
 from utils import establish_temp_proxy_server, kill_subprocess_recursively, test_by_youtube
 
 
@@ -20,21 +20,36 @@ class ProxyNode:
     TYPE_TROJAN = "trojan"
     TYPE_UNDEFINE = "undefine"
 
-    def __init__(self, link) -> None:
+    def __init__(self, link: str) -> None:
         self.link = link
         self.avg_speeds = deque(maxlen=10)
         self.fail_streak = 0
         self.name = None
         self.type = self.judge_node_type(link)
         self.birth_time = datetime.now()
+        self.parse_link()
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, ProxyNode):
-            return self.link == other.link
+            if self.addr:
+                return self.addr == other.addr
+            else:
+                return self.link == other.link
         return False
 
     def __hash__(self) -> int:
-        return hash(self.link)
+        if self.addr:
+            return hash(self.addr)
+        else:
+            return hash(self.link)
+
+    def parse_link(self):
+        try:
+            if self.link.lower().startswith("vmess"):
+                self.link_info = json.loads(base64.b64decode(self.link.replace("vmess://", "")).decode("utf-8"))
+                self.addr = self.link_info["add"]
+        except:
+            self.addr = None
 
     def judge_node_type(self, link):
         if link.lower().startswith(ProxyNode.TYPE_VMESS):
