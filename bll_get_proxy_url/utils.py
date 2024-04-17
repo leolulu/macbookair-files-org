@@ -1,6 +1,7 @@
 import base64
 import json
 import subprocess
+from copy import deepcopy
 from time import sleep
 from typing import Any, Dict, List
 
@@ -13,6 +14,57 @@ def kill_subprocess_recursively(p: subprocess.Popen):
     for proc in process.children(recursive=True):
         proc.kill()
     process.kill()
+
+
+def establish_temp_proxy_server_with_v2fly(
+    links: List[str],
+    v2ray_config_template_file_name,
+    v2ray_config_file_name,
+    log_file_name,
+    log_to_file=False,
+    print_command=False,
+):
+    def parse_link(link) -> Dict[str, Any]:
+        link_info = json.loads(base64.b64decode(link.replace("vmess://", "")).decode("utf-8"))
+        if link_info["type"] != "none" or link_info["tls"] != "":
+            print(link_info)
+            raise UserWarning("遇到不支持解析的config...")
+        return link_info
+
+    links_info = [parse_link(l) for l in links]
+    with open(v2ray_config_template_file_name, "r", encoding="utf-8") as f:
+        v2ray_config = json.loads(f.read().strip())
+    outbound_template = v2ray_config["outbounds"][0]
+    new_outbounds = []
+    for idx, link_info in enumerate(links_info):
+        temp_outbound = deepcopy(outbound_template)
+        temp_outbound["tag"] = f"out{idx}"
+        temp_outbound["settings"]["vnext"] = [
+            {
+                "address": link_info["add"],
+                "port": int(link_info["port"]),
+                "users": [
+                    {
+                        "id": link_info["id"],
+                        "alterId": int(link_info["aid"]),
+                        "security": "auto",
+                    }
+                ],
+            }
+        ]
+        temp_outbound["streamSettings"]["network"] = link_info["net"]
+        new_outbounds.append(temp_outbound)
+    v2ray_config["outbounds"] = new_outbounds
+
+    with open(v2ray_config_file_name, "w", encoding="utf-8") as f:
+        f.write(json.dumps(v2ray_config, indent=2))
+
+    command = f"v2ray.exe run -c {v2ray_config_file_name} "
+    if log_to_file:
+        command += f' >> "{log_file_name}" 2>&1'
+    if print_command:
+        print(command)
+    return subprocess.run(command, shell=True)
 
 
 def establish_temp_proxy_server_with_multiple_links(

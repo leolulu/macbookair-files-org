@@ -2,7 +2,7 @@
   "log": {
     "access": "",
     "error": "",
-    "loglevel": "info"
+    "loglevel": "warning"
   },
   "inbounds": [
     {
@@ -51,7 +51,7 @@
           {
             "address": "183.232.170.21",
             "port": 30111,
-            "users": [  
+            "users": [
               {
                 "id": "e456d54e-fb49-42c2-ace7-0dd141fee5a6",
                 "alterId": 0,
@@ -69,5 +69,25 @@
         "concurrency": -1
       }
     }
-  ]
+  ],
+  "routing": {
+    "balancers": [
+      {
+        "tag": "balancer",
+        "selector": [
+          "out"
+        ],
+        "strategy": {
+          "type": "leastPing"
+        }
+      }
+    ]
+  },
+  "observatory": {
+    "subjectSelector": [
+      "out"
+    ],
+    "probeURL": "https://www.youtube.com",
+    "probeInterval": "20s"
+  }
 }

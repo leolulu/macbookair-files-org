@@ -11,6 +11,7 @@ from utils import (
     test_by_website,
     test_by_website_with_retry,
     establish_temp_proxy_server_with_multiple_links,
+    establish_temp_proxy_server_with_v2fly,
 )
 
 
@@ -101,7 +102,17 @@ class ProxyServerEstablisher:
             log_to_file=False,
         )
 
+    def run_with_v2fly(self):
+        establish_temp_proxy_server_with_v2fly(
+            self.links.get_all(),
+            self.v2ray_config_template_file_name,
+            self.v2ray_config_file_name,
+            self.log_file_name,
+            print_command=True,
+            log_to_file=False,
+        )
+
 
 if __name__ == "__main__":
     pse = ProxyServerEstablisher()
-    pse.run_with_all_links()
+    pse.run_with_v2fly()
