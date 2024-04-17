@@ -156,6 +156,21 @@ def establish_temp_proxy_server(
     return subprocess.Popen(command, shell=True)
 
 
+def establish_temp_proxy_server_legacy(
+    link: str,
+    temp_proxy_server_port=10808,
+    log_to_file=False,
+    log_file_name="temp_proxy_server_for_local_proxy.log",
+    print_command=False,
+):
+    command = f'lite-windows-amd64.exe -p {temp_proxy_server_port} "{link}"'
+    if log_to_file:
+        command += f' >> "{log_file_name}" 2>&1'
+    if print_command:
+        print(command)
+    return subprocess.Popen(command, shell=True)
+
+
 def test_by_website(
     test_website_url,
     proxy_str=f"http://127.0.0.1:10809",

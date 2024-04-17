@@ -12,7 +12,7 @@ from typing import Optional
 import chardet
 import requests
 
-from utils import establish_temp_proxy_server, kill_subprocess_recursively, test_by_youtube
+from utils import establish_temp_proxy_server_legacy, kill_subprocess_recursively, test_by_youtube
 
 
 class ProxyNode:
@@ -143,7 +143,7 @@ class BLL_PROXY_GETTER:
             print(f"默认proxy不可用，尝试使用存量节点构建临时proxy...")
             for link in [i.link for i in self.proxy_nodes if i.isok]:
                 print(f"尝试节点: {link[:50]}...")
-                p = establish_temp_proxy_server(link, alternative_proxy_port, True, self.temp_proxy_server_log_file_name)
+                p = establish_temp_proxy_server_legacy(link, alternative_proxy_port, True, self.temp_proxy_server_log_file_name)
                 if test_by_youtube(alternative_proxy):
                     print(f"替代节点测试成功，替换proxy...")
                     self.active_proxy = alternative_proxy
