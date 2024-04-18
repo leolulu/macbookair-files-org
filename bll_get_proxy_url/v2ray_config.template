@@ -2,7 +2,7 @@
   "log": {
     "access": "",
     "error": "",
-    "loglevel": "warning"
+    "loglevel": "info"
   },
   "inbounds": [
     {
@@ -71,6 +71,16 @@
     }
   ],
   "routing": {
+    "rules": [
+      {
+        "type": "field",
+        "inboundTag": [
+          "socks",
+          "http"
+        ],
+        "balancerTag": "balancer"
+      }
+    ],
     "balancers": [
       {
         "tag": "balancer",
@@ -88,6 +98,6 @@
       "out"
     ],
     "probeURL": "https://www.youtube.com",
-    "probeInterval": "30s"
+    "probeInterval": "10s"
   }
 }
