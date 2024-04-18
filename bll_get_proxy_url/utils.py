@@ -26,7 +26,7 @@ def establish_temp_proxy_server_with_v2fly(
 ):
     def parse_link(link) -> Dict[str, Any]:
         link_info = json.loads(base64.b64decode(link.replace("vmess://", "")).decode("utf-8"))
-        if link_info["type"] != "none" or link_info["tls"] != "":
+        if link_info["type"] != "none":
             print(link_info)
             raise UserWarning("遇到不支持解析的config...")
         return link_info
@@ -53,6 +53,14 @@ def establish_temp_proxy_server_with_v2fly(
             }
         ]
         temp_outbound["streamSettings"]["network"] = link_info["net"]
+        if link_info["net"] == "ws":
+            temp_outbound["streamSettings"]["wsSettings"] = {
+                "path": link_info["path"],
+                "headers": {"Host": link_info["host"]} if link_info["host"] else {},
+            }
+        if link_info["tls"] == "tls":
+            temp_outbound["streamSettings"]["security"] = "tls"
+            temp_outbound["streamSettings"]["tlsSettings"] = {"allowInsecure": True}
         new_outbounds.append(temp_outbound)
     v2ray_config["outbounds"] = new_outbounds
 

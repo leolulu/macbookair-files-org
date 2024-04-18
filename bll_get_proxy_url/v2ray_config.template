@@ -88,6 +88,6 @@
       "out"
     ],
     "probeURL": "https://www.youtube.com",
-    "probeInterval": "20s"
+    "probeInterval": "30s"
   }
 }
