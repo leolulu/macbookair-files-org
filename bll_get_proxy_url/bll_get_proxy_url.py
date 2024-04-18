@@ -276,7 +276,10 @@ class BLL_PROXY_GETTER:
     def save_node_statistics(self, node: ProxyNode):
         info = node.survival_info
         with open(self.proxy_node_statistics_file_name, "a", encoding="utf-8") as f:
-            avg_speed = f"{round(sum(node.avg_speeds)/len(node.avg_speeds)/1024/1024,1)}MB/s"
+            if len(node.avg_speeds) == 0:
+                avg_speed = "premature death"
+            else:
+                avg_speed = f"{round(sum(node.avg_speeds)/len(node.avg_speeds)/1024/1024,1)}MB/s"
             f.write(
                 f"节点名称: {node.name}\n节点类型: {node.type}\n平均测速: {avg_speed}\n加入时间: {info[0]}\n剔除时间: {info[1]}\n生存时长: {info[2]}小时\n\n"
             )
