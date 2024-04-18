@@ -323,7 +323,7 @@ class BLL_PROXY_GETTER:
 
 if __name__ == "__main__":
     raw_round_interval = 600
-    top_node_count = 5
+    top_node_count = 10
     bll = BLL_PROXY_GETTER(top_node_count=top_node_count)
     for _ in range(5):
         last_btime = time.time()
