@@ -48,6 +48,8 @@ class ProxyNode:
             if self.link.lower().startswith("vmess"):
                 self.link_info = json.loads(base64.b64decode(self.link.replace("vmess://", "")).decode("utf-8"))
                 self.addr = self.link_info["add"]
+            else:
+                self.addr = None
         except:
             self.addr = None
 
