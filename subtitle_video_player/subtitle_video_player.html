@@ -601,9 +601,7 @@
                 return parseFloat(num.toFixed(3));
             }
 
-            async function processFiles(e) {
-                srtLoaded = false
-                var files = e.target.files;
+            async function processFilesImpl(files) {
                 for (var i = 0; i < files.length; i++) {
                     if (files[i].name.toLowerCase().endsWith('.mp4') || files[i].name.toLowerCase().endsWith('.webm')) {
                         var url = URL.createObjectURL(files[i]);
@@ -626,6 +624,12 @@
                         await loadHtmlFromSup(files[i])
                     }
                 }
+            }
+
+            function processFiles(e) {
+                srtLoaded = false;
+                let files = e.target.files;
+                processFilesImpl(files);
             }
 
             // Set up event listener for video file input
@@ -960,6 +964,25 @@
                     if (checkbox2.checked) {
                         checkbox1.checked = false;
                     }
+                });
+            })();
+
+            (function () {
+                let dropZone = document.getElementById('videoFile');
+                dropZone.addEventListener('dragover', function (e) {
+                    e.preventDefault();
+                    dropZone.style.backgroundColor = '#F7C137';
+                });
+                dropZone.addEventListener('dragleave', function (e) {
+                    e.preventDefault();
+                    dropZone.style.backgroundColor = '';
+                });
+                dropZone.addEventListener('drop', function (e) {
+                    e.preventDefault();
+                    dropZone.style.backgroundColor = '';
+                    srtLoaded = false;
+                    let files = e.dataTransfer.files;
+                    processFilesImpl(files);
                 });
             })();
 
