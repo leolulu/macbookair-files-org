@@ -394,7 +394,7 @@ if __name__ == "__main__":
                 os.path.join(video_path, f)
                 for f in os.listdir(video_path)
                 if os.path.splitext(f)[-1].lower()
-                in [".mp4", ".flv", ".avi", ".mpg", ".wmv", ".mpeg", ".mov", ".mkv", ".ts", ".rmvb", ".rm", ".webm"]
+                in [".mp4", ".flv", ".avi", ".mpg", ".wmv", ".mpeg", ".mov", ".mkv", ".ts", ".rmvb", ".rm", ".webm", ".gif"]
             ]
             if args.parallel_processing_directory > 1:
                 with ThreadPoolExecutor(args.parallel_processing_directory) as exe:
