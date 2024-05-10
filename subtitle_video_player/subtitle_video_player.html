@@ -1371,6 +1371,12 @@
                 }
             })();
 
+            document.getElementById("skipBlanks").addEventListener('click', function (event) {
+                setTimeout(() => {
+                    $('#video')[0].focus();
+                }, 200);
+            });
+
         });
     </script>
 </body>
