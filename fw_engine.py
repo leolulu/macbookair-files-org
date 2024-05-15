@@ -259,6 +259,7 @@ class FasterWhisper:
 
 
 if __name__ == "__main__":
+    support_media_type_in_folder_processing_mode = [".mp4", ".flv", ".avi", ".mpg", ".wmv", ".mpeg", ".mov", ".webm"]
 
     def process_media(media_path):
         if os.path.exists(os.path.splitext(media_path)[0] + ".srt") or os.path.exists(os.path.splitext(media_path)[0] + ".json"):
@@ -294,7 +295,7 @@ if __name__ == "__main__":
                 for media_path in [
                     os.path.join(download_path, i)
                     for i in os.listdir(download_path)
-                    if os.path.splitext(i)[-1].lower() in [".mp4", ".flv", ".avi", ".mpg", ".wmv", ".mpeg", ".mov"]
+                    if os.path.splitext(i)[-1].lower() in support_media_type_in_folder_processing_mode
                 ]:
                     process_media(media_path)
                 time.sleep(5)
@@ -305,7 +306,7 @@ if __name__ == "__main__":
             media_paths = [
                 os.path.join(input_path, i)
                 for i in os.listdir(input_path)
-                if os.path.splitext(i)[-1].lower() in [".mp4", ".flv", ".avi", ".mpg", ".wmv", ".mpeg", ".mov"]
+                if os.path.splitext(i)[-1].lower() in support_media_type_in_folder_processing_mode
             ]
         else:
             media_paths = []
