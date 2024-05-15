@@ -25,7 +25,7 @@ from tqdm import tqdm
 
 
 class FasterWhisper:
-    def __init__(self, model_size="large-v2", local_files_only=True) -> None:
+    def __init__(self, model_size="large-v3", local_files_only=True) -> None:
         self.model = WhisperModel(model_size, device="cuda", compute_type="float16", local_files_only=local_files_only)
         self.pyannote_pipeline = None
 
