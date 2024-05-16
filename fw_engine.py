@@ -184,8 +184,8 @@ class FasterWhisper:
             ).to(torch.device("cuda"))
         with ProgressHook() as hook:
             diarization = self.pyannote_pipeline(audio_path, hook=hook)
-        png_data = diarization._repr_png_()
         if with_png:
+            png_data = diarization._repr_png_()
             with open(png_path, "wb") as f:
                 f.write(png_data)
             move_result_file_callback(png_path, media_path=media_path)
@@ -272,8 +272,8 @@ if __name__ == "__main__":
                 with_srt=True,
                 with_json=True,
                 with_txt=True,
-                with_diarization=False,
-                with_png=False,
+                with_diarization=True,
+                with_png=True,
                 language="auto",
             )
         except:
