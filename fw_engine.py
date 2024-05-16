@@ -4,6 +4,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -274,12 +275,16 @@ if __name__ == "__main__":
                 with_txt=True,
                 with_diarization=True,
                 with_png=True,
-                language="auto",
+                language=None,
             )
         except:
             traceback.print_exc()
 
     w = FasterWhisper(local_files_only=True)
+
+    if len(sys.argv) > 1:
+        process_media(sys.argv[1].strip())
+
     while True:
         input_path = input("请输入媒体文件或文件夹的绝对路径：").strip()
         if not input_path:
