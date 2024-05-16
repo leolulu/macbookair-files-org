@@ -2,6 +2,8 @@
 *.pkl
 *.log
 
+Pipfile
+
 bll_get_proxy_url/v2ray_config.json
 
 subtitle_video_player/sup/
