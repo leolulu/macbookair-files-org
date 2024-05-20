@@ -273,9 +273,9 @@ if __name__ == "__main__":
                 with_srt=True,
                 with_json=True,
                 with_txt=True,
-                with_diarization=True,
-                with_png=True,
-                language=None,
+                with_diarization=False,
+                with_png=False,
+                language="auto",
             )
         except:
             traceback.print_exc()
