@@ -30,8 +30,14 @@ class FasterWhisper:
         self.model = WhisperModel(model_size, device="cuda", compute_type="float16", local_files_only=local_files_only)
         self.pyannote_pipeline = None
 
-    def transcribe(self, media_path, word_timestamps=True, language=None):
-        segments, info = self.model.transcribe(media_path, beam_size=5, word_timestamps=word_timestamps, language=language)
+    def transcribe(self, media_path, word_timestamps=True, language=None, vad_filter=True):
+        segments, info = self.model.transcribe(
+            media_path,
+            beam_size=5,
+            word_timestamps=word_timestamps,
+            language=language,
+            vad_filter=vad_filter,
+        )
         print("Detected language '%s' with probability %f" % (info.language, info.language_probability))
 
         segments_result: List[Segment] = []
@@ -95,6 +101,7 @@ class FasterWhisper:
         move_result_file_callback=None,
         force_align=True,
         regroup_eng=True,
+        vad_filter=True,
     ):
         if not (with_srt or with_json or with_txt):
             raise UserWarning(f"srt、json、txt需要选择至少一种输出!")
@@ -106,7 +113,7 @@ class FasterWhisper:
         video_duration = self.get_video_duration(media_path)
         print(f"视频时长为: {video_duration}")
         b_time = time.time()
-        segments, info = self.transcribe(media_path, word_timestamps=word_timestamps, language=language)
+        segments, info = self.transcribe(media_path, word_timestamps=word_timestamps, language=language, vad_filter=vad_filter)
 
         if force_align:
             try:
@@ -276,6 +283,7 @@ if __name__ == "__main__":
                 with_diarization=False,
                 with_png=False,
                 language="auto",
+                vad_filter=True,
             )
         except:
             traceback.print_exc()
