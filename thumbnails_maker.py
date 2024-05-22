@@ -11,7 +11,7 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Tuple, Union
+from typing import Optional, Tuple, Union
 
 import cv2
 import numpy as np
@@ -143,7 +143,7 @@ def gen_video_thumbnail(
     cols,
     max_thumb_duration,
     start_offset=0,
-    low_load_mode=False,
+    low_load_mode: Optional[int] = None,
     alternative_output_folder_path=None,
 ):
     video_name = os.path.splitext(os.path.basename(video_path))[0]
@@ -181,7 +181,7 @@ def gen_video_thumbnail(
         gen_footage_command += f'"{output_file_path}"'
         intermediate_file_paths.append(output_file_path)
         gen_footage_commands.append(gen_footage_command)
-    with ThreadPoolExecutor(1 if low_load_mode else os.cpu_count()) as exe:
+    with ThreadPoolExecutor(low_load_mode if low_load_mode else os.cpu_count()) as exe:
         exe.map(lambda c: subprocess.run(c, shell=True), gen_footage_commands)
 
     # 检查中间文件是否损坏
@@ -303,7 +303,7 @@ def generate_thumbnail(
     cols=None,
     preset="ultrafast",
     process_full_video=False,
-    low_load_mode=False,
+    low_load_mode: Optional[int] = None,
     max_thumb_duration=30,
     alternative_output_folder_path=None,
     screen_ratio_raw: str = "16/9",
@@ -366,7 +366,7 @@ if __name__ == "__main__":
         choices=["ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow"],
     )
     parser.add_argument("--full", help="是否要生成多个缩略图以覆盖视频完整时长", action="store_true")
-    parser.add_argument("-l", "--low", help="低负载模式，使用单线程进行转换", action="store_true")
+    parser.add_argument("-l", "--low", help="低负载模式，可指定线程数量，默认使用单线程进行转换", type=int, const=1, nargs="?")
     parser.add_argument("-m", "--max", help="指定生成单个视频缩略图的最大时长", type=int, default=30)
     parser.add_argument("-ao", "--alternative_output_folder_path", help="指定结果文件的生成路径，而不是和源文件相同目录", type=str)
     parser.add_argument(
