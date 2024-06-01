@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+import traceback
 
 
 def extract_audio(video_file_path):
@@ -42,6 +43,11 @@ if __name__ == "__main__":
     input_path = os.path.abspath(sys.argv[1])
     if os.path.isdir(input_path):
         for i in os.listdir(input_path):
-            extract_audio(os.path.join(input_path, i))
+            input_path_ = os.path.join(input_path, i)
+            print(f"开始处理: {input_path_}")
+            try:
+                extract_audio(input_path_)
+            except:
+                traceback.print_exc()
     else:
         extract_audio(input_path)
