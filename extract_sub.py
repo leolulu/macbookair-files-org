@@ -65,8 +65,8 @@ if __name__ == "__main__":
         language_filter = sys.argv[2].split(",")
 
     if os.path.isdir(input_path):
-        for file_in_folder in os.listdir(input_path):
-            if os.path.splitext(file_in_folder)[-1].lower() == ".mkv":
-                extract_subtitles(file_in_folder, language_filter)
+        for file_ in os.listdir(input_path):
+            if os.path.splitext(file_)[-1].lower() == ".mkv":
+                extract_subtitles(os.path.join(input_path, file_), language_filter)
     else:
         extract_subtitles(input_path, language_filter)
