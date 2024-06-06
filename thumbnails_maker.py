@@ -16,6 +16,7 @@ from typing import Optional, Tuple, Union
 import cv2
 import numpy as np
 import requests
+from retrying import retry
 from tqdm import tqdm
 
 
@@ -432,8 +433,13 @@ if __name__ == "__main__":
             file_path = os.path.join(str(Path.home() / "Downloads"), file_name)
             if not os.path.exists(file_path):
                 print(f"视频在本地不存在，开始下载: {file_name}")
+
+                @retry(wait_fixed=6000, stop_max_attempt_number=10)
+                def download_video(video_path):
+                    return requests.get(video_path, proxies={"http": "http://127.0.0.1:10809", "https": "http://127.0.0.1:10809"}).content
+
                 with open(file_path, "wb") as f:
-                    f.write(requests.get(video_path, proxies={"http": "http://127.0.0.1:10809", "https": "http://127.0.0.1:10809"}).content)
+                    f.write(download_video(video_path))
             generate_thumbnail(
                 file_path, rows, cols, args.preset, args.full, args.low, args.max, args.alternative_output_folder_path, args.screen_ratio
             )
