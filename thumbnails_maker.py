@@ -307,7 +307,12 @@ def generate_thumbnail(
     max_thumb_duration=30,
     alternative_output_folder_path=None,
     screen_ratio_raw: str = "16/9",
+    skip_completed_file=False,
 ):
+    if skip_completed_file and any(map(os.path.exists, [os.path.splitext(video_path)[0] + i for i in [".tbnl", ".jpg"]])):
+        print("已经存在结果文件，跳过...")
+        return
+
     if "/" in screen_ratio_raw:
         screen_ratio = int(screen_ratio_raw.split("/")[0]) / int(screen_ratio_raw.split("/")[-1])
     else:
@@ -375,6 +380,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-sr", "--screen_ratio", help="指定屏幕长宽比，可输入'width/height'格式，也可直接输入小数", type=str, default="16/9"
     )
+    parser.add_argument("-s", "--skip", help="跳过已经有输出结果的输入文件", action="store_true")
     args = parser.parse_args()
 
     def process_video(args):
@@ -410,6 +416,7 @@ if __name__ == "__main__":
                             args.max,
                             args.alternative_output_folder_path,
                             args.screen_ratio,
+                            args.skip,
                         )
             else:
                 for video_path in video_paths:
@@ -424,6 +431,7 @@ if __name__ == "__main__":
                             args.max,
                             args.alternative_output_folder_path,
                             args.screen_ratio,
+                            args.skip,
                         )
                     except:
                         traceback.print_exc()
@@ -435,11 +443,29 @@ if __name__ == "__main__":
                 with open(file_path, "wb") as f:
                     f.write(requests.get(video_path, proxies={"http": "http://127.0.0.1:10809", "https": "http://127.0.0.1:10809"}).content)
             generate_thumbnail(
-                file_path, rows, cols, args.preset, args.full, args.low, args.max, args.alternative_output_folder_path, args.screen_ratio
+                file_path,
+                rows,
+                cols,
+                args.preset,
+                args.full,
+                args.low,
+                args.max,
+                args.alternative_output_folder_path,
+                args.screen_ratio,
+                args.skip,
             )
         else:
             generate_thumbnail(
-                video_path, rows, cols, args.preset, args.full, args.low, args.max, args.alternative_output_folder_path, args.screen_ratio
+                video_path,
+                rows,
+                cols,
+                args.preset,
+                args.full,
+                args.low,
+                args.max,
+                args.alternative_output_folder_path,
+                args.screen_ratio,
+                args.skip,
             )
 
     if args.video_path is None:
@@ -467,6 +493,7 @@ if __name__ == "__main__":
                         alternative_output_folder_path=args.alternative_output_folder_path,
                         parallel_processing_directory=args.parallel_processing_directory,
                         screen_ratio=args.screen_ratio,
+                        skip=args.skip,
                     ),
                 ),
             ).start()
