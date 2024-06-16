@@ -18,6 +18,7 @@ def get_subtitle_extension(codec_name):
 
 
 def extract_subtitles(input_file, language_filter=[]):
+    print(f"Begin to handle input file: {input_file}")
     # 使用 ffprobe 获取文件信息
     cmd = [
         "ffprobe",
@@ -49,9 +50,9 @@ def extract_subtitles(input_file, language_filter=[]):
         output_file = f"{input_file.rsplit('.', 1)[0]}_{language}.{extension}"
 
         # 使用 ffmpeg 提取字幕
+        print(f"Extracting subtitles to {output_file}")
         ffmpeg_cmd = ["ffmpeg", "-loglevel", "error", "-i", input_file, "-map", f"0:{index}", "-c", "copy", output_file]
         subprocess.run(ffmpeg_cmd)
-        print(f"Extracted subtitles to {output_file}")
 
 
 if __name__ == "__main__":
