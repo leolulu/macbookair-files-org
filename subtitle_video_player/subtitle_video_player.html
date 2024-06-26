@@ -334,6 +334,7 @@
             <div class="options-container">
                 <input type="file" id="videoFile" accept=".mp4, .webm, .srt, .json, .ass, .html" multiple />
                 <span id='videoFocusStatus'>❌<span style="color: red;">失焦</span></span>
+                <span id='videoCanPlayStatus'>🔴</span>
                 <label for="skipBlanks">跳过空白</label>
                 <input type="checkbox" id="skipBlanks" />
                 <div class="inline-options-container">
@@ -1373,6 +1374,27 @@
                         clearTimeout(focusVideoTimer)
                     }
                     statusIcon.innerHTML = '✅<span style="color: #00D26A;">聚焦</span>';
+                }
+            })();
+
+            (function () {
+                let video = document.getElementById('video');
+                let statusIcon = document.getElementById('videoCanPlayStatus');
+                video.oncanplay = () => {
+                    statusIcon.innerText = '🟡';
+                    statusIcon.classList.add('blinking');
+                }
+                video.oncanplaythrough = () => {
+                    statusIcon.innerText = '🟢';
+                    statusIcon.classList.remove('blinking');
+                }
+                video.onwaiting = () => {
+                    statusIcon.innerText = '🔴';
+                    statusIcon.classList.add('blinking');
+                }
+                video.onseeking = () => {
+                    statusIcon.innerText = '🔴';
+                    statusIcon.classList.add('blinking');
                 }
             })();
 
