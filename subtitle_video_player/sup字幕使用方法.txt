@@ -1,4 +1,5 @@
 1. 使用Subtitle Edit软件打开提取出来的sup字幕
 2. 在弹出的import窗口右键Subtitle Text列表区域，点击右键菜单中的"Save all images with HTML index"选项
-3. 复数image文件和单个文件将导出至选定的目录中
+3. 复数image文件和单个html文件将导出至选定的目录中
 4. 将上面所有文件放至"subtitle_video_player.html"同级的"sup"文件夹中(如不存在需要手动创建)
+5. 播放时载入html文件做为字幕文件
