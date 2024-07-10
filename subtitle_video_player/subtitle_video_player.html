@@ -125,7 +125,8 @@
         }
 
         #textLength,
-        #mediaGain {
+        #mediaGain,
+        #sideListSupHeight {
             max-width: 2rem;
         }
 
@@ -393,6 +394,10 @@
                     <div class="inline-block-element">
                         <label for="scaleSupCaption">sup缩放:</label>
                         <input type="number" id="scaleSupCaption" value="1.0" step="0.1">
+                    </div>
+                    <div class="inline-block-element">
+                        <label for="sideListSupHeight">sup侧边高度:</label>
+                        <input type="number" id="sideListSupHeight" value="28">
                     </div>
                 </div>
                 <div class="inline-block-element">
@@ -1402,6 +1407,14 @@
                 setTimeout(() => {
                     $('#video')[0].focus();
                 }, 200);
+            });
+
+            $('#sideListSupHeight').on('input', function () {
+                const subtitleImages = document.querySelectorAll('#subtitles .sup-subtitle-image');
+                const value = parseInt(this.value, 10);
+                subtitleImages.forEach(img => {
+                    img.style.maxHeight = `${value}px`;
+                });
             });
 
         });
