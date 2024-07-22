@@ -385,10 +385,12 @@ if __name__ == "__main__":
     )
     parser.add_argument("-s", "--skip", help="跳过已经有输出结果的输入文件", action="store_true")
     parser.add_argument("-p", "--pic_only", help="只生成图像缩略图，不生成视频缩略图", action="store_true")
+    parser.add_argument("-r", "--recursion", help="如果输入路径为目录，则递归处理子目录", action="store_true")
     args = parser.parse_args()
 
     def process_video(args):
-        video_path = args.video_path
+        video_file_extensions = [".mp4", ".flv", ".avi", ".mpg", ".wmv", ".mpeg", ".mov", ".mkv", ".ts", ".rmvb", ".rm", ".webm", ".gif"]
+        video_path = os.path.abspath(args.video_path)
         if (args.rows is None) and (args.cols is None):
             rows = 7
             cols = 7
@@ -400,12 +402,17 @@ if __name__ == "__main__":
             cols = args.cols
 
         if os.path.isdir(video_path):
-            video_paths = [
-                os.path.join(video_path, f)
-                for f in os.listdir(video_path)
-                if os.path.splitext(f)[-1].lower()
-                in [".mp4", ".flv", ".avi", ".mpg", ".wmv", ".mpeg", ".mov", ".mkv", ".ts", ".rmvb", ".rm", ".webm", ".gif"]
-            ]
+            if args.recursion:
+                video_paths = []
+                for dir_, _, files_ in os.walk(video_path):
+                    for file_ in files_:
+                        f = os.path.join(dir_, file_)
+                        if os.path.splitext(f)[-1].lower() in video_file_extensions:
+                            video_paths.append(f)
+            else:
+                video_paths = [
+                    os.path.join(video_path, f) for f in os.listdir(video_path) if os.path.splitext(f)[-1].lower() in video_file_extensions
+                ]
             if args.parallel_processing_directory > 1:
                 with ThreadPoolExecutor(args.parallel_processing_directory) as exe:
                     for video_path in video_paths:
@@ -508,6 +515,7 @@ if __name__ == "__main__":
                         screen_ratio=args.screen_ratio,
                         skip=args.skip,
                         pic_only=args.pic_only,
+                        recursion=args.recursion,
                     ),
                 ),
             ).start()
