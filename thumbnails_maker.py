@@ -390,7 +390,7 @@ if __name__ == "__main__":
 
     def process_video(args):
         video_file_extensions = [".mp4", ".flv", ".avi", ".mpg", ".wmv", ".mpeg", ".mov", ".mkv", ".ts", ".rmvb", ".rm", ".webm", ".gif"]
-        video_path = os.path.abspath(args.video_path)
+        video_path = args.video_path
         if (args.rows is None) and (args.cols is None):
             rows = 7
             cols = 7
