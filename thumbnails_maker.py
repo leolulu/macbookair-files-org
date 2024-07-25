@@ -310,6 +310,7 @@ def generate_thumbnail(
     screen_ratio_raw: str = "16/9",
     skip_completed_file=False,
     pic_thumbnail_only=False,
+    video_thumbnail_only=False,
 ):
     if skip_completed_file and any(map(os.path.exists, [os.path.splitext(video_path)[0] + i for i in [".tbnl", ".jpg"]])):
         print("已经存在结果文件，跳过...")
@@ -323,9 +324,10 @@ def generate_thumbnail(
     def process_video(video_path, rows_calced, cols_calced, start_offset=0):
         try:
             frame_interval, fps, height, width, duration_in_seconds, _, _ = gen_info(video_path, rows_calced, cols_calced, screen_ratio)
-            gen_pic_thumbnail(
-                video_path, frame_interval, rows_calced, cols_calced, height, width, start_offset, alternative_output_folder_path
-            )
+            if not video_thumbnail_only:
+                gen_pic_thumbnail(
+                    video_path, frame_interval, rows_calced, cols_calced, height, width, start_offset, alternative_output_folder_path
+                )
             if not pic_thumbnail_only:
                 gen_video_thumbnail(
                     video_path,
@@ -385,8 +387,13 @@ if __name__ == "__main__":
     )
     parser.add_argument("-s", "--skip", help="跳过已经有输出结果的输入文件", action="store_true")
     parser.add_argument("-p", "--pic_only", help="只生成图像缩略图，不生成视频缩略图", action="store_true")
+    parser.add_argument("-v", "--video_only", help="只生成视频缩略图，不生成图像缩略图", action="store_true")
     parser.add_argument("-r", "--recursion", help="如果输入路径为目录，则递归处理子目录", action="store_true")
     args = parser.parse_args()
+
+    if args.pic_only and args.video_only:
+        print(f"-p和-v模式只能二选一，不能同时设置!")
+        exit()
 
     def process_video(args):
         video_file_extensions = [".mp4", ".flv", ".avi", ".mpg", ".wmv", ".mpeg", ".mov", ".mkv", ".ts", ".rmvb", ".rm", ".webm", ".gif"]
@@ -429,6 +436,7 @@ if __name__ == "__main__":
                             args.screen_ratio,
                             args.skip,
                             args.pic_only,
+                            args.video_only,
                         )
             else:
                 for video_path in video_paths:
@@ -445,6 +453,7 @@ if __name__ == "__main__":
                             args.screen_ratio,
                             args.skip,
                             args.pic_only,
+                            args.video_only,
                         )
                     except:
                         traceback.print_exc()
@@ -472,6 +481,7 @@ if __name__ == "__main__":
                 args.screen_ratio,
                 args.skip,
                 args.pic_only,
+                args.video_only,
             )
         else:
             generate_thumbnail(
@@ -486,6 +496,7 @@ if __name__ == "__main__":
                 args.screen_ratio,
                 args.skip,
                 args.pic_only,
+                args.video_only,
             )
 
     if args.video_path is None:
@@ -515,6 +526,7 @@ if __name__ == "__main__":
                         screen_ratio=args.screen_ratio,
                         skip=args.skip,
                         pic_only=args.pic_only,
+                        video_only=args.video_only,
                         recursion=args.recursion,
                     ),
                 ),
