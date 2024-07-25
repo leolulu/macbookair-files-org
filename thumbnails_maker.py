@@ -313,7 +313,7 @@ def generate_thumbnail(
     video_thumbnail_only=False,
 ):
     if skip_completed_file and any(map(os.path.exists, [os.path.splitext(video_path)[0] + i for i in [".tbnl", ".jpg"]])):
-        print("已经存在结果文件，跳过...")
+        print(f"视频【{video_path}】已经存在结果文件，跳过...")
         return
 
     if "/" in screen_ratio_raw:
@@ -347,7 +347,7 @@ def generate_thumbnail(
             traceback.print_exc()
 
     _, _, _, _, duration_in_seconds, rows_calced, cols_calced = gen_info(video_path, rows, cols, screen_ratio)
-    print(f"开始生成视频缩略图，视频路径：{video_path}，行列数：{rows_calced}x{cols_calced}")
+    print(f"开始生成缩略图，视频路径：{video_path}，行列数：{rows_calced}x{cols_calced}")
     if process_full_video and rows_calced * cols_calced * max_thumb_duration < duration_in_seconds:
         n = 1
         seg_start_time = 0
