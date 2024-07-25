@@ -27,7 +27,15 @@ from tqdm import tqdm
 
 class FasterWhisper:
     def __init__(self, model_size="large-v3", local_files_only=True) -> None:
-        self.model = WhisperModel(model_size, device="cuda", compute_type="float16", local_files_only=local_files_only)
+        gpu_device_count = torch.cuda.device_count()
+        self.model = WhisperModel(
+            model_size,
+            device="cuda",
+            compute_type="float16",
+            local_files_only=local_files_only,
+            device_index=list(range(gpu_device_count)),
+            num_workers=gpu_device_count,
+        )
         self.pyannote_pipeline = None
 
     def transcribe(self, media_path, word_timestamps=True, language=None, vad_filter=True):
