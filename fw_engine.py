@@ -33,7 +33,7 @@ class FasterWhisper:
             device="cuda",
             compute_type="float16",
             local_files_only=local_files_only,
-            device_index=list(range(gpu_device_count)),
+            device_index=list(range(gpu_device_count))[::-1],
             num_workers=gpu_device_count,
         )
         self.pyannote_pipeline = None
