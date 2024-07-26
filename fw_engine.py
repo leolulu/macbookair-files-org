@@ -26,7 +26,7 @@ from tqdm import tqdm
 
 
 class FasterWhisper:
-    def __init__(self, model_size="large-v3", local_files_only=True) -> None:
+    def __init__(self, model_size="large-v3", local_files_only=True, deconcur_diarization=False) -> None:
         gpu_device_count = torch.cuda.device_count()
         self.model = WhisperModel(
             model_size,
@@ -36,6 +36,9 @@ class FasterWhisper:
             device_index=list(range(gpu_device_count))[::-1],
         )
         self.pyannote_pipeline = None
+        self.deconcur_diarization = deconcur_diarization
+        if self.deconcur_diarization:
+            self.diarization_lock = threading.Lock()
 
     def transcribe(self, media_path, word_timestamps=True, language=None, vad_filter=True):
         segments, info = self.model.transcribe(
@@ -204,7 +207,13 @@ class FasterWhisper:
                 print(f"pyannote pipeline绑定GPU失败...")
                 traceback.print_exc()
         with ProgressHook() as hook:
+            if self.deconcur_diarization:
+                self.diarization_lock.acquire()
             diarization = self.pyannote_pipeline(audio_path, hook=hook)
+            try:
+                self.diarization_lock.release()
+            except:
+                pass
         if with_png:
             png_data = diarization._repr_png_()
             with open(png_path, "wb") as f:
