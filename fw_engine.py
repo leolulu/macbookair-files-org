@@ -206,14 +206,14 @@ class FasterWhisper:
             except:
                 print(f"pyannote pipeline绑定GPU失败...")
                 traceback.print_exc()
-        if self.deconcur_diarization:
-            self.diarization_lock.acquire()
         with ProgressHook() as hook:
+            if self.deconcur_diarization:
+                self.diarization_lock.acquire()
             diarization = self.pyannote_pipeline(audio_path, hook=hook)
-        try:
-            self.diarization_lock.release()
-        except:
-            pass
+            try:
+                self.diarization_lock.release()
+            except:
+                pass
         if with_png:
             png_data = diarization._repr_png_()
             with open(png_path, "wb") as f:
