@@ -196,7 +196,13 @@ class FasterWhisper:
         if not self.pyannote_pipeline:
             self.pyannote_pipeline = Pipeline.from_pretrained(
                 "pyannote/speaker-diarization-3.1", use_auth_token="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"
-            ).to(torch.device("cuda"))
+            )
+            try:
+                if not re.search("RTX 3060", torch.cuda.get_device_name()):
+                    self.pyannote_pipeline.to(torch.device("cuda"))
+            except:
+                print(f"pyannote pipeline绑定GPU失败...")
+                traceback.print_exc()
         with ProgressHook() as hook:
             diarization = self.pyannote_pipeline(audio_path, hook=hook)
         if with_png:
@@ -287,7 +293,7 @@ if __name__ == "__main__":
                 with_srt=True,
                 with_json=True,
                 with_txt=True,
-                with_diarization=False,
+                with_diarization=True,
                 with_png=False,
                 language="auto",
                 vad_filter=True,
