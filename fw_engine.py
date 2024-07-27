@@ -11,6 +11,7 @@ import time
 import traceback
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from threading import Thread
 from typing import Iterable, List, Union
 
@@ -25,8 +26,21 @@ from pyannote.audio.pipelines.utils.hook import ProgressHook
 from tqdm import tqdm
 
 
+class LockManager:
+    def __init__(self) -> None:
+        self.lock = threading.Lock()
+
+    @contextmanager
+    def rich_live_lock(self, should_lock: bool):
+        if should_lock:
+            with self.lock:
+                yield
+        else:
+            yield
+
+
 class FasterWhisper:
-    def __init__(self, model_size="large-v3", local_files_only=True) -> None:
+    def __init__(self, model_size="large-v3", local_files_only=True, enable_lock_for_rich=False) -> None:
         gpu_device_count = torch.cuda.device_count()
         self.model = WhisperModel(
             model_size,
@@ -36,6 +50,8 @@ class FasterWhisper:
             device_index=list(range(gpu_device_count))[::-1],
         )
         self.pyannote_pipeline = None
+        self.enable_lock_for_rich = enable_lock_for_rich
+        self.lock_manager = LockManager()
 
     def transcribe(self, media_path, word_timestamps=True, language=None, vad_filter=True):
         segments, info = self.model.transcribe(
@@ -124,12 +140,13 @@ class FasterWhisper:
 
         if force_align:
             try:
-                print("开始使用stable-ts提升字幕精度...")
-                segments = stable_whisper.transcribe_any(
-                    lambda audio, **kwargs: [[{"word": j.word, "start": j.start, "end": j.end} for j in i.words] for i in segments],  # type: ignore
-                    media_path,
-                    regroup=True if regroup_eng and info.language == "en" else False,
-                ).segments
+                with self.lock_manager.rich_live_lock(self.enable_lock_for_rich):
+                    print("开始使用stable-ts提升字幕精度...")
+                    segments = stable_whisper.transcribe_any(
+                        lambda audio, **kwargs: [[{"word": j.word, "start": j.start, "end": j.end} for j in i.words] for i in segments],  # type: ignore
+                        media_path,
+                        regroup=True if regroup_eng and info.language == "en" else False,
+                    ).segments
             except Exception as e:
                 print(f"矫正字幕时出错，取消矫正，原因为：{e}")
 
@@ -203,8 +220,9 @@ class FasterWhisper:
             except:
                 print(f"pyannote pipeline绑定GPU失败...")
                 traceback.print_exc()
-        with ProgressHook() as hook:
-            diarization = self.pyannote_pipeline(audio_path, hook=hook)
+        with self.lock_manager.rich_live_lock(self.enable_lock_for_rich):
+            with ProgressHook() as hook:
+                diarization = self.pyannote_pipeline(audio_path, hook=hook)
         if with_png:
             png_data = diarization._repr_png_()
             with open(png_path, "wb") as f:
