@@ -105,7 +105,9 @@
         #videoFileNameContainer {
             display: flex;
             flex-direction: row-reverse;
+            justify-content: space-between;
             margin: 10px;
+            font-weight: 800;
         }
 
         .videoFileNameContainer-alternative-margin {
@@ -113,9 +115,12 @@
         }
 
         #videoFileName {
-
-            font-weight: 800;
             color: #28569F;
+        }
+
+        #videoDurationInfo {
+            color: #84509d;
+            margin-right: 20px;
         }
 
         #horizontal-divider {
@@ -419,6 +424,7 @@
             <!-- 添加一个元素用来显示视频文件名 -->
             <div id="videoFileNameContainer">
                 <span id="videoFileName"></span>
+                <span id="videoDurationInfo"></span>
             </div>
         </div>
         <div id="divider"></div>
@@ -1417,6 +1423,14 @@
                 subtitleImages.forEach(img => {
                     img.style.maxHeight = `${value}px`;
                 });
+            });
+
+            document.getElementById('video').addEventListener('loadedmetadata', function () {
+                const video = this;
+                const duration = video.duration;
+                const minutes = Math.floor((duration % 3600) / 60);
+                let timeString = `⏱️${minutes}min`;
+                document.getElementById('videoDurationInfo').textContent = timeString;
             });
 
         });
