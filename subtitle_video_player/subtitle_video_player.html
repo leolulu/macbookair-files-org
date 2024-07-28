@@ -123,6 +123,11 @@
             margin-right: 20px;
         }
 
+        #videoDurationInfoMin {
+            color: #bca8c5;
+            font-size: 10px;
+        }
+
         #horizontal-divider {
             cursor: ns-resize;
             border-top: 1px solid #aaa;
@@ -1429,8 +1434,7 @@
                 const video = this;
                 const duration = video.duration;
                 const minutes = Math.floor((duration % 3600) / 60);
-                let timeString = `⏱️${minutes}min`;
-                document.getElementById('videoDurationInfo').textContent = timeString;
+                document.getElementById('videoDurationInfo').innerHTML = `<span style="position: relative; top: -2px;">⏱️</span>${minutes}<span id="videoDurationInfoMin">min</span>`;
             });
 
         });
