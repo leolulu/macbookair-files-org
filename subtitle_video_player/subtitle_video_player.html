@@ -1434,7 +1434,7 @@
                 const video = this;
                 const duration = video.duration;
                 const minutes = Math.floor((duration % 3600) / 60);
-                document.getElementById('videoDurationInfo').innerHTML = `<span style="position: relative; top: -2px;">⏱️</span>${minutes}<span id="videoDurationInfoMin">min</span>`;
+                document.getElementById('videoDurationInfo').innerHTML = `${minutes}<span id="videoDurationInfoMin">min</span>`;
             });
 
         });
