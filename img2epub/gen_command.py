@@ -1,11 +1,11 @@
-from pathlib import Path
-import sys
 import os
 import shutil
+import subprocess
+import sys
 
 
 def gen_command(dir, name, max_size=float("inf")):
-    cmd_template = 'python Images_To_ePub.py -c -d "{d}" -f "{f}" -n "{n}"'
+    command_template = 'python Images_To_ePub.py -c -d "{d}" -f "{f}" -n "{n}"'
     base_dir = os.path.abspath(dir)
     folder_idx = 1
     batch_pics_size = 0
@@ -22,17 +22,20 @@ def gen_command(dir, name, max_size=float("inf")):
             batch_info.append([folder_idx, current_batch_folder_path])
         shutil.move(pic_file_path, current_batch_folder_path)
         batch_pics_size += pic_file_size
-    command = []
+    commands = []
     for idx, batch_folder_path in batch_info:
-        command.append(
-            cmd_template.format(
+        commands.append(
+            command_template.format(
                 d=batch_folder_path,
                 n=(n := f"{name}-{str(idx).zfill(2)}"),
                 f=os.path.join(base_dir, f"{n}.epub"),
             )
         )
     print("指令生成: ")
-    print(" & ".join(command))
+    print(" & ".join(commands))
+    print("\n指令运行: ")
+    for cmd in commands:
+        subprocess.run(cmd, shell=True)
 
 
 if __name__ == "__main__":
