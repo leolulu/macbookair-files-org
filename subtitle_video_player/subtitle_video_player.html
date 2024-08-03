@@ -1433,7 +1433,7 @@
             document.getElementById('video').addEventListener('loadedmetadata', function () {
                 const video = this;
                 const duration = video.duration;
-                const minutes = Math.floor((duration % 3600) / 60);
+                const minutes = Math.round(duration / 60);
                 document.getElementById('videoDurationInfo').innerHTML = `${minutes}<span id="videoDurationInfoMin">min</span>`;
             });
 
