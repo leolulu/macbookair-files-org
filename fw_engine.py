@@ -17,6 +17,7 @@ from typing import Iterable, List, Union
 
 import stable_whisper
 import torch
+import torchaudio
 import zhconv
 from faster_whisper import WhisperModel
 from faster_whisper.audio import decode_audio
@@ -209,7 +210,7 @@ class FasterWhisper:
 
     def get_diarization(self, media_path, move_result_file_callback, with_png):
         png_path = os.path.splitext(os.path.basename(media_path))[0] + ".png"
-        audio_path, temp_dir_for_mp3 = self.media_to_mp3(media_path)
+        audio_path, temp_dir_for_wav = self.media_to_wav(media_path)
         if not self.pyannote_pipeline:
             self.pyannote_pipeline = Pipeline.from_pretrained(
                 "pyannote/speaker-diarization-3.1", use_auth_token="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"
@@ -217,18 +218,21 @@ class FasterWhisper:
             try:
                 if not re.search("RTX 3060", torch.cuda.get_device_name()):
                     self.pyannote_pipeline.to(torch.device("cuda"))
+                    print(f"尝试绑定pyannote pipeline到GPU")
             except:
                 print(f"pyannote pipeline绑定GPU失败...")
                 traceback.print_exc()
         with self.lock_manager.rich_live_lock(self.enable_lock_for_rich):
+            waveform, sample_rate = torchaudio.load(audio_path)
+            print(f"预加载音频到内存")
             with ProgressHook() as hook:
-                diarization = self.pyannote_pipeline(audio_path, hook=hook)
+                diarization = self.pyannote_pipeline({"waveform": waveform, "sample_rate": sample_rate}, hook=hook)
         if with_png:
             png_data = diarization._repr_png_()
             with open(png_path, "wb") as f:
                 f.write(png_data)
             move_result_file_callback(png_path, media_path=media_path)
-        temp_dir_for_mp3.cleanup()
+        temp_dir_for_wav.cleanup()
         return [(i[0].start, i[0].end, i[2]) for i in diarization.itertracks(yield_label=True)]
 
     def get_video_duration(self, video_path):
@@ -240,12 +244,27 @@ class FasterWhisper:
         else:
             raise UserWarning(f"无法正确获取视频时长:\n{output}")
 
-    def media_to_mp3(self, video_path):
-        temp_dir_for_mp3 = tempfile.TemporaryDirectory()
-        mp3_path = os.path.join(temp_dir_for_mp3.name, os.path.splitext(os.path.basename(video_path))[0] + ".mp3")
-        cmd = ["ffmpeg", "-i", video_path, "-q:a", "0", "-map", "a", "-loglevel", "warning", mp3_path]
+    def media_to_wav(self, video_path):
+        temp_dir_for_wav = tempfile.TemporaryDirectory()
+        wav_path = os.path.join(temp_dir_for_wav.name, os.path.splitext(os.path.basename(video_path))[0] + ".wav")
+        cmd = [
+            "ffmpeg",
+            "-i",
+            video_path,
+            "-ac",
+            "1",
+            "-ar",
+            "16000",
+            "-acodec",
+            "pcm_s16le",
+            "-map",
+            "a",
+            "-loglevel",
+            "warning",
+            wav_path,
+        ]
         subprocess.run(cmd)
-        return mp3_path, temp_dir_for_mp3
+        return wav_path, temp_dir_for_wav
 
     def detect_language(self, media_path):
         audio = os.path.abspath(media_path)
