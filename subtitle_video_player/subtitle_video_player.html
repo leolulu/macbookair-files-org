@@ -158,6 +158,11 @@
             max-width: 3rem;
         }
 
+        .none-blur {
+            filter: blur(0px);
+            transition: filter 0.5s ease;
+        }
+
         .censored {
             filter: blur(5px);
             transition: filter 0.2s ease;
@@ -419,6 +424,10 @@
                 <div class="inline-block-element">
                     <label for="toggleSubtileShade">字幕遮罩器</label>
                     <input type="checkbox" id="toggleSubtileShade" />
+                </div>
+                <div class="inline-block-element">
+                    <label for="blurAllSub">模糊侧边字幕</label>
+                    <input type="checkbox" id="blurAllSub" />
                 </div>
             </div>
             <div class="progress-container" id="progress-container">
@@ -1439,6 +1448,18 @@
 
             document.getElementById('video').addEventListener('loadstart', function () {
                 document.getElementById('videoDurationInfo').innerHTML = "⏱️";
+            });
+
+            $('#blurAllSub').change(function () {
+                if ($(this).is(':checked')) {
+                    $('.subtitle').addClass('censored');
+                } else {
+                    $('.subtitle').addClass('none-blur');
+                    $('.subtitle').removeClass('censored');
+                    setTimeout(() => {
+                        $('.subtitle').removeClass('none-blur');
+                    }, 500);
+                }
             });
 
         });
