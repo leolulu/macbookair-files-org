@@ -311,6 +311,7 @@ def generate_thumbnail(
     skip_completed_file=False,
     pic_thumbnail_only=False,
     video_thumbnail_only=False,
+    delete_seg_file_in_full_mode=False,
 ):
     if skip_completed_file and any(map(os.path.exists, [os.path.splitext(video_path)[0] + i for i in [".tbnl", ".jpg"]])):
         print(f"视频【{video_path}】已经存在结果文件，跳过...")
@@ -357,6 +358,8 @@ def generate_thumbnail(
             command = f'ffmpeg -ss {seg_start_time} -to {seg_end_time} -accurate_seek -i "{video_path}" -c copy -map_chapters -1 -y -avoid_negative_ts 1 "{seg_file_path}"'
             subprocess.run(command, shell=True)
             process_video(seg_file_path, rows_calced, cols_calced, start_offset=round(seg_start_time))
+            if delete_seg_file_in_full_mode:
+                os.remove(seg_file_path)
             seg_start_time = seg_end_time
             n += 1
     else:
@@ -389,6 +392,7 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--pic_only", help="只生成图像缩略图，不生成视频缩略图", action="store_true")
     parser.add_argument("-v", "--video_only", help="只生成视频缩略图，不生成图像缩略图", action="store_true")
     parser.add_argument("-r", "--recursion", help="如果输入路径为目录，则递归处理子目录", action="store_true")
+    parser.add_argument("-d", "--full_delete_mode", help="删除full模式产生的seg视频文件", action="store_true")
     args = parser.parse_args()
 
     if args.pic_only and args.video_only:
@@ -437,6 +441,7 @@ if __name__ == "__main__":
                             args.skip,
                             args.pic_only,
                             args.video_only,
+                            args.full_delete_mode,
                         )
             else:
                 for video_path in video_paths:
@@ -454,6 +459,7 @@ if __name__ == "__main__":
                             args.skip,
                             args.pic_only,
                             args.video_only,
+                            args.full_delete_mode,
                         )
                     except:
                         traceback.print_exc()
@@ -482,6 +488,7 @@ if __name__ == "__main__":
                 args.skip,
                 args.pic_only,
                 args.video_only,
+                args.full_delete_mode,
             )
         else:
             generate_thumbnail(
@@ -497,6 +504,7 @@ if __name__ == "__main__":
                 args.skip,
                 args.pic_only,
                 args.video_only,
+                args.full_delete_mode,
             )
 
     if args.video_path is None:
@@ -528,6 +536,7 @@ if __name__ == "__main__":
                         pic_only=args.pic_only,
                         video_only=args.video_only,
                         recursion=args.recursion,
+                        full_delete_mode=args.full_delete_mode,
                     ),
                 ),
             ).start()
