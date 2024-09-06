@@ -57,7 +57,7 @@ def extract_subtitles(input_file, language_filter=[]):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python script.py input_file.mkv")
+        print("Usage: python script.py input_file.mkv [lang1[,lang2,...]]")
         sys.exit(1)
 
     input_path = os.path.abspath(sys.argv[1])
