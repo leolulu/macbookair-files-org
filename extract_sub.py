@@ -25,7 +25,7 @@ def extract_subtitles(input_file, language_filter=[]):
         "-loglevel",
         "error",
         "-show_entries",
-        "stream=index,codec_name:stream_tags=language",
+        "stream=index,codec_name:stream_tags=language,title",
         "-select_streams",
         "s",
         "-of",
@@ -40,6 +40,7 @@ def extract_subtitles(input_file, language_filter=[]):
         index = stream["index"]
         codec_name = stream["codec_name"]
         language = stream.get("tags", {}).get("language", "unk")
+        sub_title = stream.get("tags", {}).get("title", "unk")
         if language_filter and all(not acceptable_language_fragment in language for acceptable_language_fragment in language_filter):
             continue
 
@@ -47,7 +48,7 @@ def extract_subtitles(input_file, language_filter=[]):
         extension = get_subtitle_extension(codec_name)
 
         # 设置输出文件名
-        output_file = f"{input_file.rsplit('.', 1)[0]}_{language}.{extension}"
+        output_file = f"{input_file.rsplit('.', 1)[0]}_{language}_{sub_title.replace(" ", "_")}.{extension}"
 
         # 使用 ffmpeg 提取字幕
         print(f"Extracting subtitles to {output_file}")
