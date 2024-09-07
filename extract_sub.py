@@ -48,7 +48,7 @@ def extract_subtitles(input_file, language_filter=[]):
         extension = get_subtitle_extension(codec_name)
 
         # 设置输出文件名
-        output_file = f"{input_file.rsplit('.', 1)[0]}_{language}_{sub_title.replace(" ", "_")}.{extension}"
+        output_file = f"{input_file.rsplit('.', 1)[0]}_{language}〔{sub_title}〕.{extension}"
 
         # 使用 ffmpeg 提取字幕
         print(f"Extracting subtitles to {output_file}")
