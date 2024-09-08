@@ -1,4 +1,5 @@
 import subprocess
+from threading import Thread
 
 from flask import Flask, request
 
@@ -20,7 +21,12 @@ def download_video():
     video_url = payload["video_url"]
     download_dir = r"\\192.168.123.222\dufs\faster_whisper_result"
     download_command = f'python yt_dlp_tool.py --dl_dir "{download_dir}" "{video_url}"'
-    subprocess.Popen(download_command, shell=True)
+
+    def run_command():
+        s = subprocess.run(download_command, shell=True, capture_output=True, text=True)
+        print(video_url, s.stdout, s.stderr)
+
+    Thread(target=run_command).start()
     return "Download process started", 200
 
 
