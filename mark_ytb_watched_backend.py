@@ -20,8 +20,7 @@ def download_video():
     video_url = payload["video_url"]
     download_dir = r"\\192.168.123.222\dufs\faster_whisper_result"
     download_command = f'python yt_dlp_tool.py --dl_dir "{download_dir}" "{video_url}"'
-    s = subprocess.run(download_command, shell=True, capture_output=True, text=True)
-    print(video_url, s.stdout, s.stderr)
+    subprocess.Popen(download_command, shell=True)
     return "Download process started", 200
 
 
