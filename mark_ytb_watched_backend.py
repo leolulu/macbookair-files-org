@@ -1,5 +1,6 @@
-from flask import Flask, request
 import subprocess
+
+from flask import Flask, request
 
 app = Flask(__name__)
 
@@ -11,6 +12,17 @@ def mark_video_watched():
     s = subprocess.run(f'python yt_dlp_tool.py -d "{video_url}"', shell=True)
     print(video_url, s.stdout, s.stderr)
     return "ok", 200
+
+
+@app.route("/mark_and_download", methods=["POST"])
+def download_video():
+    payload = request.form
+    video_url = payload["video_url"]
+    download_dir = r"\\192.168.123.222\dufs\faster_whisper_result"
+    download_command = f'python yt_dlp_tool.py --dl_dir "{download_dir}" "{video_url}"'
+    s = subprocess.run(download_command, shell=True, capture_output=True, text=True)
+    print(video_url, s.stdout, s.stderr)
+    return "Download process started", 200
 
 
 @app.route("/mark_video_watched", methods=["GET"])
