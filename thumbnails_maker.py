@@ -20,6 +20,39 @@ from retrying import retry
 from tqdm import tqdm
 
 
+class ConcatPrioritizer:
+    def __init__(self) -> None:
+        self.condition = threading.Condition()
+        self.running_count = 0
+        self.concat_lock = threading.Lock()
+
+    def begin_concat(self):
+        with self.condition:
+            self.running_count += 1
+        self.concat_lock.acquire()
+
+    def end_concat(self):
+        with self.condition:
+            self.running_count -= 1
+            if self.running_count == 0:
+                self.condition.notify_all()
+        self.concat_lock.release()
+
+    def block_if_concatting(self):
+        with self.condition:
+            if self.running_count > 0:
+                self.condition.wait()
+
+    def __enter__(self):
+        self.begin_concat()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.end_concat()
+
+
+concat_prioritizer = ConcatPrioritizer()
+
+
 def check_video_corrupted(video_file_path):
     command = f'ffprobe "{video_file_path}"'
     try:
@@ -182,8 +215,13 @@ def gen_video_thumbnail(
         gen_footage_command += f'"{output_file_path}"'
         intermediate_file_paths.append(output_file_path)
         gen_footage_commands.append(gen_footage_command)
+
+    def run_with_blocking(command):
+        concat_prioritizer.block_if_concatting()
+        subprocess.run(command, shell=True)
+
     with ThreadPoolExecutor(low_load_mode if low_load_mode else os.cpu_count()) as exe:
-        exe.map(lambda c: subprocess.run(c, shell=True), gen_footage_commands)
+        exe.map(run_with_blocking, gen_footage_commands)
 
     # 检查中间文件是否损坏
     print("开始检查中间文件是否损坏...")
@@ -232,7 +270,8 @@ def gen_video_thumbnail(
     command += f' -map "[out_final]" -preset {preset} -c:a copy -movflags +faststart -y '
     command += f' "{temp_output_path_video}"'
     print(f"生成动态缩略图指令：{command}")
-    subprocess.call(command, shell=True)
+    with concat_prioritizer:
+        subprocess.call(command, shell=True)
 
     threading.Thread(
         target=move_with_optional_security,
