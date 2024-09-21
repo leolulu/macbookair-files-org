@@ -41,12 +41,12 @@ class LockManager:
 
 
 class FasterWhisper:
-    def __init__(self, model_size="large-v3", local_files_only=True, enable_lock_for_rich=False) -> None:
+    def __init__(self, model_size="large-v3", local_files_only=True, enable_lock_for_rich=False, compute_type="float16") -> None:
         gpu_device_count = torch.cuda.device_count()
         self.model = WhisperModel(
             model_size,
             device="cuda",
-            compute_type="float16",
+            compute_type=compute_type,
             local_files_only=local_files_only,
             device_index=list(range(gpu_device_count))[::-1],
         )
