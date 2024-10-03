@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - setup-new-action
 
 jobs:
   checkout-and-publish:
