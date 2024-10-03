@@ -429,6 +429,7 @@
                     <label for="blurAllSub">模糊侧边字幕</label>
                     <input type="checkbox" id="blurAllSub" />
                 </div>
+                <button id="cycleSubtitlesWidth">调整字幕区宽度</button>
             </div>
             <div class="progress-container" id="progress-container">
                 <div class="progress-bar" id="progress-bar"></div>
@@ -1461,6 +1462,29 @@
                     }, 500);
                 }
             });
+
+            (function () {
+                const subtitlesWidthSequence = [50, 60, 70, 80, 40, 30, 20];
+                let currentWidthIndex = 0; 
+
+                const cycleButton = $('#cycleSubtitlesWidth');
+
+                cycleButton.on('click', function () {
+                    const windowWidth = window.innerWidth;
+                    const dividerWidth = $('#divider').width();
+
+                    const newSubtitlesWidthPercent = subtitlesWidthSequence[currentWidthIndex];
+                    const newSubtitlesWidthPx = (newSubtitlesWidthPercent / 100) * windowWidth;
+                    const newVideoPlayerWidthPx = windowWidth - newSubtitlesWidthPx - dividerWidth;
+
+                    $('#subtitles').css('width', newSubtitlesWidthPx + 'px');
+                    $('#video-player').css('width', newVideoPlayerWidthPx + 'px');
+
+                    cycleButton.text(`当前宽度: ${subtitlesWidthSequence[currentWidthIndex]}%`);
+
+                    currentWidthIndex = (currentWidthIndex + 1) % subtitlesWidthSequence.length;
+                });
+            })();
 
         });
     </script>
