@@ -6,7 +6,7 @@ on:
       - test
 
 jobs:
-  test echo:
+  test_echo:
     runs-on: ubuntu-latest
 
 
